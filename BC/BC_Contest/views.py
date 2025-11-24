@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.shortcuts import render
 
 def index(request):
-    return HttpResponse("<h1>서비스 준비중입니다..</h1>")
+    return render(request, "index.html")
