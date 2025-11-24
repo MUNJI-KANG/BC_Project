@@ -1,7 +1,5 @@
 from django.db import models
-from member.models import Member
-from recruitment.models import Community
-from board.models import Article
+
 
 # Create your models here.
 # -----------------------------------------------------
@@ -13,9 +11,9 @@ class Comment(models.Model):
     reg_date = models.DateTimeField(auto_now_add=True)
     delete_date = models.DateTimeField(null=True, blank=True, unique=True)
 
-    member_id = models.ForeignKey(Member)
-    community_id = models.ForeignKey(Community, null=True, blank=True)
-    article_id = models.ForeignKey(Article, null=True, blank=True, on_delete=models.CASCADE)
+    member_id = models.ForeignKey("member.Member", on_delete=models.DO_NOTHING)
+    community_id = models.ForeignKey("recruitment.Community", null=True, blank=True, on_delete=models.DO_NOTHING)
+    article_id = models.ForeignKey("board.Article", null=True, blank=True, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "comment"
@@ -34,8 +32,8 @@ class AddInfo(models.Model):
     encoded_name = models.CharField(max_length=200)
     reg_date = models.DateTimeField(auto_now_add=True)
 
-    article_id = models.ForeignKey(Article, null=True, blank=True, on_delete=models.SET_NULL)
-    community_id = models.ForeignKey(Community, null=True, blank=True, on_delete=models.SET_NULL)
+    article_id = models.ForeignKey("board.Article", null=True, blank=True, on_delete=models.SET_NULL)
+    community_id = models.ForeignKey("recruitment.Community", null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         db_table = "add_info"

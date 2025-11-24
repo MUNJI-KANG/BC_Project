@@ -1,5 +1,4 @@
 from django.db import models
-from member.models import Member
 
 # Board (게시판)
 # -----------------------------------------------------
@@ -28,7 +27,7 @@ class Article(models.Model):
     end_date = models.DateTimeField(null=True, blank=True)
     always_on = models.IntegerField(default=1)              # 상시표시 (0=상시표시, 1=상시표시x)
 
-    member_id = models.ForeignKey(Member)
+    member_id = models.ForeignKey("member.Member", on_delete=models.DO_NOTHING)
     board_id = models.ForeignKey(Board, on_delete=models.CASCADE)
 
     etc_int1 = models.IntegerField(null=True, blank=True)

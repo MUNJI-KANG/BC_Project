@@ -1,5 +1,4 @@
 from django.db import models
-from member.models import Member
 
 
 # Reservation (예약)
@@ -13,7 +12,7 @@ class Reservation(models.Model):
     reg_date = models.DateTimeField(auto_now_add=True)
     delete_date = models.DateTimeField(null=True, blank=True)
 
-    member = models.ForeignKey(Member)
+    member = models.ForeignKey("member.Member", on_delete=models.DO_NOTHING)
     class Meta:
         db_table = "reservation"
 

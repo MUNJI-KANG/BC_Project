@@ -1,6 +1,5 @@
 from django.db import models
-from member.models import Member
-from reservation.models import Reservation
+
 
 # Community (모집글)
 # -----------------------------------------------------
@@ -18,8 +17,8 @@ class Community(models.Model):
     update_date = models.DateTimeField(auto_now=True)
     delete_date = models.DateTimeField(null=True, blank=True)
 
-    member_id = models.ForeignKey(Member, on_delete=models.CASCADE)
-    reservation_id = models.ForeignKey(Reservation, null=True, blank=True, on_delete=models.SET_NULL)
+    member_id = models.ForeignKey("member.Member", on_delete=models.CASCADE)
+    reservation_id = models.ForeignKey("reservation.Reservation", null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         db_table = "community"
@@ -47,7 +46,7 @@ class Rating(models.Model):
     user_id = models.CharField(max_length=20)
     rated = models.IntegerField(default=0)
     comments = models.TextField()
-    community_id = models.ForeignKey(Community)
+    community_id = models.ForeignKey(Community, on_delete=models.DO_NOTHING)
     class Meta:
         db_table = "rating"
 
@@ -57,7 +56,7 @@ class Rating(models.Model):
 # JoinStat (참석 여부) — 복합 PK
 # -----------------------------------------------------
 class JoinStat(models.Model):
-    member_id = models.ForeignKey(Member, on_delete=models.CASCADE)
+    member_id = models.ForeignKey("member.Member", on_delete=models.CASCADE)
     community_id = models.ForeignKey(Community, on_delete=models.CASCADE)
     join_status = models.IntegerField(default=0)
 
