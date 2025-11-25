@@ -1,11 +1,116 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>로그인</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로그인 - 할래말래</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/login.css' %}" />
 </head>
 <body>
-    login
+  <!-- 헤더 -->
+  <header class="header">
+    <div class="header__left">
+      <div class="header__logo" onclick="window.location.href='/'">로고</div>
+    </div>
+    <h1 class="header__page-title">할래말래</h1>
+    <button class="header__menu-btn" id="menuBtn" aria-label="메뉴">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <button class="header__login-btn" onclick="window.location.href='/'">홈으로</button>
+  </header>
+
+  <!-- 모바일 메뉴 오버레이 -->
+  <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
+  <!-- 로그인 컨테이너 -->
+  <div class="login-container">
+    <div class="login-wrapper">
+      <!-- 브랜딩 영역 (PC만 표시) -->
+      <div class="login-brand">
+        <h2>할래말래</h2>
+        <p>스포츠 시설을 쉽고 빠르게 예약하세요</p>
+        <ul class="login-brand-features">
+          <li>간편한 온라인 예약</li>
+          <li>다양한 스포츠 시설</li>
+          <li>실시간 예약 현황</li>
+          <li>안전한 결제 시스템</li>
+        </ul>
+      </div>
+      
+      <!-- 로그인 카드 -->
+      <div class="login-card">
+      <div class="login-header">
+        <h1>로그인</h1>
+        <p>할래말래에 오신 것을 환영합니다</p>
+      </div>
+      
+      <form class="login-form" method="post" action="/login">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label" for="username">아이디</label>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            class="form-input" 
+            placeholder="아이디를 입력하세요"
+            required
+          />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="password">비밀번호</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            class="form-input" 
+            placeholder="비밀번호를 입력하세요"
+            required
+          />
+        </div>
+        
+        <div class="form-options">
+          <label class="form-checkbox">
+            <input type="checkbox" name="remember" />
+            <span>로그인 상태 유지</span>
+          </label>
+          <div class="form-links">
+            <a href="#" class="form-link">ID 찾기</a>
+            <span class="form-link-divider"></span>
+            <a href="#" class="form-link">비밀번호 찾기</a>
+          </div>
+        </div>
+        
+        <button type="submit" class="login-btn">로그인</button>
+      </form>
+      
+      <div class="divider">또는</div>
+      
+      <div class="social-login">
+        <button type="button" class="social-btn">
+          <span>🔵</span>
+          카카오로 로그인
+        </button>
+        <button type="button" class="social-btn">
+          <span>🟢</span>
+          네이버로 로그인
+        </button>
+      </div>
+      
+      <div class="signup-link">
+        아직 회원이 아니신가요?
+        <a href="/signup">회원가입</a>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>
