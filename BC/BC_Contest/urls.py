@@ -28,4 +28,6 @@ urlpatterns = [
     path('member/', include("member.urls")), 
     path('recruitment/', include("recruitment.urls")), 
     path('reservation/', include("reservation.urls")), 
+    path('common/', include("common.urls")), 
+    path('facility/', include("facility.urls")), 
 ]

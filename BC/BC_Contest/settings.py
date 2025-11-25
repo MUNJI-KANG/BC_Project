@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'member',
     'recruitment',
     'reservation',
-    'common'
+    'common',
+    'facility'
 ]
 
 MIDDLEWARE = [
