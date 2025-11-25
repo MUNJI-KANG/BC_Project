@@ -11,7 +11,7 @@
    PC에서 signup 페이지는 기존 네비게이션 숨기기
 --------------------------------------------------------- */
 @media (min-width: 769px) {
-  .register-page .header__nav {
+  .findID-page .header__nav {
     display: none !important;
     visibility: hidden !important;
   }
@@ -20,7 +20,7 @@
 /* --------------------------------------------------------
    헤더의 홈 버튼
 --------------------------------------------------------- */
-.header__register-btn {
+.header__findID-btn {
   padding: 10px 20px;
   border: 1px solid var(--color-soft-gray-line);
   background: var(--color-card-box);
@@ -32,7 +32,7 @@
   flex-shrink: 0;
 }
 
-.header__register-btn:hover {
+.header__findID-btn:hover {
   background: var(--color-deep-blue);
   color: var(--color-card-box);
   border-color: var(--color-deep-blue);
@@ -41,7 +41,7 @@
 /* --------------------------------------------------------
    회원가입 페이지 레이아웃
 --------------------------------------------------------- */
-.register-container {
+.findID-container {
   min-height: calc(100vh - 200px);
   display: flex;
   align-items: center;
@@ -49,7 +49,7 @@
   padding: var(--spacing-2xl) var(--spacing-lg);
 }
 
-.register-wrapper {
+.findID-wrapper {
   width: 100%;
   max-width: 1000px;
   display: grid;
@@ -60,7 +60,7 @@
 /* --------------------------------------------------------
    회원가입 카드
 --------------------------------------------------------- */
-.register-card {
+.findID-card {
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
@@ -73,17 +73,17 @@
 
 /* PC 레이아웃 */
 @media (min-width: 1024px) {
-  .register-wrapper {
+  .findID-wrapper {
     grid-template-columns: 1.2fr 1fr;
     gap: var(--spacing-2xl);
     max-width: 1200px;
   }
 
-  .register-card {
+  .findID-card {
     max-width: 100%;
   }
 
-  .register-brand {
+  .findID-brand {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -92,29 +92,29 @@
     color: var(--color-background);
   }
 
-  .register-brand h2 {
+  .findID-brand h2 {
     font-size: 48px;
     font-weight: 900;
     margin-bottom: var(--spacing-lg);
   }
 
-  .register-brand p {
+  .findID-brand p {
     font-size: 18px;
     line-height: 1.8;
     margin-bottom: var(--spacing-xl);
   }
 
-  .register-brand-features {
+  .findID-brand-features {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
   }
 
-  .register-brand-features li {
+  .findID-brand-features li {
     font-size: 16px;
   }
 
-  .register-brand-features li::before {
+  .findID-brand-features li::before {
     content: "✓";
     font-size: 20px;
     width: 28px;
@@ -129,7 +129,7 @@
 
 /* 모바일에서는 브랜드 숨김 */
 @media (max-width: 1023px) {
-  .register-brand {
+  .findID-brand {
     display: none;
   }
 }
@@ -137,12 +137,12 @@
 /* --------------------------------------------------------
    제목
 --------------------------------------------------------- */
-.register-header {
+.findID-header {
   text-align: center;
   margin-bottom: var(--spacing-2xl);
 }
 
-.register-header h1 {
+.findID-header h1 {
   font-size: 32px;
   font-weight: 900;
   margin-bottom: var(--spacing-sm);
@@ -151,16 +151,16 @@
   -webkit-text-fill-color: transparent;
 }
 
-.register-header p {
+.findID-header p {
   color: var(--text-tertiary);
   font-size: 14px;
 }
 
 @media (min-width: 1024px) {
-  .register-header h1 {
+  .findID-header h1 {
     font-size: 40px;
   }
-  .register-header p {
+  .findID-header p {
     font-size: 16px;
   }
 }
@@ -168,7 +168,7 @@
 /* --------------------------------------------------------
    Form 스타일
 --------------------------------------------------------- */
-.register-form {
+.findID-form {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
@@ -248,7 +248,7 @@
 }
 
 /* 제출 버튼 */
-.register-btn {
+.findID-btn {
   padding: 16px;
   margin-top: var(--spacing-sm);
   background: var(--color-deep-blue);
@@ -260,7 +260,7 @@
   transition: var(--transition-base);
 }
 
-.register-btn:hover {
+.findID-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
