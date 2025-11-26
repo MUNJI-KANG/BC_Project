@@ -50,26 +50,42 @@
         </section>
 
         <section class="search-list-section">
-            <h3 class="section-title">모집글 리스트</h3>
+            
+            <div class="sort-page-container">
+                
+                <!-- 정렬 선택 -->
+                <select class="search-dropdown" id="sortSelect">
+                    <option value="recent">최신순</option>
+                    <option value="title">제목순</option>
+                    <option value="views">조회수순</option>
+                </select>
+
+                <!-- <h3 class="section-title">모집글 리스트</h3> -->
+                <!-- 기존 페이지당 개수 선택 -->
+                <div class="page-selector">
+                    <select class="search-dropdown" id="perPageSelect">
+                        <option value="15">15개</option>
+                        <option value="30">30개</option>
+                        <option value="50">50개</option>
+                        <option value="100">100개</option>
+                    </select>
+                </div>
+            </div>
+            <hr class="dividing-line">
            <div class="facility-list" id="facilityList">
                 <ul>
-                    <li class="facility-item">
-                    <span class="facility-order">1</span>
-                    <span class="facility-title">강남구 테니스 같이 치실 분</span>
-                    <span class="facility-meta">
-                        <span class="facility-date">2025-11-26</span>
-                        <span class="facility-views">조회수 12</span>
-                    </span>
-                    </li>
-
-                    <li class="facility-item">
-                    <span class="facility-order">2</span>
-                    <span class="facility-title">역삼 배드민턴 복식 구해요</span>
-                    <span class="facility-meta">
-                        <span class="facility-date">2025-11-25</span>
-                        <span class="facility-views">조회수 34</span>
-                    </span>
-                    </li>
+                    {% for item in page_obj %}
+                        <li class="facility-item">
+                            <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
+                            <span class="facility-title">{{ item.title }}</span>
+                            <span class="facility-meta">
+                                <span class="facility-date">{{ item.date }}</span>
+                                <span class="facility-views">조회수 {{ item.views }}</span>
+                            </span>
+                        </li>
+                    {% empty %}
+                        <li>등록된 모집글이 없습니다.</li>
+                    {% endfor %}
                 </ul>
             </div>
 <!--
@@ -93,8 +109,35 @@ DB 작성후 예시
             <a href="/recruitment/write/" class="write-btn">작성하기</a>
         </div>
 
-       
+       <div class="pagination">
+
+            <!-- 🔹 이전 블록 -->
+            {% if block_start > 1 %}
+                <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}" class="page-btn arrow">◀ 이전</a>
+            {% else %}
+                <span class="page-btn arrow disabled">◀ 이전</span>
+            {% endif %}
+
+            <!-- 🔹 페이지 번호 5개씩 블록 -->
+            {% for num in block_range %}
+                {% if num == page_obj.number %}
+                    <span class="page-btn active">{{ num }}</span>
+                {% else %}
+                    <a href="?page={{ num }}&per_page={{ per_page }}" class="page-btn">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            <!-- 🔹 다음 블록 -->
+            {% if block_end < paginator.num_pages %}
+                <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}" class="page-btn arrow">다음 ▶</a>
+            {% else %}
+                <span class="page-btn arrow disabled">다음 ▶</span>
+            {% endif %}
+
+        </div>
     </div>
 </div>
+
+
 
 {% endblock %}
