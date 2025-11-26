@@ -345,7 +345,7 @@
         background: var(--color-card-box);
         width: 100%;
         flex-shrink: 0;
-        border-bottom: 1px solid(var(--color-soft-gray-line));
+        border-bottom: 1px solid var(--color-soft-gray-line);
     }
 
     .mobile-menu-divider {

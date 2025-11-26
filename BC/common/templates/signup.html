@@ -3,6 +3,9 @@
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/signup.css' %}" />
 {% endblock %}
+{% block script1 %}
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+{% endblock %}
 {% block title %}
 회원가입 - 할래말래
 {% endblock %}
@@ -86,7 +89,7 @@
           <label class="form-label">주소</label>
           <div class="form-row">
             <input type="text" id="address" name="address" class="form-input" placeholder="주소 검색 버튼을 눌러주세요" readonly />
-            <button type="button" class="check-btn small-btn">주소 검색</button>
+            <button type="button" id="addressSearchBtn" class="check-btn small-btn">주소 검색</button>
           </div>
         </div>
 
@@ -113,4 +116,29 @@
 
   </div> <!-- register-wrapper -->
 </div> <!-- register-container -->
+
+<script>
+// 주소 검색 버튼 클릭 이벤트
+document.getElementById('addressSearchBtn').addEventListener('click', function() {
+  new daum.Postcode({
+    oncomplete: function(data) {
+      // 우편번호는 사용하지 않으므로 주소만 사용
+      let addr = '';
+      
+      // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+      if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+        addr = data.roadAddress;
+      } else { // 사용자가 지번 주소를 선택했을 경우(J)
+        addr = data.jibunAddress;
+      }
+      
+      // 주소 필드에 값 설정
+      document.getElementById('address').value = addr;
+      
+      // 상세주소 필드에 포커스
+      document.getElementById('address_detail').focus();
+    }
+  }).open();
+});
+</script>
 {% endblock %}

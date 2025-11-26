@@ -178,12 +178,14 @@
   
   .header__submenu li a {
     display: block;
-    padding: var(--spacing-sm) var(--spacing-xl) var(--spacing-sm) calc(var(--spacing-xl) + var(--spacing-lg));
+    padding: var(--spacing-sm) var(--spacing-xl);
     font-size: 14px;
     color: var(--color-text-secondary);
     text-decoration: none;
     border-bottom: 1px solid var(--color-soft-gray-line);
     transition: all 0.2s ease;
+    box-sizing: border-box;
+    width: 100%;
   }
   
   .header__submenu li:last-child a {

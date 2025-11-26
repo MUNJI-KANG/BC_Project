@@ -1,4 +1,13 @@
 from django.shortcuts import render
 
-def base(request):
-    return render('', 'base.html')
+def notice(request):
+    return render(request, 'notice.html')
+
+def event(request):
+    return render(request, 'event.html')
+
+def post(request):
+    return render(request, 'post.html')
+
+def faq(request):
+    return render(request, 'faq.html')
