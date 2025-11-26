@@ -224,7 +224,7 @@
 .login-btn {
   padding: 16px;
   background: var(--color-deep-blue);
-  color: var(--color-white);
+  color: white;
   border: none;
   font-size: 16px;
   font-weight: 700;

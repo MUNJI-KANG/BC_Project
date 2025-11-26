@@ -31,16 +31,73 @@
           <p>할래말래에 오신 것을 환영합니다</p>
         </div>
 
-        <form class="findID-form" method="post">
+      <form class="findID-form" method="post">
+        {% csrf_token %}
+        
+        <!-- 이름 -->
+        <div class="form-group">
+          <label class="form-label" for="username">이름</label>
+          <input 
+            type="text"
+            id="name"
+            name="name"
+            class="form-input"
+            placeholder="이름을 입력해주세요."
+            required
+          />
+        </div>
 
+        <!-- 생년월일 -->
+        <div class="form-group">
+          <label class="form-label" for="username">생년월일</label>
+          <input 
+            type="text"
+            id="birthday"
+            name="birthday"
+            class="form-input"
+            placeholder="ex) 20020528"
+            required
+          />
+        </div>
 
+        <!-- 전화번호 -->
+        <div class="form-group">
+            <label class="form-label">전화번호</label>
+            <div class="form-row phone-row">
+                <input type="text" name="phone1" class="form-input phone1" placeholder="010" maxlength="3" required>
+                <span class="phone-dash">-</span>
+                <input type="text" name="phone2" class="form-input phone2" placeholder="0000" maxlength="4" required>
+                <span class="phone-dash">-</span>
+                <input type="text" name="phone3" class="form-input phone3" placeholder="0000" maxlength="4" required>
+            </div>
+        </div>
 
-        </form>
+        <!-- 제출 버튼 -->
+      <button type="submit" class="findID-btn" method="POST">아이디 찾기</button>
+
+      </form>
+
+      <div class="findID-links">
+          <a href="/findPW" class="form-link">PW 찾기</a>
+          <span class="form-link-divider"></span>
+          <a href="/login" class="form-link">로그인</a>
+          <span class="form-link-divider"></span>
+          <a href="/signup" class="form-link">회원가입</a>
+      </div>
+
       </div>
 
     </div> <!-- findID-wrapper -->
   </div> <!-- findID-container -->
+  
+  <script>
+    {% if error %}
+        alert("{{ error|escapejs }}");
+    {% endif %}
+    
+    {% if result_id %}
+        alert("회원님의 아이디는 '{{ result_id|escapejs }}' 입니다.");
+        window.location.href = "/login";
+    {% endif %}
+  </script>
 {% endblock %}
-
- 
-

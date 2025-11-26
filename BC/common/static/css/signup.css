@@ -7,9 +7,7 @@
   padding: 0;
 }
 
-/* --------------------------------------------------------
-   PC에서 signup 페이지는 기존 네비게이션 숨기기
---------------------------------------------------------- */
+/* PC — 회원가입 페이지에서 네비게이션 숨기기 */
 @media (min-width: 769px) {
   .register-page .header__nav {
     display: none !important;
@@ -39,7 +37,7 @@
 }
 
 /* --------------------------------------------------------
-   회원가입 페이지 레이아웃
+   회원가입 레이아웃
 --------------------------------------------------------- */
 .register-container {
   min-height: calc(100vh - 200px);
@@ -58,20 +56,18 @@
 }
 
 /* --------------------------------------------------------
-   회원가입 카드
+   카드 (left: 브랜드 / right: form)
 --------------------------------------------------------- */
 .register-card {
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
   background: var(--color-card-box);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-2xl);
-  box-shadow: var(--shadow-xl);
   border: 1px solid var(--color-soft-gray-line);
+  padding: var(--spacing-2xl);
 }
 
-/* PC 레이아웃 */
+/* PC 배치 / 브랜드 영역 */
 @media (min-width: 1024px) {
   .register-wrapper {
     grid-template-columns: 1.2fr 1fr;
@@ -88,8 +84,12 @@
     flex-direction: column;
     justify-content: center;
     padding: var(--spacing-2xl);
-    background: linear-gradient(135deg, var(--color-muted-blue) 0%, var(--color-muted-green) 100%);
-    color: var(--color-background);
+    background: linear-gradient(
+      135deg,
+      var(--color-muted-blue) 0%,
+      var(--color-muted-green) 100%
+    );
+    color: var(--color-card-box);
   }
 
   .register-brand h2 {
@@ -100,34 +100,40 @@
 
   .register-brand p {
     font-size: 18px;
-    line-height: 1.8;
     margin-bottom: var(--spacing-xl);
+    line-height: 1.7;
   }
 
   .register-brand-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
   }
 
   .register-brand-features li {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
     font-size: 16px;
   }
 
   .register-brand-features li::before {
     content: "✓";
-    font-size: 20px;
     width: 28px;
     height: 28px;
+    font-size: 20px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
   }
 }
 
-/* 모바일에서는 브랜드 숨김 */
+/* 모바일에서는 브랜드 숨기기 */
 @media (max-width: 1023px) {
   .register-brand {
     display: none;
@@ -135,7 +141,7 @@
 }
 
 /* --------------------------------------------------------
-   제목
+   헤더 텍스트
 --------------------------------------------------------- */
 .register-header {
   text-align: center;
@@ -146,14 +152,18 @@
   font-size: 32px;
   font-weight: 900;
   margin-bottom: var(--spacing-sm);
-  background: linear-gradient(135deg, var(--color-deep-blue), var(--color-deep-green));
+  background: linear-gradient(
+    135deg,
+    var(--color-deep-blue),
+    var(--color-deep-green)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .register-header p {
-  color: var(--text-tertiary);
   font-size: 14px;
+  color: var(--color-text-secondary);
 }
 
 @media (min-width: 1024px) {
@@ -166,12 +176,12 @@
 }
 
 /* --------------------------------------------------------
-   Form 스타일
+   Form
 --------------------------------------------------------- */
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-lg);
 }
 
 .form-group {
@@ -183,35 +193,35 @@
 .form-label {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--color-text-primary);
 }
 
 .form-input {
   padding: 14px 18px;
   border: 1px solid var(--color-soft-gray-line);
-  border-radius: var(--radius-lg);
   font-size: 15px;
-  background: var(--bg-primary);
+  background: var(--color-card-box);
   transition: all var(--transition-base);
 }
 
 .form-input:focus {
   outline: none;
   border-color: var(--color-deep-blue);
-  box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
 }
 
 .form-input::placeholder {
-  color: var(--text-tertiary);
+  color: var(--color-text-secondary);
 }
 
-/* date input */
-.form-input[type="date"] {
-  color: var(--text-primary);
+@media (min-width: 1024px) {
+  .form-input {
+    padding: 16px 20px;
+    font-size: 16px;
+  }
 }
 
 /* --------------------------------------------------------
-   Form Row (input + 버튼)
+   input + button 구조
 --------------------------------------------------------- */
 .form-row {
   display: grid;
@@ -226,7 +236,7 @@
 }
 
 /* --------------------------------------------------------
-   버튼들
+   체크 버튼
 --------------------------------------------------------- */
 .check-btn {
   padding: 12px 16px;
@@ -236,6 +246,7 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: var(--transition-base);
 }
 
 .check-btn:hover {
@@ -247,12 +258,14 @@
   text-align: center;
 }
 
-/* 제출 버튼 */
+/* --------------------------------------------------------
+   제출 버튼
+--------------------------------------------------------- */
 .register-btn {
   padding: 16px;
   margin-top: var(--spacing-sm);
   background: var(--color-deep-blue);
-  color: var(--color-background);
+  color: var(--color-card-box);
   border: none;
   font-size: 16px;
   font-weight: 700;
@@ -261,8 +274,7 @@
 }
 
 .register-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  background: var(--color-deep-blue-hover);
 }
 
 /* --------------------------------------------------------
@@ -285,9 +297,9 @@
   padding: 14px 0;
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-tertiary);
+  background: var(--color-card-box);
   border-right: 1px solid var(--color-soft-gray-line);
-  background: var(--bg-primary);
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 
@@ -296,11 +308,11 @@
 }
 
 input[type="radio"]:checked + .gender-option {
-  color: var(--color-deep-blue);
   background: var(--color-background);
+  color: var(--color-deep-blue);
   border-bottom: 2px solid var(--color-deep-blue);
 }
 
 .gender-option:hover {
-  background: var(--color-card-box);
+  background: var(--color-background);
 }
