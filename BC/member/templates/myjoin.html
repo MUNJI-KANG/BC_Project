@@ -28,20 +28,22 @@
                 
                 <th>모집글 번호</th>
                 <th>모집글 제목</th>
-                <th>참여 날짜</th>
+                <th>모집 인원</th>
                 <th>참여 여부</th>
             </tr>
         </thead>
         <tbody>
+
+          {% for post in list %}
+          
           <tr>
-            <td>이거슨</td>
-            <td>가라</td>
-            <td>데이터</td>
-            <td>이힣</td>
-            
+            <td>{{ post.community_id }}</td>
+            <td>{{ post.title }}</td>
+            <td>{{ post.num_member }}</td>
+            <td>{{ post.join_stat }}</td>
           </tr>
-          <!-- {% for post in list %} -->
-            <!-- {% endfor %} -->
+          
+          {% endfor %}
         </tbody>
     </table>
 

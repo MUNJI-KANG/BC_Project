@@ -33,15 +33,18 @@
             </tr>
         </thead>
         <tbody>
+
+          {% for post in list %}
+          
           <tr>
-            <td><a href="/reservation">이거슨</a></td>
-            <td><a href="/facility">가라</a></td>
-            <td>데이터</td>
-            <td>이힣</td>
-            
+            <td><a href="/reservation">{{ post.reservation_id }}</a></td>
+            <td><a href="/facility">{{ post.facility }}</a></td>
+            <td>{{ post.reservation_date }}</td>
+            <td>{{ post.reg_date }}</td>
           </tr>
-          <!-- {% for post in list %} -->
-            <!-- {% endfor %} -->
+          
+          {% endfor %}
+
         </tbody>
     </table>
 

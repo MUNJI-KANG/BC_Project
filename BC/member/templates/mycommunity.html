@@ -41,8 +41,16 @@
             <td>이힣</td>
             
           </tr>
-          <!-- {% for post in list %} -->
-            <!-- {% endfor %} -->
+          {% for post in list %}
+          
+          <tr>
+            <td><a href="/reservation">{{ post.article_id }}</a></td>
+            <td><a href="/facility">{{ post.title }}</a></td>
+            <td>{{ post.reg_date }}</td>
+            <td>{{ post.view_cnt }}</td>
+          </tr>
+          
+          {% endfor %}
         </tbody>
     </table>
 
