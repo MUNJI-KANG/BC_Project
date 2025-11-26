@@ -7,6 +7,7 @@
 {% endblock %}
 
 {% block script1 %}
+<script src="{% static 'js/write.js' %}"></script>
 {% endblock %}
 
 
@@ -30,9 +31,19 @@
     <!-- 2. 구 / 종목 / 모집인원 / 비용 -->
     <div class="form-row">
         <div class="form-group small">
-            <label class="form-label">구</label>
-            <input type="text" class="form-input">
+            <label class="form-label">시 / 도</label>
+            <select id="sido" class="form-input">
+                <option value="">시/도 선택</option>
+            </select>
         </div>
+
+        <div class="form-group small">
+            <label class="form-label">구 / 군</label>
+            <select id="sigungu" class="form-input">
+                <option value="">구/군 선택</option>
+            </select>
+        </div>
+
         <div class="form-group small">
             <label class="form-label">종목</label>
             <input type="text" class="form-input">
