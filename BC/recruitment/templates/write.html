@@ -19,7 +19,58 @@
 
 <div class="sub-container">
      <div class="sub-content">
+<div class="form-wrapper">
 
+    <!-- 1. 제목 -->
+    <div class="form-group full-row">
+        <label class="form-label">제목</label>
+        <input type="text" class="form-input">
+    </div>
+
+    <!-- 2. 구 / 종목 / 모집인원 / 비용 -->
+    <div class="form-row">
+        <div class="form-group small">
+            <label class="form-label">구</label>
+            <input type="text" class="form-input">
+        </div>
+        <div class="form-group small">
+            <label class="form-label">종목</label>
+            <input type="text" class="form-input">
+        </div>
+        <div class="form-group small">
+            <label class="form-label">모집 인원</label>
+            <input type="number" class="form-input">
+        </div>
+
+    </div>
+
+    <!-- 3. 시설 -->
+    <div class="form-group full-row">
+        <label class="form-label">시설</label>
+        <input type="text" class="form-input">
+    </div>
+
+    <!-- 4. 기본적인 내용 입력 -->
+    <div class="form-group full-row">
+        <label class="form-label">내용</label>
+        <textarea class="form-textarea"></textarea>
+    </div>
+
+    <!-- 5. 기타 URL -->
+    <div class="form-group full-row">
+        <label class="form-label">오픈카톡 URL</label>
+        <input type="text" class="form-input">
+    </div>
+
+
+
+    <!-- 7. 버튼 -->
+    <div class="btn-row">
+        <button class="btn btn-submit">작성</button>
+        <button class="btn btn-list">목록</button>
+    </div>
+
+</div>
      </div>
 </div>
 {% endblock %}
