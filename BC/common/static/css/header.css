@@ -248,8 +248,6 @@
     opacity: 1;
 }
 
-
-
 /* 모바일 (768px 이하) */
 @media (max-width: 768px) {
 
@@ -348,7 +346,7 @@
         background: var(--color-card-box);
         width: 100%;
         flex-shrink: 0;
-        border-bottom: 1px solid var(--color-soft-gray-line);
+        border-bottom: 1px solid(var(--color-soft-gray-line));
     }
 
     .mobile-menu-divider {
@@ -436,7 +434,7 @@
     }
 
     .header__submenu li a:hover {
-        background: rgba(146, 184, 216, 0.1);
+        background: rgba(146,184,216,0.1);
         color: var(--color-deep-blue);
     }
 
@@ -453,6 +451,23 @@
 
     .login-header h1 {
         font-size: 28px;
+    }
+
+    /* ================================
+       PATCH: 화면 옆으로 늘어나는 문제 해결
+       ================================ */
+    html, body {
+        overflow-x: hidden !important;   /* 가로 스크롤 차단 */
+    }
+
+    .header {
+        max-width: 100% !important;      /* header가 모바일 화면 밖으로 나가지 않도록 */
+        box-sizing: border-box !important;
+    }
+
+    .header__nav {
+        max-width: 100vw !important;     /* nav가 width: 280px 때문에 화면 밀어내는 문제 해결 */
+        box-sizing: border-box !important;
     }
 }
 
