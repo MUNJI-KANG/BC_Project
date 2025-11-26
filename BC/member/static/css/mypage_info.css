@@ -1,0 +1,124 @@
+/* 마이페이지 전체 영역 */
+.mypage-profile {
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-xl) 0;
+}
+
+/* 제목 */
+.main h2 {
+    font-size: 1.8rem;
+    margin-bottom: var(--spacing-lg);
+    color: var(--color-deep-blue);
+    font-weight: 700;
+}
+
+/* 폼 래퍼 */
+.mypage-form {
+    width: 100%;
+    max-width: 900px;           /* 조금 더 넓게 */
+}
+
+/* 한 줄(라벨 + 값) */
+.info-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--color-soft-gray-line);
+}
+
+/* 라벨 */
+.info-group label {
+    width: 100px;
+    min-width: 80px;
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+}
+
+/* 값(인풋을 텍스트처럼 보이게) */
+.info-group input {
+    flex: 1;
+    padding: var(--spacing-xs) 0;
+    border: none;
+    background: transparent;
+    font-size: 1rem;
+    color: var(--color-text-primary);
+    cursor: default;            /* 텍스트필드 느낌 줄이기 */
+}
+
+
+.info-group input:not([readonly]) {
+    background-color: #ffffff;
+    border: 1px solid #bfc5cb;
+    color: #1A2A43;
+}
+
+.info-group input:not([readonly]):focus {
+    border-color: var(--color-deep-blue);
+    box-shadow: 0 0 0 2px rgba(47, 92, 156, 0.2);
+    outline: none;
+}
+
+/* 포커스 시 테두리/아웃라인 제거 */
+.info-group input:focus {
+    outline: none;
+}
+
+/* 버튼 영역 */
+.mypage-btn-box {
+    margin-top: var(--spacing-xl);
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+/* 공통 버튼 스타일 */
+.mypage-btn-box button {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: background var(--transition-base);
+    color: #fff;
+}
+
+/* 수정 버튼 — 블루 */
+.btn-edit, .btn-edit-complete {
+    background: var(--color-deep-blue);
+}
+.btn-edit:hover,
+.btn-edit-complete:hover {
+    background: var(--color-deep-blue-hover);
+}
+
+/* 비번 버튼 — 그린 */
+.btn-password {
+    background: var(--color-deep-green);
+}
+.btn-password:hover {
+    background: #5aad53;
+}
+
+/* 모바일에서 줄바꿈 */
+@media (max-width: 600px) {
+    .info-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .info-group label {
+        width: auto;
+    }
+
+    .mypage-btn-box {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .mypage-btn-box button {
+        width: 100%;
+        text-align: center;
+    }
+}

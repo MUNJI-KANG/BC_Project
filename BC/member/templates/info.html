@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+<link rel="stylesheet" href="{% static 'css/mypage_info.css' %}" />
+{% endblock %}
+{% block script1 %}
+<script src="{% static 'js/info.js' %}"></script>
+{% endblock %}
+{% block title %}
+  할래말래
+{% endblock %}
+{% block contents %}
+
+
+
+    <!-- 컨텐츠 내용 -->
+    <main class="main">
+
+    <h2>마이페이지</h2>
+
+    <section class="mypage-profile">
+
+        <form class="mypage-form">
+
+
+            <!-- 기본 정보 -->
+
+            <div class="info-group">
+                <label>닉네임</label>
+                <input type="text" name="nickname" value="닉네임~~" readonly>
+            </div>
+
+            <div class="info-group">
+                <label>이메일</label>
+                <input type="email" name="email" value="test@example.com" readonly>
+            </div>
+
+            <div class="info-group">
+                <label>전화번호</label>
+                <input type="text" name="phone" value="010-1234-5678" readonly>
+            </div>
+
+            <div class="info-group">
+                <label>주소</label>
+                <input type="text" name="addr1" value="서울특별시" readonly>
+                <input type="text" name="addr2" value="강남구" readonly>
+                <input type="text" name="addr3" value="역삼동" readonly>
+            </div>
+
+            <div class="info-group">
+                <label>생년월일</label>
+                <input type="text" name="birthday" value="2001-01-01" readonly>
+            </div>
+
+            <!-- 버튼 -->
+            <div class="mypage-btn-box">
+                <button type="button" class="btn-edit">정보 수정</button>
+                <button type="button" class="btn-password">비밀번호 변경</button>
+            </div>
+
+        </form>
+
+    </section>
+
+
+
+    </main>
+
+
+
+
+{% endblock %}
