@@ -64,7 +64,7 @@
         <div class="form-group">
             <label class="form-label">전화번호</label>
             <div class="form-row phone-row">
-                <input type="text" name="phone1" class="form-input phone1" placeholder="010" maxlength="3" required>
+                <input type="text" name="phone1" class="form-input phone1" value = 010 maxlength="3" required>
                 <span class="phone-dash">-</span>
                 <input type="text" name="phone2" class="form-input phone2" placeholder="0000" maxlength="4" required>
                 <span class="phone-dash">-</span>
@@ -92,7 +92,7 @@
   
   <script>
     {% if error %}
-        alert("{{ error|escapejs }}");
+        alert("{{ error }}");
     {% endif %}
     
     {% if result_id %}
