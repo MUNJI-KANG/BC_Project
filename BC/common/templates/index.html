@@ -75,26 +75,26 @@
           <span>+</span>
         </a>
         <ul>
+          {% for notice in notice_list %}
           <li>
-            <div class="date-box">
-              <span class="day">30</span>
-              <span class="day-02">2024.01</span>
-            </div>
+            <a href="/board/notice#notice-{{ notice.id }}" class="notice-link">
+              <div class="date-box">
+                <span class="day">{{ notice.date_formatted.day }}</span>
+                <span class="day-02">{{ notice.date_formatted.month_year }}</span>
+              </div>
+              <div class="txt-wrap">
+                <span class="notice-title">{{ notice.title }}</span><br>
+                <span class="notice-contents">{{ notice.content }}</span>
+              </div>
+            </a>
+          </li>
+          {% empty %}
+          <li>
             <div class="txt-wrap">
-              <span class="notice-title">공지사항을 알려드립니다.</span><br>
-              <span class="notice-contents">할래말래 서비스 이용 안내 및 주의사항을 확인해주세요...</span>
+              <span class="notice-contents">등록된 공지사항이 없습니다.</span>
             </div>
           </li>
-          <li>
-            <div class="date-box">
-              <span class="day">25</span>
-              <span class="day-02">2024.01</span>
-            </div>
-            <div class="txt-wrap">
-              <span class="notice-title">새로운 시설이 추가되었습니다.</span><br>
-              <span class="notice-contents">다양한 스포츠 시설이 새롭게 추가되었습니다. 확인해보세요...</span>
-            </div>
-          </li>
+          {% endfor %}
         </ul>
       </div>
       <div class="index02">
@@ -103,26 +103,26 @@
           <span>+</span>
         </a>
         <ul>
+          {% for recruit in recruitment_list %}
           <li>
-            <div class="date-box">
-              <span class="day">28</span>
-              <span class="day-02">2024.01</span>
-            </div>
+            <a href="/recruitment#recruit-{{ recruit.id }}" class="notice-link">
+              <div class="date-box">
+                <span class="day">{{ recruit.date_formatted.day }}</span>
+                <span class="day-02">{{ recruit.date_formatted.month_year }}</span>
+              </div>
+              <div class="txt-wrap">
+                <span class="notice-title">{{ recruit.title }}</span><br>
+                <span class="notice-contents">{{ recruit.content }}</span>
+              </div>
+            </a>
+          </li>
+          {% empty %}
+          <li>
             <div class="txt-wrap">
-              <span class="notice-title">테니스 같이 하실 분 구합니다.</span><br>
-              <span class="notice-contents">주말 오전 테니스 함께 즐길 분을 모집합니다...</span>
+              <span class="notice-contents">등록된 모집글이 없습니다.</span>
             </div>
           </li>
-          <li>
-            <div class="date-box">
-              <span class="day">22</span>
-              <span class="day-02">2024.01</span>
-            </div>
-            <div class="txt-wrap">
-              <span class="notice-title">축구 모임 참가자 모집</span><br>
-              <span class="notice-contents">매주 토요일 축구 모임에 참가하실 분을 모집합니다...</span>
-            </div>
-          </li>
+          {% endfor %}
         </ul>
       </div>
     </section>

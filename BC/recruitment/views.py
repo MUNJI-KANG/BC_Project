@@ -1,16 +1,11 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator
+# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
+from common.utils import get_recruitment_dummy_list
 
 def list(request):
-
-    dummy_list = [
-        {
-            "title": f"테스트 모집글 {i}",
-            "date": "2025-11-26",
-            "views": i * 3
-        }
-        for i in range(1, 201)
-    ]
+    # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요 - 공통 함수에서 더미 리스트 가져오기
+    dummy_list = get_recruitment_dummy_list()
 
 
     # 기본값: 최신순

@@ -500,14 +500,6 @@
   background: var(--color-soft-gray-line);
 }
 
-.template-section-03 .tit::after {
-  display: inline-block;
-  content: '공지사항';
-  padding-left: 30px;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
 
 .template-section-03 > div ul {
   list-style: none;
@@ -527,11 +519,18 @@
   padding-top: 36px;
 }
 
-.template-section-03 > div ul li a {
-  display: block;
-  overflow: hidden;
+.template-section-03 > div ul li a.notice-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
   width: 100%;
   text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s;
+}
+
+.template-section-03 > div ul li a.notice-link:hover {
+  opacity: 0.8;
 }
 
 .template-section-03 > div ul .date-box {
@@ -601,11 +600,6 @@
 
 .template-section-03 .index02 .tit::before {
   background: rgba(255, 255, 255, 0.3);
-}
-
-.template-section-03 .index02 .tit::after {
-  content: '사내소식';
-  color: rgba(255, 255, 255, 0.7);
 }
 
 .template-section-03 .index02 ul li:nth-child(1) {
