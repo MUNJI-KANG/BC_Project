@@ -5,6 +5,7 @@ from django.db import models
 # -----------------------------------------------------
 class Community(models.Model):
     community_id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=200)
     contents = models.TextField()
     region = models.CharField(max_length=10)
     sport_type = models.CharField(max_length=10)
@@ -29,7 +30,7 @@ class Community(models.Model):
 # EndStatus (마감 상황)
 # -----------------------------------------------------
 class EndStatus(models.Model):
-    community = models.OneToOneField(Community,primary_key=True,on_delete=models.CASCADE)
+    community = models.OneToOneField(Community,primary_key=True,on_delete=models.CASCADE)  # community_id로 변경 필요? (11/27)
     end_date = models.DateField(null=True, blank=True)
     end_set_date = models.DateField()
     end_stat = models.IntegerField(default=0)       # 마감여부(0=마감안됨, 1=마감)
@@ -39,14 +40,17 @@ class EndStatus(models.Model):
 
     def __str__(self):
         return f"Community {self.community_id} 마감상태"
+    
 # Rating (평점)
 # -----------------------------------------------------
 class Rating(models.Model):
-    facility = models.CharField(max_length=100, primary_key=True)
-    user_id = models.CharField(max_length=20)
+    rating_id = models.AutoField(primary_key=True)
+    facility = models.CharField(max_length=100)
     rated = models.IntegerField(default=0)
     comments = models.TextField()
     community_id = models.ForeignKey(Community, on_delete=models.DO_NOTHING)
+    member_id = models.ForeignKey("member.Member", on_delete=models.DO_NOTHING)
+    
     class Meta:
         db_table = "rating"
 
@@ -64,7 +68,7 @@ class JoinStat(models.Model):
         db_table = "join_stat"
         constraints = [
             models.UniqueConstraint(
-                fields=["member", "community"],
+                fields=["member_id", "community_id"],
                 name="pk_join_stat"
             )
         ]

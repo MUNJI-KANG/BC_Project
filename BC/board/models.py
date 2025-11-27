@@ -29,6 +29,7 @@ class Article(models.Model):
 
     member_id = models.ForeignKey("member.Member", on_delete=models.DO_NOTHING)
     board_id = models.ForeignKey(Board, on_delete=models.CASCADE)
+    category_id = models.ForeignKey("board.Category", null=True, blank=True, on_delete=models.SET_NULL)
 
     etc_int1 = models.IntegerField(null=True, blank=True)
     etc_int2 = models.IntegerField(null=True, blank=True)
@@ -47,3 +48,16 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
+
+# Category (카테고리)
+# -----------------------------------------------------
+class Category(models.Model):
+    category_id = models.AutoField(primary_key=True)
+    category_type = models.CharField(max_length=10)
+
+    class Meta:
+        db_table = "catergory"
+
+    def __str__(self):
+        return f"카테고리 {self.category_id}"
