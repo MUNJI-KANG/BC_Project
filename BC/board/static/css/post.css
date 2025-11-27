@@ -51,9 +51,13 @@
 }
 
 @media (max-width: 768px) {
+  .post-container {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+
   .post-hero {
     padding: var(--spacing-xl);
-    min-height: 250px;
+    min-height: 200px;
     flex-direction: column;
     text-align: center;
   }

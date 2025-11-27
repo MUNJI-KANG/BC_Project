@@ -1,11 +1,10 @@
-<<<<<<< HEAD
 {% extends 'base.html' %}
 {% load static %}
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/findID.css' %}">
 {% endblock %}
 {% block title %}비밀번호 찾기 - 할래말래{% endblock %}
-=======
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -16,7 +15,6 @@
   <link rel="stylesheet" href="{% static 'css/common.css' %}" />
   <link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
   <link rel="stylesheet" href="{% static 'css/findPW.css' %}" />
->>>>>>> c3613fa27d395a6132baf90fb3beb228bf37bd07
 
 {% block contents %}
 
@@ -91,14 +89,29 @@
     </div>
 </div>
 
-<script>
-{% if error %}
-    alert("{{ error }}");
-{% endif %}
+<div id="findPW-data" 
+     {% if error %}data-error="{{ error|escapejs }}"{% endif %}
+     {% if result_pw %}data-result-pw="{{ result_pw|escapejs }}"{% endif %}
+     style="display: none;"></div>
 
-{% if result_pw %}
-    alert("새로운 비밀번호는 '{{ result_pw }}' 입니다.\n로그인후 마이페이지에서 비밀번호를 변경해주세요.");
-    window.location.href = "/login";
-{% endif %}
+{% endblock %}
+
+{% block script1 %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var dataEl = document.getElementById('findPW-data');
+    if (!dataEl) return;
+    
+    var errorMsg = dataEl.getAttribute('data-error');
+    if (errorMsg) {
+        alert(errorMsg);
+    }
+    
+    var newPassword = dataEl.getAttribute('data-result-pw');
+    if (newPassword) {
+        alert("새로운 비밀번호는 '" + newPassword + "' 입니다.\n로그인후 마이페이지에서 비밀번호를 변경해주세요.");
+        window.location.href = "/login";
+    }
+});
 </script>
 {% endblock %}

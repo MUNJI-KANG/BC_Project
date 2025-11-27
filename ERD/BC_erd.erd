@@ -4,8 +4,8 @@
   "settings": {
     "width": 2000,
     "height": 2000,
-    "scrollTop": -795,
-    "scrollLeft": -800,
+    "scrollTop": -517,
+    "scrollLeft": -1,
     "zoomLevel": 0.79,
     "show": 511,
     "database": 4,
@@ -1789,7 +1789,7 @@
         "comment": "이름",
         "dataType": "varchar(20)",
         "default": "",
-        "options": 12,
+        "options": 8,
         "ui": {
           "keys": 0,
           "widthName": 60,
@@ -1798,7 +1798,7 @@
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1764124035508,
+          "updateAt": 1764210090380,
           "createAt": 1763947532857
         }
       },

@@ -28,35 +28,45 @@ function initMobileMenu() {
   // 모바일 메뉴 아이템 클릭 (서브메뉴 토글)
   navItems.forEach(item => {
     const link = item.querySelector('.header__nav-link');
-    if (link) {
+    const submenu = item.querySelector('.header__submenu');
+    
+    if (link && submenu) {
+      // 서브메뉴가 있는 아이템만 처리
       link.addEventListener('click', (e) => {
-        // 서브메뉴 내부 링크 클릭 시에는 이벤트 전파 방지
+        // 서브메뉴 내부 링크 클릭 시에는 기본 동작만 수행
         if (e.target.closest('.header__submenu')) {
-          return;
+          return; // 서브메뉴 링크는 기본 동작 유지
         }
         
-        // 서브메뉴가 있는 경우에만 토글
-        const submenu = item.querySelector('.header__submenu');
-        if (submenu) {
-          // 모바일(768px 이하)에서는 기본 동작 방지
-          if (window.innerWidth <= 768) {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-          // 태블릿/데스크탑에서도 클릭 시 토글 (터치 디바이스 대응)
+        // 모바일(768px 이하)에서만 서브메뉴 토글
+        if (window.innerWidth <= 768) {
+          e.preventDefault();
+          e.stopPropagation();
           item.classList.toggle('active');
         }
+        // 데스크탑에서는 기본 동작 유지 (hover로 서브메뉴 표시)
       });
     }
     
     // 서브메뉴 내부 링크 클릭 시 이벤트 전파 방지
-    const submenuLinks = item.querySelectorAll('.header__submenu a');
-    submenuLinks.forEach(subLink => {
-      subLink.addEventListener('click', (e) => {
-        e.stopPropagation(); // 부모로 이벤트 전파 방지
-        // 링크 이동은 기본 동작 유지
+    if (submenu) {
+      const submenuLinks = submenu.querySelectorAll('a');
+      submenuLinks.forEach(subLink => {
+        subLink.addEventListener('click', (e) => {
+          // 서브메뉴 링크 클릭 시 메뉴 닫기 (모바일에서만)
+          if (window.innerWidth <= 768) {
+            menuBtn.classList.remove('active');
+            nav.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.classList.remove('menu-open');
+            // 모든 서브메뉴 닫기
+            navItems.forEach(navItem => {
+              navItem.classList.remove('active');
+            });
+          }
+        });
       });
-    });
+    }
   });
 
   // 화면 크기 변경 시 메뉴 닫기

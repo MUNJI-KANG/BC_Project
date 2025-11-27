@@ -21,6 +21,145 @@
     background-clip: text;
 }
 
+/* -----------------------------
+   Hero 섹션 (post 페이지 기준)
+------------------------------ */
+.board-hero {
+    position: relative;
+    width: 100%;
+    margin-bottom: var(--spacing-2xl);
+    overflow: hidden;
+    padding: var(--spacing-2xl);
+    min-height: 300px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 20px;
+}
+
+.board-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 1;
+}
+
+.board-hero h2 {
+    font-size: 80px;
+    font-weight: 900;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -2px;
+    line-height: 1;
+    position: relative;
+    z-index: 2;
+    text-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.5),
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(0, 0, 0, 0.3),
+        2px 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* 이벤트 페이지 전용 hero */
+.event-hero {
+    background-image: url('/static/img/event_hero.png');
+}
+
+/* 공지사항 페이지 전용 hero */
+.notice-hero {
+    background-image: url('/static/img/notice_hero.png');
+}
+
+@media (max-width: 768px) {
+    .post-container {
+        padding: var(--spacing-md) var(--spacing-sm);
+    }
+
+    .board-hero {
+        padding: var(--spacing-xl);
+        min-height: 200px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .board-hero h2 {
+        font-size: 28px;
+        text-align: center;
+    }
+
+    .sub-container {
+        padding: var(--spacing-sm);
+        margin-top: var(--spacing-lg);
+    }
+
+    .sub-content {
+        padding: var(--spacing-md);
+        min-height: auto;
+    }
+
+    .search-section {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .search-controls {
+        width: 100%;
+    }
+
+    .search-dropdown {
+        flex: 1;
+        min-width: auto;
+    }
+
+    .search-input-group {
+        width: 100%;
+    }
+
+    .facility-item {
+        flex-wrap: wrap;
+        padding: var(--spacing-sm) 4px;
+        font-size: 12px;
+    }
+
+    .facility-order {
+        width: 30px;
+        font-size: 11px;
+    }
+
+    .facility-title {
+        flex: 1 1 100%;
+        order: 2;
+        padding: var(--spacing-xs) 0;
+        font-size: 13px;
+    }
+
+    .facility-author,
+    .facility-date,
+    .facility-views {
+        width: auto;
+        min-width: auto;
+        font-size: 11px;
+        padding: 0 var(--spacing-xs);
+    }
+
+    .pinned-item {
+        flex-wrap: wrap;
+    }
+
+    .pinned-item .facility-title {
+        flex: 1 1 100%;
+        order: 2;
+    }
+}
+
 
 /* -----------------------------
    서브 레이아웃
