@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
        3) sort 처리 (정렬 유지)
        =========================== */
     if (sortEl) {
-        const nowSort = params.get("sort") || "recent";
+        const nowSort = params.get("sort") || "title";
         sortEl.value = nowSort;
 
         sortEl.addEventListener("change", function () {

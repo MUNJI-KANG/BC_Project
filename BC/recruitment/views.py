@@ -58,3 +58,15 @@ def recruitment_list(request):
 
 def write(request):
     return render(request, 'recruitment_write.html')
+def update(request):
+    return render(request, 'recruitment_update.html')
+def detail(request):
+    # recruit={
+    #     'sido':,
+
+    # }
+    # context ={
+    #     'recruit':recruit,
+    # }
+    return render(request, 'recruitment_detail.html')
+    # return render(request, 'recruitment_detail.html', context)

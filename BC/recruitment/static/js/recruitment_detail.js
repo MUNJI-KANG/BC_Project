@@ -1,0 +1,32 @@
+document.addEventListener("DOMContentLoaded", function () {
+
+
+    const btn_list = document.querySelector(".btn-list");
+
+
+
+    // 2) 목록 클릭
+    btn_list.addEventListener("click", function() {
+        // console.log("list 클릭됨");
+        handle_list();
+    });
+
+
+});
+
+
+
+
+
+
+
+function handle_list() {
+    // 예시: 수정 페이지로 이동
+    window.location.href = "/recruitment";
+
+    // 또는 모달 열기, 입력 필드 활성화 등 여기 넣으면 됨
+    // alert("정보 수정 기능 준비중");
+};
+
+
+

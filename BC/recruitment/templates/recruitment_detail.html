@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}
+할래말래 - 모집글 작성
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/recruitment_detail.css' %}" />
+{% endblock %}
+
+{% block script1 %}
+<script src="{% static 'js/recruitment_detail.js' %}"></script>
+{% endblock %}
+
+
+{% block contents %}
+<!-- 페이지 제목 -->
+<div class="page-title-section">
+  <h2 class="page-title">모집할래</h2>
+</div>
+
+
+<div class="sub-container">
+     <div class="sub-content">
+<div class="form-wrapper">
+<!-- 모집글 상세 -->
+    <section class="recruit-detail">
+
+        <!-- 1. 제목 -->
+        <div class="form-group full-row">
+            <label class="form-label">제목</label>
+            <p class="form-readonly">{{ recruit.title }}</p>
+        </div>
+
+        <!-- 2. 시/도 / 구/군 / 종목 / 모집인원 -->
+        <div class="form-row">
+            <div class="form-group small">
+                <label class="form-label">시 / 도</label>
+                <p class="form-readonly">{{ recruit.sido }}</p>
+            </div>
+
+            <div class="form-group small">
+                <label class="form-label">구 / 군</label>
+                <p class="form-readonly">{{ recruit.sigungu }}</p>
+            </div>
+
+            <div class="form-group small">
+                <label class="form-label">종목</label>
+                <p class="form-readonly">{{ recruit.sport }}</p>
+            </div>
+
+            <div class="form-group small">
+                <label class="form-label">모집 인원</label>
+                <p class="form-readonly">{{ recruit.personnel }}명</p>
+            </div>
+        </div>
+
+        <!-- 3. 시설 -->
+        <div class="form-group full-row">
+            <label class="form-label">시설</label>
+            <p class="form-readonly">{{ recruit.facility_name }}</p>
+        </div>
+
+        <!-- 4. 내용 -->
+        <div class="form-group full-row">
+            <label class="form-label">내용</label>
+            <div class="form-readonly form-readonly-multiline">
+                {{ recruit.content|linebreaksbr }}
+            </div>
+        </div>
+
+        <!-- 5. 오픈카톡 URL -->
+        <div class="form-group full-row">
+            <label class="form-label">오픈카톡 URL</label>
+            {% if recruit.openchat_url %}
+                <a href="{{ recruit.openchat_url }}" target="_blank"
+                class="form-readonly form-link">
+                    {{ recruit.openchat_url }}
+                </a>
+            {% else %}
+                <p class="form-readonly">등록된 오픈카톡 링크가 없습니다.</p>
+            {% endif %}
+        </div>
+
+    </section>
+
+    <!-- 7. 버튼 -->
+    <div class="btn-row">
+        <!-- <button class="btn btn-submit">작성</button> -->
+        <button class="btn btn-list">목록</button>
+    </div>
+
+
+    <!-- 댓글 섹션 -->
+    <section class="comment-section">
+        <h3 class="section-title">댓글</h3>
+
+        <!-- 댓글 리스트 -->
+        <ul class="comment-list">
+            {% for c in comments %}
+                <li class="comment-item">
+                    <div class="comment-meta">
+                        <span class="comment-writer">{{ c.writer_name }}</span>
+                        <span class="comment-date">
+                            {{ c.created_at|date:"Y-m-d H:i" }}
+                        </span>
+                    </div>
+                    <p class="comment-content">{{ c.content|linebreaksbr }}</p>
+                </li>
+            {% empty %}
+                <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
+            {% endfor %}
+        </ul>
+
+        <!-- 댓글 입력 폼 -->
+        <form method="post" class="comment-form">
+            {% csrf_token %}
+            <label for="comment" class="form-label">댓글 쓰기</label>
+            <textarea id="comment" name="content"
+                    class="form-textarea" rows="3" required></textarea>
+
+            <div class="comment-btn-box">
+                <button type="submit" class="btn-primary">등록</button>
+            </div>
+        </form>
+    </section>
+
+
+</div>
+</div>
+</div>
+{% endblock %}

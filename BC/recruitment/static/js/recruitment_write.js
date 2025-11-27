@@ -112,13 +112,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const btn_list = document.querySelector(".btn-list");
 
 
-    // 1) 정보 수정 클릭
+    // 1) 등록 클릭
     btn_submit.addEventListener("click", function() {
         // console.log("sumbit 클릭됨");
         handle_submit();
     });
     
-    // 2) 비밀번호 변경 클릭
+    // 2) 목록 클릭
     btn_list.addEventListener("click", function() {
         // console.log("list 클릭됨");
         handle_list();
