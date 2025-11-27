@@ -10,4 +10,6 @@ urlpatterns = [
     path('myarticle/', views.myarticle),
     path('myjoin/', views.myjoin),
     
+    path('mypage_base/', views.mypage_base),
+    
 ]
