@@ -3,20 +3,12 @@ import requests
 from django.shortcuts import render
 from django.core.paginator import Paginator
 
-
-def facility_list(request):
-    DATA_API_KEY = os.getenv("DATA_API_KEY")       
-    KAKAO_REST_KEY = os.getenv("KAKAO_REST_API_KEY") 
-    KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")  
-
-
-    cp_nm = request.GET.get('cpNm', "서울특별시")
-    cpb_nm = request.GET.get('cpbNm', "강남구")
-    keyword = request.GET.get('keyword', '')
-
-
-    per_page = int(request.GET.get("per_page", 10))
-    page = int(request.GET.get("page", 1))
+# 시설 api 가져오기
+def facility(data):
+    DATA_API_KEY = os.getenv("DATA_API_KEY")  
+    cp_nm = data.get('cp_nm')
+    cpb_nm = data.get('cpb_nm')
+    keyword = data.get('keyword')
 
     API_URL = "https://apis.data.go.kr/B551014/SRVC_API_FACI_SCHK_RESULT/TODZ_API_FACI_SAFETY"
     params = {
@@ -44,8 +36,14 @@ def facility_list(request):
                 "name": item.get("faci_nm", ""),
                 "address": item.get("faci_road_addr", ""), 
                 "sido": item.get("cp_nm", ""),
-                "sigungu": item.get("cpb_nm", ""),
-                "phone": item.get("faci_tel_no", ""),
+                "sigungu": item.get("cpb_nm", ""), 
+                "phone": item.get("faci_tel_no", ""),# 전화번호
+                "fcob_nm" : item.get("fcob_nm",""), # 종목
+                "homepage" : item.get("faci_homepage",""), # 홈페이지
+                "faci_stat_nm" : item.get("faci_stat_nm",""), # 정상운영인지 아닌지
+                "schk_tot_grd_nm" : item.get("schk_tot_grd_nm",""), # 주의인지 정상인지
+                "schk_open_ymd": item.get("schk_open_ymd",""), # 안전점검공개일자
+                "faci_gfa" : item.get("faci_gfa",""),
                 "lat": None,
                 "lng": None,
             })
@@ -53,45 +51,27 @@ def facility_list(request):
     except Exception as e:
         print("공공데이터 API 오류:", e)
 
+    return facilities
+
+
+
+# 시설목록
+def facility_list(request):
+         
+    KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")  
+    cp_nm = request.GET.get('cpNm', "서울특별시")
+    cpb_nm = request.GET.get('cpbNm', "강남구")
+    keyword = request.GET.get('keyword', '')    
+    data = {'cp_nm' : cp_nm, 'cpb_nm' : cpb_nm, 'keyword' : keyword}
+    facilities = facility(data)
+
+    per_page = int(request.GET.get("per_page", 10))
+    page = int(request.GET.get("page", 1))
  
     paginator = Paginator(facilities, per_page)
     page_obj = paginator.get_page(page)
 
-
-    headers = None
-    if KAKAO_REST_KEY:
-        headers = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"}
-
-    for fac in page_obj:
-       
-        addr_parts = [fac.get("sido") or "", fac.get("sigungu") or "", fac.get("address") or ""]
-        full_addr = " ".join(p for p in addr_parts if p).strip()
-        fac["full_address"] = full_addr
-
-        fac["lat"] = None
-        fac["lng"] = None
-
-        if not (headers and full_addr):
-            continue
-
-        try:
-            resp = requests.get(
-                "https://dapi.kakao.com/v2/local/search/address.json",
-                params={"query": full_addr},
-                headers=headers,
-                timeout=3,
-            )
-            data = resp.json()
-            docs = data.get("documents")
-            if docs:
-                fac["lat"] = float(docs[0]["y"])
-                fac["lng"] = float(docs[0]["x"])
-        except Exception as e:
-            print("카카오 지오코딩 오류:", e)
-
-
-    page_facilities = list(page_obj)
-
+    page_facilities = kakao_for_map(page_obj)
 
     block_size = 10
     current_block = (page - 1) // block_size
@@ -114,5 +94,75 @@ def facility_list(request):
         "block_end": block_end,
         "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
     }
-
+    print(page_facilities)
     return render(request, "facility_list.html", context)
+
+
+
+# 주소를 기반으로 지도에 표시하기 위한 작업
+def kakao_for_map(page_obj):
+    KAKAO_REST_KEY = os.getenv("KAKAO_REST_API_KEY")
+    headers = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"} if KAKAO_REST_KEY else None
+
+    for fac in page_obj:
+
+        # 공공데이터 주소는 이미 완전한 도로명주소다!
+        full_addr = fac.get("address") or ""
+        fac["full_address"] = full_addr
+
+        fac["lat"] = None
+        fac["lng"] = None
+
+        if not (headers and full_addr):
+            continue
+
+        try:
+            resp = requests.get(
+                "https://dapi.kakao.com/v2/local/search/address.json",
+                params={"query": full_addr},
+                headers=headers,
+                timeout=3,
+            )
+            data = resp.json()
+            docs = data.get("documents")
+
+            if docs:
+                fac["lat"] = float(docs[0]["y"])
+                fac["lng"] = float(docs[0]["x"])
+
+        except Exception as e:
+            print("카카오 지오코딩 오류:", e)
+
+    return list(page_obj)
+
+
+
+
+
+def facility_detail(request, fk):
+    KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")
+
+    faci_cd = fk
+    faci_nm = request.GET.get('fName')
+
+    # 목록 검색
+    data = {'keyword': faci_nm}
+    facility_data = facility(data)
+
+    # 해당 시설 찾기
+    r_data = None
+    for f_data in facility_data:
+        if f_data.get('id') == faci_cd:
+            r_data = f_data
+            break
+
+    if r_data is None:
+        return render(request, 'facility_view.html', {"error": "시설 정보를 찾을 수 없습니다."})
+
+    # 지도 좌표 1개만 처리
+    r_data_with_map = kakao_for_map([r_data])[0]
+
+    return render(request, "facility_view.html", {
+        "facility": r_data_with_map,
+        "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
+    })

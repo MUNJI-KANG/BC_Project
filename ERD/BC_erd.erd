@@ -4,9 +4,9 @@
   "settings": {
     "width": 2000,
     "height": 2000,
-    "scrollTop": -517,
-    "scrollLeft": -1,
-    "zoomLevel": 0.79,
+    "scrollTop": -1261,
+    "scrollLeft": -445.697,
+    "zoomLevel": 0.82,
     "show": 511,
     "database": 4,
     "databaseName": "",
@@ -553,15 +553,15 @@
           "DgOXc-KZlYdL08KnAwTC5"
         ],
         "ui": {
-          "x": 1414.0773,
-          "y": 114.193,
+          "x": 1467.2418,
+          "y": 61.0284,
           "zIndex": 204,
           "widthName": 60,
           "widthComment": 60,
           "color": ""
         },
         "meta": {
-          "updateAt": 1764204784870,
+          "updateAt": 1764144510250,
           "createAt": 1764143854043
         }
       },
@@ -1249,7 +1249,7 @@
         "comment": "삭제 날짜",
         "dataType": "datetime",
         "default": "",
-        "options": 0,
+        "options": 5,
         "ui": {
           "keys": 0,
           "widthName": 63,
@@ -1258,7 +1258,7 @@
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1764205148607,
+          "updateAt": 1763947532856,
           "createAt": 1763947532856
         }
       },
@@ -1529,7 +1529,7 @@
         "comment": "삭제 날짜",
         "dataType": "datetime",
         "default": "",
-        "options": 0,
+        "options": 5,
         "ui": {
           "keys": 0,
           "widthName": 63,
@@ -1538,7 +1538,7 @@
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1764205028439,
+          "updateAt": 1763947532857,
           "createAt": 1763947532857
         }
       },
@@ -1789,7 +1789,7 @@
         "comment": "이름",
         "dataType": "varchar(20)",
         "default": "",
-        "options": 8,
+        "options": 12,
         "ui": {
           "keys": 0,
           "widthName": 60,
@@ -1798,7 +1798,7 @@
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1764210090380,
+          "updateAt": 1764124035508,
           "createAt": 1763947532857
         }
       },
@@ -1869,7 +1869,7 @@
         "comment": "핸드폰번호",
         "dataType": "varchar(20)",
         "default": "",
-        "options": 12,
+        "options": 8,
         "ui": {
           "keys": 0,
           "widthName": 65,
@@ -1878,7 +1878,7 @@
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1764205079856,
+          "updateAt": 1764052779265,
           "createAt": 1763947532857
         }
       },
@@ -2149,7 +2149,7 @@
         "comment": "예약 생성 날짜 ",
         "dataType": "datetime",
         "default": "",
-        "options": 8,
+        "options": 13,
         "ui": {
           "keys": 0,
           "widthName": 60,
@@ -2158,7 +2158,7 @@
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1764205058016,
+          "updateAt": 1763947532858,
           "createAt": 1763947532858
         }
       },
@@ -2429,7 +2429,7 @@
         "comment": "에약번호",
         "dataType": "varchar(8)",
         "default": "",
-        "options": 4,
+        "options": 0,
         "ui": {
           "keys": 0,
           "widthName": 90,
@@ -2438,7 +2438,7 @@
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1764205240920,
+          "updateAt": 1764053085073,
           "createAt": 1764053066076
         }
       },

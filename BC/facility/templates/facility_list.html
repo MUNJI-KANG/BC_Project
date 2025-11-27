@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         var infowindow = new kakao.maps.InfoWindow({
-            content: `<div style="padding:5px;font-size:14px;"><a href='/facility/detail/${item.id}'>${item.name}</a></div>`
+            content: `<div style="padding:5px;font-size:14px;"><a href='/facility/detail/${item.id}?fName=${item.name}'>${item.name}</a></div>`
         });
 
         kakao.maps.event.addListener(marker, "mouseover", function () {

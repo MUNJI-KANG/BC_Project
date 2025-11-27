@@ -1,0 +1,238 @@
+/* ===========================
+   전체 레이아웃
+=========================== */
+.page-title-section {
+    max-width: 1100px;
+    margin: var(--spacing-2xl) auto var(--spacing-lg);
+    padding: 0 var(--spacing-lg);
+}
+
+.page-title {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    letter-spacing: -0.5px;
+}
+
+/* 중앙 정렬 컨테이너 */
+.sub-container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto var(--spacing-2xl);
+    padding: 0 var(--spacing-lg);
+}
+
+.sub-content {
+    width: 100%;
+    background: var(--color-card-box);
+    padding: var(--spacing-xl);
+    border-radius: 14px;
+    border: 1px solid var(--color-soft-gray-line);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    margin-bottom: var(--spacing-xl);
+}
+
+/* ===========================
+   지도
+=========================== */
+.map {
+    margin-bottom: var(--spacing-xl);
+}
+
+#map {
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
+}
+
+/* ===========================
+   시설 정보 영역
+=========================== */
+.search-view-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.search-view-section h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.3rem;
+}
+
+.search-view-section span {
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+}
+
+.search-view-section p {
+    margin-top: var(--spacing-md);
+    line-height: 1.7;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+}
+
+.search-view-section b {
+    display: inline-block;
+    width: 90px;
+    color: var(--color-text-secondary);
+}
+
+a {
+    text-decoration: none;
+}
+
+/* 예약하기/모집글가기 버튼 */
+.detail-buttons {
+    margin-top: var(--spacing-lg);
+    display: flex;
+    gap: 1rem;
+}
+
+.detail-buttons a {
+    flex: 1;
+    text-align: center;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+.detail-buttons a:first-child {
+    background: var(--color-deep-blue);
+}
+.detail-buttons a:first-child:hover {
+    background: var(--color-deep-blue-hover);
+}
+
+.detail-buttons a:last-child {
+    background: var(--color-muted-blue);
+}
+.detail-buttons a:last-child:hover {
+    background: #7aaac7;
+}
+
+/* ===========================
+   댓글 영역
+=========================== */
+.comment-section {
+    background: var(--color-card-box);
+    border-radius: 14px;
+    padding: var(--spacing-xl) var(--spacing-xl);
+    border: 1px solid var(--color-soft-gray-line);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+}
+
+.section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text-primary);
+}
+
+/* 댓글 리스트 */
+.comment-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: var(--spacing-lg);
+}
+
+.comment-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--color-soft-gray-line);
+}
+
+.comment-item:last-child {
+    border-bottom: none;
+}
+
+.comment-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.4rem;
+}
+
+.comment-content {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--color-text-primary);
+}
+
+.comment-empty {
+    padding: 1rem 0;
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+    text-align: center;
+}
+
+/* 댓글 입력 */
+.form-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.form-textarea {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--color-soft-gray-line);
+    padding: 0.75rem 1rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+    margin-top: var(--spacing-xs);
+    background: #fff;
+    transition: border 0.25s;
+}
+
+.form-textarea:focus {
+    border-color: var(--color-deep-blue);
+    outline: none;
+}
+
+/* 댓글 등록 버튼 */
+.comment-btn-box {
+    margin-top: var(--spacing-md);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-primary {
+    padding: 0.65rem 1.6rem;
+    border-radius: 8px;
+    border: none;
+    background: var(--color-deep-blue);
+    color: #fff;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.25s;
+}
+
+.btn-primary:hover {
+    background: var(--color-deep-blue-hover);
+}
+
+/* ===========================
+   반응형 처리
+=========================== */
+
+@media (max-width: 768px) {
+    .sub-content {
+        padding: var(--spacing-lg);
+    }
+
+    .search-view-section b {
+        width: 75px;
+    }
+
+    .detail-buttons a {
+        font-size: 0.9rem;
+        padding: 0.7rem;
+    }
+
+    .comment-section {
+        padding: var(--spacing-lg);
+    }
+}
