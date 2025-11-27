@@ -110,4 +110,4 @@ def facility(request):
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
     }
 
-    return render(request, "facility_manager.html", context)
+    return render(request, "facility_add_manager.html", context)
