@@ -80,7 +80,7 @@ def facility(request):
             merged.append({
                 "id": item.get("faci_cd"),
                 "name": item.get("faci_nm"),
-                "address": item.get("faci_addr"),
+                "address": item.get("faci_road_addr"),
                 "sido": item.get("cp_nm"),
                 "sigungu": item.get("cpb_nm"),
                 "lat": item.get("faci_lat"),
@@ -121,6 +121,10 @@ def facility(request):
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
     }
 
+    return render(request, "facility_add_manager.html", context)
+
+def sport_type(request):
+    return render(request, 'sport_type_manager.html')
     return render(request, "facility_manager.html", context)
 
 
