@@ -114,7 +114,7 @@ DB 작성후 예시
 
             <!-- 🔹 이전 블록 -->
             {% if block_start > 1 %}
-                <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}&sort={{ now_sort }}" class="page-btn arrow">◀ 이전</a>
+                <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">◀ 이전</a>
             {% else %}
                 <span class="page-btn arrow disabled">◀ 이전</span>
             {% endif %}

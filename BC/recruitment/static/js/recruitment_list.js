@@ -149,8 +149,7 @@ document.addEventListener("DOMContentLoaded", function () {
         perPageEl.addEventListener("change", function () {
             const newParams = new URLSearchParams(window.location.search);
             newParams.set("per_page", this.value);
-            newParams.set("page", 1); // 개수 바꾸면 1페이지로
-            // sort, sido, sigungu 등 기존 값은 그대로 유지됨
+            newParams.set("page", 1); 
             window.location.search = newParams.toString();
         });
     }
@@ -166,7 +165,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const newParams = new URLSearchParams(window.location.search);
             newParams.set("sort", this.value);
             newParams.set("page", 1); // 정렬 바꾸면 1페이지로
-            // per_page, sido, sigungu 등 기존 값 유지
             window.location.search = newParams.toString();
         });
     }

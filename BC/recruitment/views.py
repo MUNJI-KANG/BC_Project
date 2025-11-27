@@ -47,7 +47,6 @@ def recruitment_list(request):
 
         # sort 유지용
         "sort": sort,
-        "now_sort": sort,     # ← 템플릿에서 쓰기 위해 반드시 필요!
 
         "block_range": block_range,
         "block_start": block_start,
