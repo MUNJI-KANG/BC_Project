@@ -9,6 +9,10 @@
 모집할래 - 할래말래
 {% endblock %}
 
+{% block script1 %}
+<script src="{% static 'js/recruitment_list.js' %}"></script>
+{% endblock %}
+
 {% block contents %}
 
 <!-- 페이지 제목 -->
@@ -124,13 +128,13 @@ DB 작성후 예시
                 {% if num == page_obj.number %}
                     <span class="page-btn active">{{ num }}</span>
                 {% else %}
-                    <a href="?page={{ num }}&per_page={{ per_page }}&sort={{ now_sort }}" class="page-btn">{{ num }}</a>
+                    <a href="?page={{ num }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn">{{ num }}</a>
                 {% endif %}
             {% endfor %}
 
             <!-- 🔹 다음 블록 -->
             {% if block_end < paginator.num_pages %}
-                <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}&sort={{ now_sort }}" class="page-btn arrow">다음 ▶</a>
+                <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">다음 ▶</a>
             {% else %}
                 <span class="page-btn arrow disabled">다음 ▶</span>
             {% endif %}
@@ -142,8 +146,5 @@ DB 작성후 예시
 </div>
 
 
-{% block script3 %}
-<script src="{% static 'js/recruitment_list.js' %}"></script>
-{% endblock %}
 
 {% endblock %}
