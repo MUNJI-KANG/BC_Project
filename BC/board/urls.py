@@ -6,5 +6,6 @@ urlpatterns = [
     path('notice/', views.notice, name='notice'),
     path('event/', views.event, name='event'),
     path('post/', views.post, name='post'),
+    path('post/write/', views.post_write, name='post_write'),
     path('faq/', views.faq, name='faq'),
 ]

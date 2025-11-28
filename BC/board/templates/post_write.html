@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/board_list.css' %}" />
+{% endblock %}
+
+{% block title %}
+게시글 작성 - 할래말래
+{% endblock %}
+
+{% block contents %}
+
+<!-- Hero 섹션 -->
+<div class="board-hero post-hero">
+  <h2>게시글 작성</h2>
+</div>
+
+<!-- 서브 컨테이너 -->
+<div class="sub-container">
+    <div class="sub-content">
+        <!-- 폼 영역 (추후 추가 예정) -->
+        <p>게시글 작성 폼이 여기에 추가됩니다.</p>
+    </div>
+</div>
+
+{% endblock %}
+

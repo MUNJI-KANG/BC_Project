@@ -126,5 +126,8 @@ def event(request):
 def post(request):
     return render(request, 'post.html')
 
+def post_write(request):
+    return render(request, 'post_write.html')
+
 def faq(request):
     return render(request, 'faq.html')
