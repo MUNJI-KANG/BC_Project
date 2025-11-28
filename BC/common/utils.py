@@ -11,6 +11,7 @@ _reservation_dummy_list_cache = None
 _notice_dummy_list_cache = None
 _event_dummy_list_cache = None
 _event_pinned_posts_cache = None
+_post_dummy_list_cache = None
 
 
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
@@ -220,6 +221,58 @@ def reset_event_pinned_posts_cache():
 
 
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
+def get_post_dummy_list():
+    """자유게시판 더미 리스트 생성 (한 번 생성 후 재사용)"""
+    global _post_dummy_list_cache
+    
+    # 캐시가 없으면 생성
+    if _post_dummy_list_cache is None:
+        dummy_list = []
+        titles = [
+            "오늘 운동 어떠셨어요?", "운동 추천 부탁드려요", "함께 운동하실 분 구해요",
+            "시설 이용 후기", "운동 팁 공유", "다이어트 성공담", "헬스장 추천",
+            "운동 초보 질문", "식단 관리 꿀팁", "운동 동기부여 받고 싶어요",
+            "오늘의 운동 인증", "운동 루틴 공유", "부상 예방 방법", "운동화 추천",
+            "홈트레이닝 추천", "요가 수업 후기", "필라테스 어때요?", "크로스핏 도전기",
+            "마라톤 완주 후기", "수영 배우고 싶어요", "테니스 치실 분", "배드민턴 모임",
+            "야구 동호회 모집", "축구 같이 하실 분", "농구 팀원 구해요", "볼링장 추천"
+        ]
+        authors = [
+            "운동러버", "헬스초보", "다이어터", "피트니스매니아", "요가러버",
+            "마라토너", "수영러버", "테니스러버", "축구러버", "농구러버",
+            "배드민턴러버", "볼링러버", "홈트러버", "필라테스러버", "크로스핏러버",
+            "사용자1", "사용자2", "사용자3", "사용자4", "사용자5",
+            "운동좋아", "건강관리", "다이어트중", "운동시작", "피트니스"
+        ]
+        
+        for i in range(1, 101):
+            random_title = random.choice(titles)
+            random_author = random.choice(authors)
+            # 랜덤 날짜 생성 (최근 1년 내)
+            days_ago = random.randint(0, 365)
+            random_date = (datetime.now() - timedelta(days=days_ago)).strftime("%Y-%m-%d")
+            
+            dummy_list.append({
+                "id": i,
+                "title": f"{random_title} {i}",
+                "date": random_date,
+                "views": random.randint(5, 3000),
+                "author": random_author
+            })
+        _post_dummy_list_cache = dummy_list
+    
+    # 캐시된 데이터의 복사본 반환 (원본 수정 방지)
+    return [item.copy() for item in _post_dummy_list_cache]
+
+
+# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
+def reset_post_dummy_list_cache():
+    """자유게시판 더미 리스트 캐시 초기화"""
+    global _post_dummy_list_cache
+    _post_dummy_list_cache = None
+
+
+# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
 def reset_all_caches():
     """모든 캐시 초기화"""
     reset_notice_pinned_posts_cache()
@@ -227,4 +280,5 @@ def reset_all_caches():
     reset_notice_dummy_list_cache()
     reset_event_dummy_list_cache()
     reset_event_pinned_posts_cache()
+    reset_post_dummy_list_cache()
 

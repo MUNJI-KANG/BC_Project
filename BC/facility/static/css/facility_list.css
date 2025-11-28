@@ -50,6 +50,8 @@
     background-image: url('/static/img/facility_hero.png');
 }
 
+/* Hero 이미지 모바일 반응형 */
+/* Hero 이미지 모바일 반응형 */
 @media (max-width: 768px) {
     .board-hero {
         padding: var(--spacing-xl) var(--spacing-md);
@@ -64,6 +66,10 @@
         text-align: center;
     }
 }
+
+/* 기타 모바일 반응형은 responsive.css에서 통합 관리 */
+
+/* 기타 모바일 반응형은 responsive.css에서 통합 관리 */
 
 
 /* -----------------------------

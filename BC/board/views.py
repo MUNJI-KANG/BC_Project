@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-from common.utils import get_notice_pinned_posts, get_notice_dummy_list, get_event_dummy_list, get_event_pinned_posts
+from common.utils import get_notice_pinned_posts, get_notice_dummy_list, get_event_dummy_list, get_event_pinned_posts, get_post_dummy_list
 
 def notice(request):
     # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요 - 더미 데이터 생성 (100개, 캐싱됨)
@@ -125,8 +125,7 @@ def event(request):
 
 def post(request):
     # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요 - 더미 데이터 생성
-    # 임시로 notice 더미 데이터 사용 (추후 post 전용 더미 데이터로 교체)
-    dummy_list = get_notice_dummy_list()
+    dummy_list = get_post_dummy_list()
     
     # 검색 기능
     keyword = request.GET.get("keyword", "")

@@ -68,6 +68,7 @@
     background-image: url('/static/img/reservation_hero.png');
 }
 
+/* Hero 이미지 모바일 반응형 */
 @media (max-width: 768px) {
     .board-hero {
         padding: var(--spacing-xl) var(--spacing-md);
@@ -82,6 +83,8 @@
         text-align: center;
     }
 }
+
+/* 기타 모바일 반응형은 responsive.css에서 통합 관리 */
 
 .page-title {
     font-size: 48px;
@@ -255,22 +258,74 @@
     border-bottom: 3px solid var(--color-deep-blue);
 }
 
-.facility-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
-}
+/* ============================================
+   예약할래 리스트 전용 스타일 (.page-reservation 스코프)
+   ============================================ */
 
-.facility-item {
+/* 시설 리스트 테이블 스타일 */
+.page-reservation .facility-list {
+    width: 100%;
+    margin-top: var(--spacing-md);
     background: var(--color-card-box);
+    border-radius: 8px;
     border: 1px solid var(--color-soft-gray-line);
-    padding: var(--spacing-xl);
-    cursor: pointer;
-    transition: all var(--transition-base);
+    overflow: hidden;
 }
 
-.facility-item:hover {
-    border-color: var(--color-muted-blue);
+/* ul 기본 리셋 */
+.page-reservation .facility-list ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* 헤더 + 아이템 공통 레이아웃 */
+.page-reservation .facility-header,
+.page-reservation .facility-item {
+    display: grid;
+    grid-template-columns: 1.2fr 2.5fr 1.6fr 1.4fr 1fr; /* 시설번호 / 시설명 / 시도 / 구군 / 조회수 */
+    align-items: center;
+    padding: 0.9rem 1.1rem;
+    column-gap: 0.75rem;
+    font-size: 0.95rem;
+}
+
+/* 헤더 스타일 */
+.page-reservation .facility-header {
+    background-color: #F5F7FA;
+    border-bottom: 1px solid var(--color-soft-gray-line);
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+/* 행 스타일 */
+.page-reservation .facility-item {
+    border-bottom: 1px solid var(--color-soft-gray-line);
+    background-color: var(--color-card-box);
+    transition: background-color var(--transition-base);
+}
+
+.page-reservation .facility-item:last-child {
+    border-bottom: none;
+}
+
+.page-reservation .facility-item:hover {
+    background-color: #F9FBFF;
+}
+
+/* 조회수 정렬 */
+.page-reservation .facility-views {
+    text-align: right;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+/* 데이터 없을 때 */
+.page-reservation .facility-empty {
+    grid-template-columns: 1fr;
+    text-align: center;
+    color: var(--color-text-secondary);
+    padding: var(--spacing-lg);
 }
 
 /* ============================================
@@ -338,41 +393,7 @@
 }
 
 
-/* 모바일 (768px 이하) */
-@media (max-width: 768px) {
-
-    /* 서브 페이지 반응형 */
-    .sub-container {
-        padding: var(--spacing-md);
-    }
-
-    .page-title {
-        font-size: 32px;
-    }
-
-    .search-controls {
-        flex-direction: column;
-    }
-
-    .search-input-group {
-        width: 100%;
-    }
-
-    .filter-options {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* 태블릿 (769px ~ 1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .sub-container {
-        padding: var(--spacing-lg);
-    }
-
-    .filter-options {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
+/* 모바일/태블릿 반응형은 responsive.css에서 통합 관리 */
 
 
 .page-selector{
@@ -449,102 +470,3 @@
     border-top: 2px solid var(--color-muted-blue);
     margin: 20px 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ====== 시설 리스트 테이블 스타일 ====== */
-
-.facility-list {
-    width: 100%;
-    margin-top: var(--spacing-md);
-    background: var(--color-card-box);
-    border-radius: 8px;
-    border: 1px solid var(--color-soft-gray-line);
-    overflow: hidden;
-}
-
-/* ul 기본 리셋 */
-.facility-list ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-/* 헤더 + 아이템 공통 레이아웃 */
-.facility-header,
-.facility-item {
-    display: grid;
-    grid-template-columns: 1.2fr 2.5fr 1.6fr 1.4fr 1fr; /* 시설번호 / 시설명 / 시도 / 구군 / 조회수 */
-    align-items: center;
-    padding: 0.9rem 1.1rem;
-    column-gap: 0.75rem;
-    font-size: 0.95rem;
-}
-
-/* 헤더 스타일 */
-.facility-header {
-    background-color: #F5F7FA;
-    border-bottom: 1px solid var(--color-soft-gray-line);
-    font-weight: 600;
-    color: var(--color-text-primary);
-}
-
-/* 행 스타일 */
-.facility-item {
-    border-bottom: 1px solid var(--color-soft-gray-line);
-    background-color: var(--color-card-box);
-    transition: background-color var(--transition-base);
-}
-
-.facility-item:last-child {
-    border-bottom: none;
-}
-
-.facility-item:hover {
-    background-color: #F9FBFF;
-}
-
-/* 조회수 정렬 */
-.facility-views {
-    text-align: right;
-    color: var(--color-text-secondary);
-    font-size: 0.9rem;
-}
-
-/* 데이터 없을 때 */
-.facility-empty {
-    grid-template-columns: 1fr;
-    text-align: center;
-    color: var(--color-text-secondary);
-    padding: var(--spacing-lg);
-}
-
-/* 좁은 화면일 때 살짝 줄이기 (선택) */
-@media (max-width: 768px) {
-    .facility-header,
-    .facility-item {
-        grid-template-columns: 1.4fr 2.6fr 1.6fr 1.4fr 1.1fr;
-        padding: 0.7rem 0.8rem;
-        font-size: 0.9rem;
-    }
-}
-
-
-
-
-
-
-

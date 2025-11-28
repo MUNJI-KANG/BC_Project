@@ -18,11 +18,36 @@ function initMobileMenu() {
   });
 
   // 오버레이 클릭 시 메뉴 닫기
-  overlay.addEventListener('click', () => {
+  overlay.addEventListener('click', (e) => {
+    // 오버레이 자체를 클릭한 경우에만 메뉴 닫기
+    e.preventDefault();
+    e.stopPropagation();
     menuBtn.classList.remove('active');
     nav.classList.remove('active');
     overlay.classList.remove('active');
     document.body.classList.remove('menu-open');
+    // 모든 서브메뉴 닫기
+    navItems.forEach(navItem => {
+      navItem.classList.remove('active');
+    });
+  });
+
+  // 터치 이벤트도 처리 (모바일)
+  overlay.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    menuBtn.classList.remove('active');
+    nav.classList.remove('active');
+    overlay.classList.remove('active');
+    document.body.classList.remove('menu-open');
+    navItems.forEach(navItem => {
+      navItem.classList.remove('active');
+    });
+  });
+
+  // 메뉴 영역 클릭 시 이벤트 전파 방지 (오버레이 클릭 이벤트와 충돌 방지)
+  nav.addEventListener('click', (e) => {
+    e.stopPropagation();
   });
 
   // 모바일 메뉴 아이템 클릭 (서브메뉴 토글)
