@@ -619,3 +619,6 @@ def board_manager(request):
     }
 
     return render(request, "board_manager.html", context)
+
+def banner_manager(request):
+    return render(request, 'banner_manger.html')
