@@ -32,3 +32,5 @@ urlpatterns = [
     path('facility/', include("facility.urls")),
     path('manager/', include('manager.urls')),
 ]
+
+# 깃헙 테스트용 주석
