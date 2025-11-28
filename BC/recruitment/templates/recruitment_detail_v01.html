@@ -7,7 +7,6 @@
 {% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/recruitment_list.css' %}" />
 <link rel="stylesheet" href="{% static 'css/recruitment_detail.css' %}" />
 {% endblock %}
 
@@ -17,44 +16,18 @@
 
 
 {% block contents %}
-
-<!-- Hero 섹션 -->
-<div class="board-hero recruitment-hero">
-  <h2>모집할래 상세</h2>
-</div>
+<!-- 페이지 제목 -->
 
 
-
-
-<!-- 서브 컨테이너 -->
 <div class="sub-container">
-
-    <div class="sub-content">
-            
-
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <section class="recruit-detail">
+<div class="sub-content">
+<div class="page-title-section">
+<h2 class="page-title">{{ recruit.title }}</h2>
+</div>
+<br>
+<div class="form-wrapper">
+<!-- 모집글 상세 -->
+<section class="recruit-detail">
 
   <!-- 상단: 제목 + 메타 뱃지 -->
   <div class="detail-header">
@@ -99,50 +72,49 @@
 
 </section>
 
-
-
-
-<!-- 댓글 영역 -->
-<section class="comment-section">
-
-  <h3 class="comment-title">댓글</h3>
-
-  <!-- 댓글 작성폼 -->
-  <form method="POST" class="comment-form">
-    {% csrf_token %}
-    <textarea name="content" class="comment-input" placeholder="댓글을 입력하세요"></textarea>
-    <button type="submit" class="btn comment-submit-btn">등록</button>
-  </form>
-
-  <!-- 댓글 리스트 -->
-  <ul class="comment-list">
-    {% for c in comments %}
-      <li class="comment-item">
-
-        <div class="comment-top">
-          <span class="comment-writer">{{ c.writer }}</span>
-          <span class="comment-date">{{ c.reg_date|date:"Y-m-d H:i" }}</span>
-        </div>
-
-        <div class="comment-content">
-          {{ c.content|linebreaksbr }}
-        </div>
-
-        <div class="comment-actions">
-          {% if request.user.username == c.writer %}
-            <a href="{% url 'recruit_comment_delete' c.id %}" class="comment-action">삭제</a>
-          {% endif %}
-        </div>
-
-      </li>
-    {% empty %}
-      <li class="comment-empty">등록된 댓글이 없습니다.</li>
-    {% endfor %}
-  </ul>
-
-</section>
-
-
+    <!-- 7. 버튼 -->
+    <div class="btn-row">
+        <button class="btn btn-update">수정</button>
+        <button class="btn btn-list">목록</button>
     </div>
+
+
+    <!-- 댓글 섹션 -->
+    <section class="comment-section">
+        <h3 class="section-title">댓글</h3>
+
+        <!-- 댓글 리스트 -->
+        <ul class="comment-list">
+            {% for c in comments %}
+                <li class="comment-item">
+                    <div class="comment-meta">
+                        <span class="comment-writer">{{ c.writer_name }}</span>
+                        <span class="comment-date">
+                            {{ c.created_at|date:"Y-m-d H:i" }}
+                        </span>
+                    </div>
+                    <p class="comment-content">{{ c.content|linebreaksbr }}</p>
+                </li>
+            {% empty %}
+                <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
+            {% endfor %}
+        </ul>
+
+        <!-- 댓글 입력 폼 -->
+        <form method="post" class="comment-form">
+            {% csrf_token %}
+            <label for="comment" class="form-label">댓글 쓰기</label>
+            <textarea id="comment" name="content"
+                    class="form-textarea" rows="3" required></textarea>
+
+            <div class="comment-btn-box">
+                <button type="submit" class="btn-primary">등록</button>
+            </div>
+        </form>
+    </section>
+
+
+</div>
+</div>
 </div>
 {% endblock %}

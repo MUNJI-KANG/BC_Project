@@ -1,297 +1,209 @@
 /* ===========================
-   모집글 상세 공통 레이아웃
-   (이 파일 전체 새로 덮어쓰기)
-=========================== */
-
-/* 제목 섹션 + 내용 전체를 화면 중앙에 */
-.page-title-section,
-.sub-content {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 var(--spacing-lg);
-}
-
-/* 페이지 제목 */
-.page-title-section {
-    margin-top: var(--spacing-xl);
-    margin-bottom: var(--spacing-md);
-}
-
-.page-title {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
-}
-
-/* 바깥 컨테이너는 가로 100%만 */
-.sub-container {
-    width: 100%;
-    margin-bottom: var(--spacing-xl);
-}
-
-/* 내용 영역 */
-.sub-content {
-    padding-bottom: var(--spacing-xl);
-}
-
-/* 이 안에 상세 + 댓글이 다 들어감 */
-.form-wrapper {
-    width: 100%;
-}
-
-/* ===========================
-   모집글 상세 카드
-=========================== */
+   모집글 상세보기 (게시판 상세 형식)
+   =========================== */
 
 .recruit-detail {
+    width: 100%;
     background: var(--color-card-box);
-    border-radius: 8px;
     border: 1px solid var(--color-soft-gray-line);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
+    border-radius: 10px;
+    padding: var(--spacing-xl);
 }
 
-/* 상단 제목 + 뱃지 */
+/* 상단 메타정보 */
 .detail-header {
-    margin-bottom: var(--spacing-md);
-}
-
-.detail-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: var(--spacing-sm);
-    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xl);
+    border-bottom: 2px solid var(--color-soft-gray-line);
+    padding-bottom: var(--spacing-md);
 }
 
 .detail-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: 8px;
 }
 
 .detail-badge {
-    padding: 0.25rem 0.7rem;
-    border-radius: 999px;
-    background: #f0f4fb;
-    font-size: 0.85rem;
-    color: var(--color-text-secondary);
-}
-
-/* 본문 정보 그리드 */
-.detail-grid {
-    border-top: 1px solid var(--color-soft-gray-line);
-    margin-top: var(--spacing-md);
-}
-
-.detail-row {
-    display: grid;
-    grid-template-columns: 90px 1fr;  /* 라벨 / 값 */
-    column-gap: var(--spacing-lg);
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--color-soft-gray-line);
-    align-items: flex-start;
-}
-
-.detail-label {
-    font-size: 0.9rem;
+    background: var(--color-background);
+    border: 1px solid var(--color-soft-gray-line);
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    color: var(--color-text-primary);
     font-weight: 600;
-    color: var(--color-text-secondary);
 }
 
-.detail-value {
-    font-size: 0.95rem;
+/* 본문 */
+.detail-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+/* 라벨 + 값 한 줄 */
+.detail-row {
+    display: flex;
+    gap: var(--spacing-lg);
+}
+
+/* 라벨 */
+.detail-label {
+    flex-basis: 140px;
+    min-width: 140px;
+    font-weight: 800;
+    font-size: 17px;
     color: var(--color-text-primary);
 }
 
-.detail-content {
+/* 값 */
+.detail-value {
+    flex: 1;
+    font-size: 16px;
+    color: var(--color-text-secondary);
+}
+
+/* 내용(본문)만 박스 크게 */
+.detail-row-content .detail-value {
+    border: 1px solid var(--color-soft-gray-line);
+    background: #fafcfe;
+    padding: var(--spacing-lg);
+    line-height: 1.6rem;
+    border-radius: 8px;
     white-space: pre-line;
 }
 
-/* 링크 스타일 */
+/* 링크 */
 .detail-link {
     color: var(--color-deep-blue);
     text-decoration: underline;
+    font-weight: 600;
+}
+
+.detail-link:hover {
+    color: var(--color-deep-blue-hover);
 }
 
 /* 반응형 */
 @media (max-width: 768px) {
     .detail-row {
-        grid-template-columns: 80px 1fr;
+        flex-direction: column;
+    }
+
+    .detail-label {
+        flex-basis: auto;
+        min-width: 0;
+        margin-bottom: 4px;
     }
 }
 
-/* ===========================
-   버튼 영역
-=========================== */
-
-.btn-row {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-}
-
-.btn {
-    min-width: 90px;
-    padding: var(--spacing-sm) var(--spacing-lg);
-    font-size: 0.95rem;
-    cursor: pointer;
-    border-radius: 4px;
-    border: 1px solid var(--color-soft-gray-line);
-    background: var(--color-background);
-    color: var(--color-text-primary);
-    transition: background var(--transition-base), border-color var(--transition-base);
-}
-
-.btn-list:hover {
-    background: var(--color-soft-gray-line);
-}
-
-/* -----------------------------
-   서브 컨테이너
------------------------------- */
-.sub-container {
-    width: 100%;
-    max-width: 1200px;
-    margin: var(--spacing-2xl) auto 0;
-    padding: var(--spacing-lg);
-}
-
-.sub-content {
-    width: 100%;
-    background: var(--color-card-box);
-    padding: var(--spacing-xl);
-    min-height: 400px;
-    border: 1px solid var(--color-soft-gray-line);
-}
-
 
 
 
 
 /* ===========================
-   댓글 카드
-=========================== */
+   댓글 섹션
+   =========================== */
 
 .comment-section {
-    background: var(--color-card-box);
-    border-radius: 8px;
-    border: 1px solid var(--color-soft-gray-line);
-    padding: var(--spacing-lg);
+    margin-top: var(--spacing-2xl);
+    padding-top: var(--spacing-xl);
+    border-top: 2px solid var(--color-soft-gray-line);
 }
 
-.section-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-bottom: var(--spacing-sm);
+.comment-title {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: var(--spacing-lg);
+    color: var(--color-text-primary);
+}
+
+/* 작성폼 */
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl);
+}
+
+.comment-input {
+    width: 100%;
+    min-height: 90px;
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-soft-gray-line);
+    border-radius: 8px;
+    resize: vertical;
+    font-size: 15px;
+    color: var(--color-text-primary);
+}
+
+.comment-input:focus {
+    outline: none;
+    border-color: var(--color-deep-blue);
+}
+
+/* 등록 버튼 */
+.comment-submit-btn {
+    align-self: flex-end;
+    padding: 10px 20px;
 }
 
 /* 댓글 리스트 */
 .comment-list {
     list-style: none;
-    margin: 0 0 var(--spacing-md);
+    margin: 0;
     padding: 0;
 }
 
 .comment-item {
-    padding: 0.6rem 0;
-    border-bottom: 1px solid var(--color-soft-gray-line);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-soft-gray-line);
+    background: var(--color-card-box);
+    border-radius: 8px;
+    margin-bottom: var(--spacing-md);
 }
 
-.comment-item:last-child {
-    border-bottom: none;
-}
-
-.comment-meta {
+/* 댓글 상단 (작성자 + 날짜) */
+.comment-top {
     display: flex;
     justify-content: space-between;
-    font-size: 0.85rem;
-    color: var(--color-text-secondary);
-    margin-bottom: 0.25rem;
+    margin-bottom: var(--spacing-sm);
 }
 
-.comment-content {
-    font-size: 0.9rem;
-    color: var(--color-text-primary);
-}
-
-.comment-empty {
-    padding: var(--spacing-sm) 0;
-    font-size: 0.9rem;
-    color: var(--color-text-secondary);
-}
-
-/* 댓글 폼 */
-.comment-form .form-label {
-    display: block;
-    margin-bottom: var(--spacing-xs);
-    font-size: 0.9rem;
-}
-
-.form-textarea {
-    width: 100%;
-    border-radius: 4px;
-    border: 1px solid var(--color-soft-gray-line);
-    padding: 0.5rem 0.75rem;
-    font-family: inherit;
-    font-size: 0.9rem;
-    resize: vertical;
-}
-
-.comment-btn-box {
-    margin-top: var(--spacing-sm);
-    display: flex;
-    justify-content: flex-end;
-}
-
-.btn-primary {
-    padding: 0.45rem 1.4rem;
-    border-radius: 4px;
-    border: none;
-    background: var(--color-deep-blue);
-    color: #fff;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background var(--transition-base);
-}
-
-.btn-primary:hover {
-    background: var(--color-deep-blue-hover);
-}
-
-
-
-
-/* 제목을 카드랑 같이 가운데 느낌으로 */
-.page-title-section {
-    max-width: 1100px;
-    margin: var(--spacing-xl) auto var(--spacing-md);
-    padding: 0 var(--spacing-lg);
-}
-
-.page-title {
-    font-size: 1.8rem;
+.comment-writer {
     font-weight: 700;
+    color: var(--color-deep-blue);
 }
 
-/* 상세 카드 간격/라인 조금 키우기 */
-.recruit-detail {
-    background: var(--color-card-box);
-    border-radius: 10px;
-    border: 1px solid var(--color-soft-gray-line);
-    padding: 1.75rem 2rem;
+.comment-date {
+    color: var(--color-text-secondary);
+    font-size: 14px;
 }
 
-/* 라벨·값 줄 간격 넉넉하게 */
-.detail-row {
-    grid-template-columns: 100px 1fr;
-    padding: 0.9rem 0;
+/* 댓글 내용 */
+.comment-content {
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.5rem;
 }
 
-/* 댓글 카드도 같은 폭/느낌 맞추기 */
-.comment-section {
-    margin-top: var(--spacing-lg);
-    padding: 1.75rem 2rem;
-    border-radius: 10px;
-    border: 1px solid var(--color-soft-gray-line);
+/* 삭제, 수정 버튼 등 */
+.comment-actions {
+    text-align: right;
+}
+
+.comment-action {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.comment-action:hover {
+    color: var(--color-deep-blue);
+}
+
+/* 댓글 없음 */
+.comment-empty {
+    text-align: center;
+    color: var(--color-text-secondary);
+    padding: var(--spacing-md);
 }

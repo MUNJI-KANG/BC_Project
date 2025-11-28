@@ -150,3 +150,83 @@
 .form-label {
     margin-bottom: var(--spacing-xs);
 }
+
+
+
+
+
+
+/* 파일 업로드 */
+.file-upload-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.file-input {
+    display: none;
+}
+
+.file-upload-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background: var(--color-card-box);
+    border: 2px dashed var(--color-soft-gray-line);
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--transition-base);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.file-upload-btn:hover {
+    border-color: var(--color-deep-blue);
+    background: var(--color-background);
+    color: var(--color-deep-blue);
+}
+
+.file-upload-btn span {
+    display: inline-block;
+}
+
+.file-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-sm);
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--color-background);
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+}
+
+.file-item-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-item-remove {
+    margin-left: var(--spacing-sm);
+    padding: 4px 8px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    transition: color var(--transition-base);
+}
+
+.file-item-remove:hover {
+    color: var(--color-deep-blue);
+}
