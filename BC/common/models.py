@@ -35,6 +35,7 @@ class AddInfo(models.Model):
 
     article_id = models.ForeignKey("board.Article", null=True, blank=True, on_delete=models.SET_NULL)
     community_id = models.ForeignKey("recruitment.Community", null=True, blank=True, on_delete=models.SET_NULL)
+    facility_id = models.ForeignKey("facility.FacilityInfo", null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         db_table = "add_info"
