@@ -11,5 +11,6 @@ urlpatterns = [
     path('event_manager/', views.event_manager, name='event_manager'),
     path('board_manager/', views.board_manager, name='board_manager'),
     path('banner/', views.banner_manager, name='banner_manager'),
-    path('register_form/', views.register_form, name='register_form')
+    path('event_form/', views.event_form, name='event_form'),
+    path('board_form/', views.board_form, name='board_form'),
 ]

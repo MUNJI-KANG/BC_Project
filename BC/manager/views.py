@@ -623,5 +623,8 @@ def board_manager(request):
 def banner_manager(request):
     return render(request, 'banner_manager.html')
 
-def register_form(request):
-    return render(request, 'register_form.html')
+def event_form(request):
+    return render(request, 'event_form.html')
+
+def board_form(request):
+    return render(request, 'board_form.html')

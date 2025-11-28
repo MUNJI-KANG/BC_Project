@@ -6,7 +6,7 @@ from django.db import models
 
 class HeroImg(models.Model):
     img_id = models.AutoField(primary_key=True)
-    url = models.CharField(max_length=200)
+    tag = models.CharField(max_length=200)
     title = models.CharField(max_length=200)
     context = models.CharField(max_length=200)
     start_date = models.DateTimeField(null=True)
