@@ -123,22 +123,25 @@
         width: 100%;
     }
 
+    /* 리스트 그리드 조정 */
+    .facility-header,
     .facility-item {
-        flex-wrap: wrap;
-        padding: var(--spacing-sm) 4px;
-        font-size: 12px;
+        grid-template-columns: 60px 1fr 100px 110px 70px;
+        padding: 0.7rem 0.8rem;
+        font-size: 0.85rem;
+        column-gap: 0.6rem;
     }
 
-    .facility-order {
-        width: 30px;
-        font-size: 11px;
+    .pinned-item {
+        grid-template-columns: auto 60px 1fr 100px 110px 70px;
+        padding: 0.7rem 0.8rem;
+        column-gap: 0.6rem;
     }
 
-    .facility-title {
-        flex: 1 1 100%;
-        order: 2;
-        padding: var(--spacing-xs) 0;
-        font-size: 13px;
+    /* 모바일에서 구분자 숨기기 (공간 부족) */
+    .facility-header > span:not(:last-child)::after,
+    .facility-item > span:not(:last-child)::after {
+        display: none;
     }
 
     .facility-author,
@@ -150,14 +153,6 @@
         padding: 0 var(--spacing-xs);
     }
 
-    .pinned-item {
-        flex-wrap: wrap;
-    }
-
-    .pinned-item .facility-title {
-        flex: 1 1 100%;
-        order: 2;
-    }
 }
 
 
@@ -289,72 +284,142 @@
 }
 
 /* 리스트 컨테이너 */
+.facility-list {
+    width: 100%;
+    margin-top: var(--spacing-md);
+    background: var(--color-card-box);
+    border-radius: 8px;
+    border: 1px solid var(--color-soft-gray-line);
+    overflow: hidden;
+}
+
 .facility-list ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-/* 한 줄(한 게시글) 스타일 */
+/* 헤더 + 아이템 공통 레이아웃 (grid) */
+.facility-header,
 .facility-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: 80px 1fr 120px 140px 80px; /* 번호 / 제목 / 작성자 / 작성날짜 / 조회수 */
     align-items: center;
-    padding: 10px 4px;
+    padding: 0.9rem 1.1rem;
+    column-gap: 1rem;
+    font-size: 0.95rem;
+    position: relative;
+}
+
+/* 헤더 스타일 */
+.facility-header {
+    background-color: #F5F7FA;
+    border-bottom: 2px solid var(--color-soft-gray-line);
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.facility-header > span {
+    text-align: center;
+}
+
+.facility-header > span:first-child {
+    text-align: center; /* 번호 */
+}
+
+.facility-header > span:nth-child(2) {
+    text-align: left; /* 제목 */
+}
+
+/* 행 스타일 */
+.facility-item {
     border-bottom: 1px solid var(--color-soft-gray-line);
-    font-size: 14px;
+    background-color: var(--color-card-box);
+    transition: background-color var(--transition-base);
+}
+
+.facility-item:last-child {
+    border-bottom: none;
+}
+
+.facility-item:hover {
+    background-color: #F9FBFF;
 }
 
 /* 순번 */
 .facility-order {
-    width: 40px;
     text-align: center;
     color: var(--color-text-secondary);
-    flex-shrink: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 /* 제목 */
-.facility-title {
-    flex: 1;
-    padding: 0 12px;
+.facility-item .facility-title {
     color: var(--color-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-right: 0.5rem;
+    text-align: left;
+}
+
+.facility-header .facility-title {
+    color: var(--color-text-primary);
+    font-weight: 600;
+}
+
+/* hover 시: 제목만 밑줄 */
+.facility-item:hover .facility-title {
+    text-decoration: underline;
 }
 
 /* 작성자 */
 .facility-author {
-    width: 100px;
-    padding: 0 12px;
-    color: var(--color-text-secondary);
-    font-size: 13px;
     text-align: center;
-    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 /* 날짜 */
 .facility-date {
-    min-width: 100px;
-    padding: 0 12px;
-    color: var(--color-text-secondary);
-    font-size: 13px;
     text-align: center;
-    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 /* 조회수 */
 .facility-views {
-    min-width: 100px;
-    padding: 0 12px;
-    color: var(--color-text-secondary);
-    font-size: 13px;
     text-align: center;
-    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
-/* hover 시: 배경 크게 안 바꾸고 제목만 밑줄 */
-.facility-item:hover .facility-title {
-    text-decoration: underline;
+/* 구분자 (각 항목 사이) */
+.facility-header > span:not(:last-child)::after,
+.facility-item > span:not(:last-child)::after {
+    content: '|';
+    position: absolute;
+    right: -0.375rem;
+    color: var(--color-soft-gray-line);
+    font-weight: 300;
+}
+
+/* 고정 게시글은 구분자 제거 (pinned-badge 때문에) */
+.pinned-item > span:not(:last-child)::after {
+    display: none;
+}
+
+/* 데이터 없을 때 */
+.facility-empty {
+    grid-template-columns: 1fr;
+    text-align: center;
+    color: var(--color-text-secondary);
+    padding: var(--spacing-lg);
+    border-bottom: none;
 }
 
 .page-selector{
@@ -452,8 +517,12 @@
     background: linear-gradient(135deg, rgba(47, 92, 156, 0.05) 0%, rgba(77, 158, 70, 0.05) 100%);
     border-left: 4px solid var(--color-deep-blue);
     font-weight: 600;
-    padding: 14px 4px;
+    padding: 0.9rem 1.1rem;
     position: relative;
+    display: grid;
+    grid-template-columns: auto 80px 1fr 120px 140px 80px; /* 고정배지 / 번호 / 제목 / 작성자 / 작성날짜 / 조회수 */
+    align-items: center;
+    column-gap: 1rem;
 }
 
 .pinned-item .facility-title {
@@ -469,7 +538,6 @@
     font-size: 11px;
     font-weight: 700;
     border-radius: 4px;
-    margin-right: 8px;
     flex-shrink: 0;
 }
 
@@ -484,30 +552,6 @@
 /* 고정 게시글이 없을 때 섹션 숨기기 */
 .pinned-section:has(.no-pinned) {
     display: none;
-}
-
-/* -----------------------------
-   고정 게시글 스타일
------------------------------- */
-.pinned-section {
-    margin-bottom: var(--spacing-xl);
-}
-
-.pinned-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--color-deep-blue);
-    margin-bottom: var(--spacing-md);
-    padding-bottom: var(--spacing-xs);
-    border-bottom: 2px solid var(--color-muted-blue);
-}
-
-.pinned-item {
-    background: linear-gradient(135deg, rgba(47, 92, 156, 0.05) 0%, rgba(77, 158, 70, 0.05) 100%);
-    border-left: 4px solid var(--color-deep-blue);
-    font-weight: 600;
-    padding: 14px 4px;
-    position: relative;
 }
 
 .pinned-item .facility-title {

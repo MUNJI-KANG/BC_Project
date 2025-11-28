@@ -57,7 +57,7 @@
                                 <span class="facility-title">{{ item.title }}</span>
                                 <span class="facility-author">{{ item.author }}</span>
                                 <span class="facility-date">{{ item.date }}</span>
-                                <span class="facility-views">조회수 {{ item.views }}</span>
+                                <span class="facility-views">{{ item.views }}</span>
                             </li>
                         {% empty %}
                             <li class="no-pinned">고정된 게시글이 없습니다.</li>
@@ -91,6 +91,15 @@
             {% endif %}
             
            <div class="facility-list" id="facilityList">
+                <!-- 헤더 -->
+                <div class="facility-header">
+                    <span class="facility-title">번호</span>
+                    <span class="facility-title">제목</span>
+                    <span class="facility-title">작성자</span>
+                    <span class="facility-title">작성날짜</span>
+                    <span class="facility-title">조회수</span>
+                </div>
+                
                 <ul>
                     {% for item in page_obj %}
                         <li class="facility-item">
@@ -98,10 +107,10 @@
                             <span class="facility-title">{{ item.title }}</span>
                             <span class="facility-author">{{ item.author }}</span>
                             <span class="facility-date">{{ item.date }}</span>
-                            <span class="facility-views">조회수 {{ item.views }}</span>
+                            <span class="facility-views">{{ item.views }}</span>
                         </li>
                     {% empty %}
-                        <li>등록된 공지사항이 없습니다.</li>
+                        <li class="facility-empty">등록된 공지사항이 없습니다.</li>
                     {% endfor %}
                 </ul>
             </div>
