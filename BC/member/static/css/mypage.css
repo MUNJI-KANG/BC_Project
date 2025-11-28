@@ -1,65 +1,274 @@
-/* 마이페이지 전체 영역 */
-.mypage-profile {
-    margin-top: var(--spacing-xl);
-    padding: var(--spacing-xl) 0;
+/* ===========================
+   마이페이지 공통 레이아웃
+=========================== */
+
+/* 오른쪽 메인 영역 */
+.main {
+    padding: var(--spacing-xl) var(--spacing-xl);
+}
+
+/* 제목 (예: 나의 게시글, 나의 시설 예약 등) */
+.main > h2 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-lg);
+}
+
+/* ===========================
+   마이페이지 게시글 리스트
+=========================== */
+
+.mypage-board {
+    width: 100%;
+}
+
+/* 상단 정렬/개수 선택 영역 */
+.mypage-board-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+/* 드롭다운 공통 */
+.mypage-select {
+    padding: 8px 16px;
+    border: 1px solid var(--color-soft-gray-line);
+    border-radius: 4px;
+    background: var(--color-card-box);
+    font-size: 14px;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    min-width: 120px;
+    transition: var(--transition-base);
+}
+
+.mypage-select:hover {
+    border-color: var(--color-deep-blue);
+}
+
+/* 리스트 전체 박스 */
+.mypage-board-list {
+    margin-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-soft-gray-line);
+    border-bottom: 1px solid var(--color-soft-gray-line);
+}
+
+/* 한 줄 전체(행) – a 태그 하나 */
+.mypage-board-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 120px 100px;  /* 번호 / 제목 / 날짜 / 조회수 */
+    align-items: center;
+    gap: 8px;
+    padding: 10px 4px;
+    font-size: 14px;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-soft-gray-line);
+}
+
+/* 마지막 줄 border 제거(선택사항) */
+/*
+.mypage-board-row:last-child {
+    border-bottom: none;
+}
+*/
+
+/* 번호 */
+.col-number {
+    text-align: left;
+    color: var(--color-text-secondary);
 }
 
 /* 제목 */
-.main h2 {
-    font-size: 1.8rem;
-    margin-top: 10px;
-    margin-bottom: var(--spacing-lg);
-    color: var(--color-deep-blue);
-    font-weight: 700;
+.col-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-
-/* 전체 영역 */
-.mypage-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.95rem;
-    background: #ffffff;
-    border: 1px solid #E7EBEF;
-    border-radius: 8px;
-    overflow: hidden; /* radius 적용 */
+/* 날짜 */
+.col-date {
+    text-align: right;
+    color: var(--color-text-secondary);
+    font-size: 13px;
 }
 
-/* 테이블 헤더 */
-.mypage-table thead th {
-    background: var(--color-muted-blue);
-    color: white;
-    font-weight: 600;
-    text-align: center;
-    padding: 14px 10px;
-    border-bottom: 2px solid var(--color-deep-blue);
+/* 조회수 */
+.col-views {
+    text-align: right;
+    color: var(--color-text-secondary);
+    font-size: 13px;
 }
 
-/* 기본 셀 */
-.mypage-table td {
-    padding: 12px 10px;
-    border-bottom: 1px solid #E7EBEF;
-    text-align: center;
-    color: var(--color-text-primary);
+/* hover 효과 – 배경 살짝 + 제목 밑줄 */
+.mypage-board-row:hover {
+    background: #f9fbff;
 }
 
-/* 링크 스타일 */
-.mypage-table td a {
-    color: var(--color-deep-blue);
-    text-decoration: none;
-    font-weight: 600;
-}
-.mypage-table td a:hover {
-    color: var(--color-deep-blue-hover);
+.mypage-board-row:hover .col-title {
     text-decoration: underline;
 }
 
-/* 호버 시 강조 */
-.mypage-table tbody tr:hover {
-    background-color: #F4F8FB;
+/* 리스트 비었을 때 */
+.mypage-board-empty {
+    padding: 20px 4px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
 }
 
-/* 마지막 줄 border 제거 */
-.mypage-table tbody tr:last-child td {
-    border-bottom: none;
+/* ===========================
+   하단 작성 버튼
+=========================== */
+
+.mypage-board-bottom {
+    margin-top: var(--spacing-lg);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mypage-write-btn {
+    padding: 10px 22px;
+    border-radius: 4px;
+    border: none;
+    background: var(--color-deep-blue);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.mypage-write-btn:hover {
+    background: var(--color-deep-blue-hover);
+}
+
+/* ===========================
+   반응형 (폭 좁을 때)
+=========================== */
+
+@media (max-width: 768px) {
+    .main {
+        padding: var(--spacing-lg);
+    }
+
+    .mypage-board-row {
+        grid-template-columns: 40px 1fr;
+        grid-template-rows: auto auto;
+        row-gap: 4px;
+    }
+
+    .col-date,
+    .col-views {
+        text-align: left;
+        font-size: 12px;
+    }
+
+    .col-date {
+        grid-column: 2 / 3;
+    }
+
+    .col-views {
+        grid-column: 2 / 3;
+        justify-self: flex-end;
+    }
+}
+
+
+/* ===========================
+   페이지네이션 전체
+=========================== */
+
+.pagination {
+    margin-top: var(--spacing-xl);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+
+/* ===========================
+   기본 버튼 스타일
+=========================== */
+
+.page-btn {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--color-soft-gray-line);
+    background: var(--color-card-box);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+}
+
+/* hover */
+.page-btn:hover:not(.disabled):not(.active) {
+    border-color: var(--color-deep-blue);
+    color: var(--color-deep-blue);
+}
+
+
+/* ===========================
+   현재 페이지(활성)
+=========================== */
+
+.page-btn.active {
+    background: var(--color-deep-blue);
+    border-color: var(--color-deep-blue);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+
+/* ===========================
+   이전/다음 화살표 버튼
+=========================== */
+
+.page-btn.arrow {
+    font-size: 13px;
+    padding: 6px 14px;
+    color: var(--color-text-secondary);
+}
+
+.page-btn.arrow:hover:not(.disabled) {
+    color: var(--color-deep-blue);
+    border-color: var(--color-deep-blue);
+}
+
+/* disabled 상태 */
+.page-btn.disabled {
+    opacity: 0.4;
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ===========================
+   모바일 최적화
+=========================== */
+
+@media (max-width: 768px) {
+    .pagination {
+        gap: 6px;
+    }
+
+    .page-btn {
+        padding: 5px 12px;
+        min-width: 32px;
+        font-size: 12px;
+    }
+
+    .page-btn.arrow {
+        padding: 5px 12px;
+        font-size: 12px;
+    }
 }

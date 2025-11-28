@@ -1,21 +1,37 @@
-{% extends 'mypage_base.html' %}
+{% extends 'base.html' %}
 {% load static %}
-
-{% block mypagecss %}
-<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/mypage_base.css' %}" />
 <link rel="stylesheet" href="{% static 'css/mypage_info.css' %}" />
 {% endblock %}
+{% block mypagecss %}
+{% endblock %}
+
 {% block script1 %}
-<script src="{% static 'js/info.js' %}"></script>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script src="{% static 'js/info.js'%}"></script>
 {% endblock %}
 {% block title %}
-할래말래 - 내정보
+mypage base
 {% endblock %}
-{% block mypagecontainer %}
+{% block contents %}
+<!-- 회원가입 컨테이너 -->
+<div class="register-container">
+  <div class="register-wrapper">
 
+    <!-- PC 브랜딩 -->
+    <div class="register-brand">
+      <h2>My Page</h2>
+      <ul class="register-brand-features">
+        <li><a href="/member/info/">내 정보</a></li>
+        <li><a href="/member/myreservation/">내 예약 내역</a></li>
+        <li><a href="/member/myrecruitment/">내 모집글</a></li>
+        <li><a href="/member/myarticle/">내 게시글</a></li>
+        <li><a href="/member/myjoin/">내 참여 내역</a></li>
+      </ul>
+    </div>
 
-
-    <!-- 컨텐츠 내용 -->
+    <!-- 내용 담을 컨테이너 -->
     <main class="main">
 
     <h2>마이페이지</h2>
@@ -57,12 +73,15 @@
                 <input type="text" name="phone" value="{{ phone_num }}" readonly>
             </div>
 
-            <div class="info-group">
+            <div class="info-group info-group-address">
                 <label>주소</label>
-                <input type="text" name="addr1" value="{{ addr1 }}" readonly>
-                <input type="text" name="addr2" value="{{ addr2 }}" readonly>
-                <input type="text" name="addr3" value="{{ addr3 }}" readonly>
+                <div class="address-row">
+                    <input type="text" value="{{ addr1 }}" readonly>
+                    <input type="text" value="{{ addr2 }}" readonly>
+                    <input type="text" value="{{ addr3 }}" readonly>
+                </div>
             </div>
+
 
 
             <!-- 버튼 -->
@@ -80,6 +99,11 @@
     </main>
 
 
+
+
+<!-- mypage내용 담을 container -->
+  </div> <!-- register-wrapper -->
+</div> <!-- register-container -->
 
 
 {% endblock %}

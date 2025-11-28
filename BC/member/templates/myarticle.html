@@ -1,60 +1,141 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+<link rel="stylesheet" href="{% static 'css/mypage_base.css' %}" />
 <link rel="stylesheet" href="{% static 'css/mypage.css' %}" />
 {% endblock %}
-{% block script1 %}
+{% block mypagecss %}
+{% endblock %}
 
+{% block script1 %}
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script src="{% static 'js/mypage_list.js' %}"></script>
 {% endblock %}
 {% block title %}
-할래말래 - 내 게시글
+mypage base
 {% endblock %}
 {% block contents %}
+<!-- 회원가입 컨테이너 -->
+<div class="register-container">
+  <div class="register-wrapper">
 
-
-
-    <!-- 컨텐츠 내용 -->
+    <!-- PC 브랜딩 -->
+    <div class="register-brand">
+      <h2>My Page</h2>
+      <ul class="register-brand-features">
+        <li><a href="/member/info/">내 정보</a></li>
+        <li><a href="/member/myreservation/">내 예약 내역</a></li>
+        <li><a href="/member/myrecruitment/">내 모집글</a></li>
+        <li><a href="/member/myarticle/">내 게시글</a></li>
+        <li><a href="/member/myjoin/">내 참여 내역</a></li>
+      </ul>
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <!-- mypage내용 담을 container -->
     <main class="main">
 
-    <h2>나의 Article</h2>
+    <h2>나의 자유게시판</h2>
 
 
 
-    <!-- 목록 -->
-    <table class="mypage-table">
-        <thead>
-            <tr>
-                
-                <th>자유게시판 번호</th>
-                <th>제목</th>
-                <th>게시 날짜</th>
-                <th>조회수</th>
-            </tr>
-        </thead>
-        <tbody>
-          {% for post in list %}
-          
-          <tr>
-            <td><a href="/reservation">{{ post.article_id }}</a></td>
-            <td><a href="/facility">{{ post.title }}</a></td>
-            <td>{{ post.reg_date }}</td>
-            <td>{{ post.view_cnt }}</td>
-          </tr>
-          
-          {% endfor %}
+<section class="mypage-board">
+
+  <!-- 상단 정렬/개수 선택 -->
+  <div class="mypage-board-top">
+    <div class="mypage-board-top-left">
+      <select class="mypage-select" name="order">
+        <option value="recent">최신순</option>
+        <option value="title">제목순</option>
+        <option value="views">조회수순</option>
+      </select>
+    </div>
+
+    <div class="mypage-board-top-right">
+      <select class="mypage-select" name="page_size">
+        <option value="15">15개</option>
+        <option value="30">30개</option>
+        <option value="50">50개</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 목록 영역 -->
+  <div class="mypage-board-list">
+    {% for post in page_obj %}
+      <!-- 한 줄 전체가 클릭되는 행 -->
+      <a href="#" class="mypage-board-row">
+        <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
+        <span class="col-title">{{ post.title }}</span>
+        <!-- 날짜 다시 살리기 -->
+        <!-- <span class="col-date">{{ post.reg_date|date:"Y-m-d" }}</span> -->
+        <!-- 조회수 필드명 수정 -->
+        <span class="col-views">조회수 {{ post.views }}</span>
+      </a>
+    {% empty %}
+      <div class="mypage-board-empty">
+        작성한 게시글이 없습니다.
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- 하단 작성 버튼 -->
+  <div class="mypage-board-bottom">
+    <button type="button" class="mypage-write-btn">작성하기</button>
+  </div>
+
+</section>
 
 
-        </tbody>
-    </table>
 
 
+
+    <!-- 페이징 번호 -->
+
+    <div class="pagination">
+
+        <!-- 🔹 이전 블록 -->
+        {% if block_start > 1 %}
+            <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">◀ 이전</a>
+        {% else %}
+            <span class="page-btn arrow disabled">◀ 이전</span>
+        {% endif %}
+
+        <!-- 🔹 페이지 번호 5개씩 블록 -->
+        {% for num in block_range %}
+            {% if num == page_obj.number %}
+                <span class="page-btn active">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        <!-- 🔹 다음 블록 -->
+        {% if block_end < paginator.num_pages %}
+            <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">다음 ▶</a>
+        {% else %}
+            <span class="page-btn arrow disabled">다음 ▶</span>
+        {% endif %}
+
+    </div>
 
 
     </main>
 
 
+
+
+
+
+  </div> <!-- register-wrapper -->
+</div> <!-- register-container -->
 
 
 {% endblock %}

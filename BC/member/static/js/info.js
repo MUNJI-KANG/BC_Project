@@ -16,6 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
         handle_password_change();
     });
 
+
+
 });
 
 // -----------------------------

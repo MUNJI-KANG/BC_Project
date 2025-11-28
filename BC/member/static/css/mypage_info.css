@@ -1,125 +1,246 @@
-/* 마이페이지 전체 영역 */
+/* ===========================
+   오른쪽 메인 영역
+   =========================== */
+.main {
+  padding: var(--spacing-2xl) var(--spacing-xl);
+}
+
+/* 프로필 박스 */
 .mypage-profile {
-    margin-top: var(--spacing-xl);
-    padding: var(--spacing-xl) 0;
+  background: var(--color-card-box);
+  border-radius: 18px;
+  padding: var(--spacing-xl) var(--spacing-2xl);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
 }
 
 /* 제목 */
-.main h2 {
-    margin-top: 10px;
-    font-size: 1.8rem;
-    margin-bottom: var(--spacing-lg);
-    color: var(--color-deep-blue);
-    font-weight: 700;
+.main > h2 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-text-primary);
 }
 
-/* 폼 래퍼 */
+/* ===========================
+   폼 레이아웃
+   =========================== */
 .mypage-form {
-    width: 100%;
-    max-width: 900px;           /* 조금 더 넓게 */
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 680px;
 }
 
-/* 한 줄(라벨 + 값) */
+/* 라벨 + 인풋 한 줄 */
 .info-group {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-sm) 0;
-    border-bottom: 1px solid var(--color-soft-gray-line);
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
 /* 라벨 */
 .info-group label {
-    width: 100px;
-    min-width: 80px;
-    font-size: 0.95rem;
-    color: var(--color-text-secondary);
-    font-weight: 600;
+  width: 80px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1b1d1f;
+  white-space: nowrap;
 }
 
-/* 값(인풋을 텍스트처럼 보이게) */
-.info-group input {
-    flex: 1;
-    padding: var(--spacing-xs) 0;
-    border: none;
-    background: transparent;
-    font-size: 1rem;
-    color: var(--color-text-primary);
-    cursor: default;            /* 텍스트필드 느낌 줄이기 */
+/* ===========================
+   ✏️ 수정 가능 input (editable)
+   =========================== */
+.info-group input,
+.address-row input {
+  flex: 1;
+  width: 100%;
+  padding: 11px 14px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid #d5d9e0; /* 기본 은은한 회색 라인 */
+  background-color: #ffffff;
+  color: #2b2f33;
+  transition: all 0.15s ease;
+  outline: none;
 }
 
-
-.info-group input:not([readonly]) {
-    background-color: #ffffff;
-    border: 1px solid #bfc5cb;
-    color: #1A2A43;
+/* 포커스된 editable input */
+.info-group input:not([readonly]):focus,
+.address-row input:not([readonly]):focus {
+  border-color: #4a6fd8; 
+  box-shadow: 0 0 0 2px rgba(74, 111, 216, 0.15); /* 은은한 블루 포커스 */
+  background-color: #ffffff;
 }
 
-.info-group input:not([readonly]):focus {
-    border-color: var(--color-deep-blue);
-    box-shadow: 0 0 0 2px rgba(47, 92, 156, 0.2);
-    outline: none;
+/* ===========================
+   🔒 조회 전용 input (readonly)
+   =========================== */
+.info-group input[readonly],
+.address-row input[readonly] {
+  background-color: #f5f6f8;     /* 연회색 배경 */
+  border: 1px solid #e3e5e8;     /* 얇고 부드러운 테두리 */
+  color: #9ba0a7;               /* 흐릿한 글자 */
+  box-shadow: none;
 }
 
-/* 포커스 시 테두리/아웃라인 제거 */
-.info-group input:focus {
-    outline: none;
+/* readonly는 hover/focus 변화 없음 */
+.info-group input[readonly]:focus,
+.address-row input[readonly]:focus,
+.info-group input[readonly]:hover,
+.address-row input[readonly]:hover {
+  border: 1px solid #e3e5e8;
+  box-shadow: none;
+  background-color: #f5f6f8;
 }
 
-/* 버튼 영역 */
+/* ===========================
+   주소 3칸 (세련된 정렬)
+   =========================== */
+.info-group-address {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.address-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  flex: 1;
+}
+
+/* ===========================
+   반응형
+   =========================== */
+@media (max-width: 768px) {
+  .mypage-profile {
+    padding: var(--spacing-lg);
+  }
+
+  .mypage-form {
+    max-width: 100%;
+  }
+
+  .info-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info-group label {
+    width: auto;
+  }
+
+  .info-group-address {
+    align-items: flex-start;
+  }
+
+  .address-row {
+    width: 100%;
+  }
+}
+
+/* ===========================
+   버튼 영역
+   =========================== */
 .mypage-btn-box {
-    margin-top: var(--spacing-xl);
-    display: flex;
-    gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  display: flex;
+  gap: 12px;
 }
 
-/* 공통 버튼 스타일 */
 .mypage-btn-box button {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 600;
-    transition: background var(--transition-base);
-    color: #fff;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--color-deep-blue);
+  background: var(--color-deep-blue);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* 수정 버튼 — 블루 */
-.btn-edit, .btn-edit-complete {
-    background: var(--color-deep-blue);
-}
-.btn-edit:hover,
-.btn-edit-complete:hover {
-    background: var(--color-deep-blue-hover);
+.mypage-btn-box button:hover {
+  background: var(--color-deep-blue-hover);
+  border-color: var(--color-deep-blue-hover);
 }
 
-/* 비번 버튼 — 그린 */
+/* 보조 버튼 */
 .btn-password {
-    background: var(--color-deep-green);
+  background: #fff;
+  color: var(--color-deep-blue);
 }
+
 .btn-password:hover {
-    background: #5aad53;
+  background: var(--color-deep-blue-hover);
+  color: #fff;
 }
 
-/* 모바일에서 줄바꿈 */
-@media (max-width: 600px) {
-    .info-group {
-        flex-direction: column;
-        align-items: flex-start;
-    }
 
-    .info-group label {
-        width: auto;
-    }
+/* 비밀번호 수정 컨테이너 */
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;  /* 줄 간 간격 넉넉하게 */
+  max-width: 450px;
+}
 
-    .mypage-btn-box {
-        flex-direction: column;
-        width: 100%;
-    }
+/* 라벨 + 인풋 한 줄 */
+.password-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* 라벨 ↔ 인풋 간격 */
+}
 
-    .mypage-btn-box button {
-        width: 100%;
-        text-align: center;
-    }
+/* 라벨 */
+.password-group label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1b1d1f;
+}
+
+/* 인풋박스 */
+.password-group input {
+  padding: 12px 14px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid #d5d9e0;
+  background-color: #ffffff;
+  transition: 0.15s ease;
+  outline: none;
+}
+
+/* 포커스 스타일 (세련된 파란 테두리) */
+.password-group input:focus {
+  border-color: #4a6fd8;
+  box-shadow: 0 0 0 2px rgba(74, 111, 216, 0.15);
+}
+
+/* 버튼 정렬 */
+/* 버튼 영역 */
+.password-btn-box {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-start;   /* 왼쪽 정렬 → 원하면 center로 변경 가능 */
+}
+
+/* 비밀번호 수정 버튼 스타일 */
+.password-btn-box button {
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--color-deep-blue);
+  background: var(--color-deep-blue);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+/* hover */
+.password-btn-box button:hover {
+  background: var(--color-deep-blue-hover);
+  border-color: var(--color-deep-blue-hover);
+}
+
+.password-btn-box {
+  justify-content: center;
 }
