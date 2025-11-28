@@ -493,3 +493,7 @@ def dashboard(request):
     }
     
     return render(request, 'dashboard.html', context)
+
+
+def facility_list(request):
+    return render(request, "facility_list_manger.html")

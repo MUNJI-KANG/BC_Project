@@ -23,42 +23,6 @@ body {
     min-height: 100vh;
 }
 
-/* ------------------------------------
-   사이드바
------------------------------------- */
-.admin-sidebar {
-    width: 260px; /* 조금 더 넓혀줌 */
-    background: #1A2A43;
-    color: white;
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-}
-
-.sidebar-title {
-    font-size: 20px;
-    margin-bottom: 25px;
-}
-
-.sidebar-menu {
-    list-style: none;
-}
-
-.sidebar-menu li {
-    margin: 10px 0;
-}
-
-.sidebar-menu a {
-    color: white;
-    text-decoration: none;
-    padding: 10px 5px;
-    display: block;
-    font-size: 16px;
-}
-
-.sidebar-menu a:hover {
-    background: #2F4266;
-}
 
 /* ------------------------------------
    메인 콘텐츠 – 크게 확장
