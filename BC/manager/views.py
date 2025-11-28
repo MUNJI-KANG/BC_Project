@@ -496,4 +496,45 @@ def dashboard(request):
 
 
 def facility_list(request):
-    return render(request, "facility_list_manger.html")
+
+    # 필터 파라미터
+    sido = request.GET.get("sido", "")
+    sigungu = request.GET.get("sigungu", "")
+    keyword = request.GET.get("keyword", "")
+    per_page = int(request.GET.get("per_page", 15))
+    page = int(request.GET.get("page", 1))
+
+    # ============================
+    # DB가 아직 없으므로 빈 리스트로 대체
+    # 나중에 DB 만들어지면 FacilityInfo.objects.all()로 변경
+    # ============================
+    queryset = []   # <<<<<<<< 요거 때문에 오류 해결됨
+
+    # ============================
+    # 페이징
+    # ============================
+    paginator = Paginator(queryset, per_page)
+    page_obj = paginator.get_page(page)
+
+    start_index = (page_obj.number - 1) * per_page
+    facility_page = []
+
+    for idx, item in enumerate(page_obj.object_list):
+        facility_page.append({
+            "id": item.id,
+            "name": item.facility_name,
+            "address": item.addr_full,
+            "row_no": start_index + idx + 1,
+        })
+
+    context = {
+        "page_obj": page_obj,
+        "per_page": per_page,
+        "sido": sido,
+        "sigungu": sigungu,
+        "keyword": keyword,
+        "facility_json": json.dumps(facility_page, ensure_ascii=False),
+        "block_range": range(1, paginator.num_pages + 1),
+    }
+
+    return render(request, "facility_list_manager.html", context)
