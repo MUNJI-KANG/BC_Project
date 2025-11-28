@@ -15,6 +15,7 @@ _geo_cache = {}
 
 
 def facility(data, rows=200):
+
     DATA_API_KEY = os.getenv("DATA_API_KEY")  
     cp_nm = (data.get('cp_nm') or "").strip()
     cpb_nm = (data.get('cpb_nm') or "").strip()
