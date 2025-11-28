@@ -66,5 +66,8 @@ class Facility(models.Model):
 
     row_num = models.IntegerField(null=True, blank=True)
 
+    class Meta:
+        db_table = "facility"
+        
     def __str__(self):
         return f"{self.faci_nm} ({self.faci_cd})"
