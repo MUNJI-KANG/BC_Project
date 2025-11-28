@@ -10,5 +10,6 @@ urlpatterns = [
     path('recruitment_manager/', views.recruitment_manager, name='recruitment_manager'),
     path('evenet_manager/', views.event_manager, name='event_manager'),
     path('board_manager/', views.board_manager, name='board_manager'),
-    path('banner/', views.banner_manager, name='banner_manager')
+    path('banner/', views.banner_manager, name='banner_manager'),
+    path('register_form/', views.register_form, name='register_form')
 ]

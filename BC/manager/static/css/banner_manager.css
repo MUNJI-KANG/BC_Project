@@ -133,11 +133,13 @@ body {
 }
 
 /* 등록 버튼 */
-.register-btn {
+.register-btn,
+.edit-btn {
     background: #2e5aa3;
     color: #fff;
 }
-.register-btn:hover {
+.register-btn:hover,
+.edit-btn:hover {
     background: #1e3f7f;
 }
 

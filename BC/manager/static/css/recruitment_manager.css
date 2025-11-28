@@ -341,7 +341,7 @@ body {
     text-align: center;
 }
 
-.facility-table th:nth-child(3),
+.facility-table th:nth-child(3),f
 .facility-table td:nth-child(3) {
     width: 60%; /* 제목 – 가장 넓게 */
 }
