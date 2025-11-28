@@ -11,7 +11,7 @@
 
 {% autoescape off %}
 <script>
-    var facility = {{ facility|safe }};
+    var facility = {{ facility| safe }};
     console.log("상세페이지 시설 데이터:", facility);
 </script>
 {% endautoescape %}
@@ -29,28 +29,61 @@
 
 <div class="sub-container">
     <div class="sub-content">
+        <section class="detail-top-wrapper">
 
+            <!-- 왼쪽 80% 이미지 -->
+            <section class="detail-image-wrap">
+                {% if facility.image_url %}
+                <img src="{{ facility.image_url }}" alt="{{ facility.name }}">
+                {% else %}
+                <img src="{% static 'img/no_image.png' %}" alt="사진 없음">
+                {% endif %}
+            </section>
+
+            <!-- 오른쪽 20% 정보 -->
+            <section class="detail-info-wrap">
+                <h3>{{ facility.name }}</h3>
+
+                <p>
+                <section class="detail-info-row">
+                    <b>업종명 :</b> <span>{{ facility.fcob_nm }}</span>
+                </section>
+
+                <section class="detail-info-row">
+                    <b>주소 :</b> <span>{{ facility.address }}</span>
+                </section>
+
+                {% if facility.phone %}
+                <section class="detail-info-row">
+                    <b>전화번호 :</b> <span>{{ facility.phone }}</span>
+                </section>
+                {% endif %}
+
+                <section class="detail-info-row">
+                    <b>운영상태 :</b> <span>{{ facility.faci_stat_nm }}</span>
+                </section>
+
+                <section class="detail-info-row">
+                    <b>안전등급 :</b> <span>{{ facility.schk_tot_grd_nm }}</span>
+                </section>
+
+                <section class="detail-info-row">
+                    <b>예약가능 :</b> <span>가능</span>
+                </section>
+                </p>
+
+                <section class="detail-buttons">
+                    <a href="/reservation/reserve/{{ facility.id }}">예약하기</a>
+                    <a href="/recruitment/{{ facility.id }}">모집글가기</a>
+                </section>
+            </section>
+
+        </section>
         <!-- 지도 -->
         <section class="map">
             <div id="map" style="width:100%; height:400px; border-radius:10px;"></div>
         </section>
 
-        <section class="search-view-section">
-            <h3>{{ facility.name }}</h3> <span>별점 : 별점5</span>
-            <p>
-                <b>업종명 : </b> <span>{{ facility.fcob_nm }}</span><br>
-                <b>주소 : </b> <span>{{ facility.address }}</span><br>
-                {% if facility.phone %}
-                <b>전화번호 : </b> <span>{{ facility.phone }}</span><br>
-                {% endif %}
-                <b>운영상태 : </b> <span>{{ facility.faci_stat_nm }}</span><br>
-                <b>안전등급 : </b> <span>{{ facility.schk_tot_grd_nm }}</span><br>
-                <b>예약가능 : </b> <span> 가능 </span><br>
-            </p>
-        </section>
-
-        <a href="/reservation/reserve/{{ facility.id }}">예약하기</a>
-        <a href="/recruitment/{{ facility.id }}">모집글가기</a>
 
     </div>
 
@@ -63,15 +96,15 @@
         <!-- 댓글 리스트 -->
         <ul class="comment-list">
             {% for c in comments %}
-                <li class="comment-item">
-                    <div class="comment-meta">
-                        <span class="comment-writer">{{ c.writer_name }}</span>
-                        <span class="comment-date">{{ c.created_at|date:"Y-m-d H:i" }}</span>
-                    </div>
-                    <p class="comment-content">{{ c.content|linebreaksbr }}</p>
-                </li>
+            <li class="comment-item">
+                <div class="comment-meta">
+                    <span class="comment-writer">{{ c.writer_name }}</span>
+                    <span class="comment-date">{{ c.created_at|date:"Y-m-d H:i" }}</span>
+                </div>
+                <p class="comment-content">{{ c.content|linebreaksbr }}</p>
+            </li>
             {% empty %}
-                <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
+            <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
             {% endfor %}
         </ul>
 
@@ -92,39 +125,44 @@
 
 {% block script3 %}
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
 
-    var container = document.getElementById("map");
-    var map = new kakao.maps.Map(container, {
-        center: new kakao.maps.LatLng(37.5665, 126.9780), // 기본값: 서울 시청
-        level: 7
+        var container = document.getElementById("map");
+        var map = new kakao.maps.Map(container, {
+            center: new kakao.maps.LatLng(37.5665, 126.9780),
+            level: 7,
+            draggable: false,                    // 드래그 금지
+            scrollwheel: false,                  // 휠 확대/축소 금지
+            disableDoubleClickZoom: true,        // 더블클릭 확대 금지
+            keyboardShortcuts: false             // 키보드 이동 금지
+        });
+
+
+        var lat = parseFloat(facility.lat);
+        var lng = parseFloat(facility.lng);
+
+        // 좌표가 있는 경우만 지도 이동
+        if (!isNaN(lat) && !isNaN(lng)) {
+            var pos = new kakao.maps.LatLng(lat, lng);
+
+            var marker = new kakao.maps.Marker({
+                map: map,
+                position: pos
+            });
+
+            // 인포윈도우
+            var infowindow = new kakao.maps.InfoWindow({
+                content: `<div style="padding:5px;font-size:14px;">${facility.name}</div>`
+            });
+
+            infowindow.open(map, marker);
+
+            map.setCenter(pos);
+            map.setLevel(4);
+        } else {
+            console.warn("좌표 없음 → 기본 지도 위치로 표시됨.");
+        }
+
     });
-
-    var lat = parseFloat(facility.lat);
-    var lng = parseFloat(facility.lng);
-
-    // 좌표가 있는 경우만 지도 이동
-    if (!isNaN(lat) && !isNaN(lng)) {
-        var pos = new kakao.maps.LatLng(lat, lng);
-
-        var marker = new kakao.maps.Marker({
-            map: map,
-            position: pos
-        });
-
-        // 인포윈도우
-        var infowindow = new kakao.maps.InfoWindow({
-            content: `<div style="padding:5px;font-size:14px;">${facility.name}</div>`
-        });
-
-        infowindow.open(map, marker);
-
-        map.setCenter(pos);
-        map.setLevel(4);
-    } else {
-        console.warn("좌표 없음 → 기본 지도 위치로 표시됨.");
-    }
-
-});
 </script>
 {% endblock %}

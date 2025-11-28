@@ -2,6 +2,9 @@ import os
 import requests
 from django.shortcuts import render
 from django.core.paginator import Paginator
+import urllib.request
+import urllib.parse
+import json
 
 # 시설 api 가져오기
 def facility(data):
@@ -13,7 +16,7 @@ def facility(data):
     API_URL = "https://apis.data.go.kr/B551014/SRVC_API_FACI_SCHK_RESULT/TODZ_API_FACI_SAFETY"
     params = {
         "serviceKey": DATA_API_KEY,
-        "numOfRows": 500,
+        "numOfRows": 300,
         "pageNo": 1,
         "faci_gb_nm": "공공",
         "cp_nm": cp_nm,
@@ -21,7 +24,7 @@ def facility(data):
         "resultType": "json"
     }
     if keyword:
-        params["facility_nm"] = keyword
+        params["faci_nm"] = keyword
 
     facilities = []
 
@@ -138,7 +141,7 @@ def kakao_for_map(page_obj):
 
 
 
-
+# 상세페이지
 def facility_detail(request, fk):
     KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")
 
@@ -159,10 +162,68 @@ def facility_detail(request, fk):
     if r_data is None:
         return render(request, 'facility_view.html', {"error": "시설 정보를 찾을 수 없습니다."})
 
-    # 지도 좌표 1개만 처리
+     # 지도 좌표 1개만 처리
     r_data_with_map = kakao_for_map([r_data])[0]
+
+    # 네이버 이미지 검색
+    query = f"{r_data_with_map.get('name', '')}"
+    img_url = get_naver_image(query)
+    
+    r_data_with_map["image_url"] = img_url 
+
+    print("나오냐 ",r_data_with_map)
 
     return render(request, "facility_view.html", {
         "facility": r_data_with_map,
         "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
     })
+
+
+
+# 네이버 이미지로 한번 해보자
+
+def get_naver_image(query):
+    """
+    네이버 이미지 검색 API - 시설명 기반 사진 1장 반환
+    """
+    NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID")
+    NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET")
+
+    if not NAVER_CLIENT_ID or not NAVER_CLIENT_SECRET:
+        print("❌ 네이버 API 키 없음")
+        return None
+
+    # 검색어 인코딩
+    enc_query = urllib.parse.quote(query)
+
+    url = f"https://openapi.naver.com/v1/search/image?query={enc_query}&display=1&sort=sim"
+
+    # 요청 객체 생성
+    req = urllib.request.Request(url)
+    req.add_header("X-Naver-Client-Id", NAVER_CLIENT_ID)
+    req.add_header("X-Naver-Client-Secret", NAVER_CLIENT_SECRET)
+
+    try:
+        response = urllib.request.urlopen(req, timeout=3)
+        rescode = response.getcode()
+
+        if rescode == 200:
+            response_body = response.read().decode('utf-8')
+            data = json.loads(response_body)
+
+            items = data.get("items")
+            if not items:
+                print("❌ 네이버 이미지 없음:", query)
+                return None
+
+            # 가장 첫 번째 이미지 링크 반환
+            return items[0].get("link")
+        else:
+            print("네이버 API 오류코드:", rescode)
+            return None
+
+    except Exception as e:
+        print("네이버 이미지 검색 오류:", e)
+        return None
+
+ 

@@ -11,7 +11,7 @@
 <script src="{% static 'js/facility_list.js' %}"></script>
 {% autoescape off %}
 <script>
-    var facilities = {{ page_facilities|safe }};
+    var facilities = {{ page_facilities| safe }};
     console.log("지도용 시설 데이터:", facilities);
 </script>
 {% endautoescape %}
@@ -68,10 +68,8 @@
 
                         <span class="facility-title">
                             <!-- 클릭 이벤트용 data-id 추가 -->
-                            <a href="javascript:void(0);" 
-                               class="facility-link"
-                               data-id="{{ item.id }}">
-                               {{ item.name }}
+                            <a href="javascript:void(0);" class="facility-link" data-id="{{ item.id }}">
+                                {{ item.name }}
                             </a>
                         </span>
 
@@ -91,18 +89,18 @@
             {% endif %}
 
             {% for num in block_range %}
-                {% if num == page_obj.number %}
-                <span class="page-btn active">{{ num }}</span>
-                {% else %}
-                <a href="?page={{ num }}&per_page={{ per_page }}" class="page-btn">{{ num }}</a>
-                {% endif %}
+            {% if num == page_obj.number %}
+            <span class="page-btn active">{{ num }}</span>
+            {% else %}
+            <a href="?page={{ num }}&per_page={{ per_page }}" class="page-btn">{{ num }}</a>
+            {% endif %}
             {% endfor %}
 
-            {% if block_end < paginator.num_pages %}
-            <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}" class="page-btn arrow">다음 ▶</a>
-            {% else %}
-            <span class="page-btn arrow disabled">다음 ▶</span>
-            {% endif %}
+            {% if block_end < paginator.num_pages %} <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}"
+                class="page-btn arrow">다음 ▶</a>
+                {% else %}
+                <span class="page-btn arrow disabled">다음 ▶</span>
+                {% endif %}
         </div>
 
     </div>
@@ -112,82 +110,87 @@
 
 {% block script3 %}
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
 
-    var container = document.getElementById("map");
-    var map = new kakao.maps.Map(container, {
-        center: new kakao.maps.LatLng(37.5665, 126.9780),
-        level: 7
-    });
-
-    var bounds = new kakao.maps.LatLngBounds();
-    var markerMap = {};  
-
-    facilities.forEach(function (item) {
-        var lat = parseFloat(item.lat);
-        var lng = parseFloat(item.lng);
-
-        if (isNaN(lat) || isNaN(lng)) return;
-
-        var pos = new kakao.maps.LatLng(lat, lng);
-
-        var marker = new kakao.maps.Marker({
-            map: map,
-            position: pos
+        var container = document.getElementById("map");
+        var map = new kakao.maps.Map(container, {
+            center: new kakao.maps.LatLng(37.5665, 126.9780),
+            level: 7,
+            draggable: false,                    // 드래그 금지
+            scrollwheel: false,                  // 휠 확대/축소 금지
+            disableDoubleClickZoom: true,        // 더블클릭 확대 금지
+            keyboardShortcuts: false             // 키보드 이동 금지
         });
 
-        var infowindow = new kakao.maps.InfoWindow({
-            content: `<div style="padding:5px;font-size:14px;"><a href='/facility/detail/${item.id}?fName=${item.name}'>${item.name}</a></div>`
+
+        var bounds = new kakao.maps.LatLngBounds();
+        var markerMap = {};
+
+        facilities.forEach(function (item) {
+            var lat = parseFloat(item.lat);
+            var lng = parseFloat(item.lng);
+
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            var pos = new kakao.maps.LatLng(lat, lng);
+
+            var marker = new kakao.maps.Marker({
+                map: map,
+                position: pos
+            });
+
+            var infowindow = new kakao.maps.InfoWindow({
+                content: `<div style="padding:5px;font-size:14px;"><a href='/facility/detail/${item.id}?fName=${item.name}'>${item.name}</a></div>`
+            });
+
+            kakao.maps.event.addListener(marker, "mouseover", function () {
+                infowindow.open(map, marker);
+            });
+            kakao.maps.event.addListener(marker, "mouseout", function () {
+                infowindow.close();
+            });
+
+            // kakao.maps.event.addListener(marker, "click", function () {
+            //     window.location.href = "/facility/detail/" + item.id;
+            // });
+
+            markerMap[item.id] = {
+                marker: marker,
+                infowindow: infowindow,
+                position: pos
+            };
+
+            bounds.extend(pos);
         });
 
-        kakao.maps.event.addListener(marker, "mouseover", function () {
-            infowindow.open(map, marker);
-        });
-        kakao.maps.event.addListener(marker, "mouseout", function () {
-            infowindow.close();
-        });
+        if (!bounds.isEmpty()) {
+            map.setBounds(bounds);
+        }
 
-        // kakao.maps.event.addListener(marker, "click", function () {
-        //     window.location.href = "/facility/detail/" + item.id;
-        // });
+        // ⭐ 리스트 클릭 → 지도 포커스 이동
+        document.querySelectorAll(".facility-link").forEach(function (link) {
+            link.addEventListener("click", function () {
+                var id = this.dataset.id;
+                var obj = markerMap[id];
 
-        markerMap[item.id] = { 
-            marker: marker,
-            infowindow: infowindow,
-            position: pos
-        };
+                if (!obj) {
+                    alert("해당 시설의 위치 정보가 없습니다.");
+                    return;
+                }
 
-        bounds.extend(pos);
-    });
+                map.setCenter(obj.position);
+                map.setLevel(5);
+                obj.infowindow.open(map, obj.marker);
 
-    if (!bounds.isEmpty()) {
-        map.setBounds(bounds);
-    }
-
-    // ⭐ 리스트 클릭 → 지도 포커스 이동
-    document.querySelectorAll(".facility-link").forEach(function(link) {
-        link.addEventListener("click", function() {
-            var id = this.dataset.id;
-            var obj = markerMap[id];
-
-            if (!obj) {
-                alert("해당 시설의 위치 정보가 없습니다.");
-                return;
-            }
-
-            map.setCenter(obj.position);
-            map.setLevel(5);
-            obj.infowindow.open(map, obj.marker);
-
-            // ⭐ 여기만 변경됨 — 지도 화면 정중앙으로 스크롤
-            const mapRect = document.getElementById("map").getBoundingClientRect();
-            window.scrollTo({
-                top: window.pageYOffset + mapRect.top - 100, // 지도 위로 100px 정도 여유
-                behavior: "smooth"
+                // ⭐ 여기만 변경됨 — 지도 화면 정중앙으로 스크롤
+                const mapRect = document.getElementById("map").getBoundingClientRect();
+                window.scrollTo({
+                    top: window.pageYOffset + mapRect.top - 100, // 지도 위로 100px 정도 여유
+                    behavior: "smooth"
+                });
             });
         });
-    });
 
-});
+    });
 </script>
 {% endblock %}
