@@ -93,7 +93,7 @@ DATABASES = {
         'NAME': 'bcdb',
         'USER': 'user',
         'PASSWORD': 'bc1234',   
-        'HOST': '13.125.244.18',
+        'HOST': '13.124.73.0',
         'PORT': '3306',
     }
 }
