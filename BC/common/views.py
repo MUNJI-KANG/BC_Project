@@ -12,8 +12,41 @@ def index(request):
     return render(request, 'index.html')
 
 def login(request):
-    return render(request, 'login.html')
+    if request.method == "POST":
+        user_id = request.POST.get("username")
+        password = request.POST.get("password")
+        remember = request.POST.get("remember")  # 체크박스 여부
 
+        try:
+            user = Member.objects.get(user_id=user_id)
+
+        except Member.DoesNotExist:
+            messages.error(request, "존재하지 않는 아이디입니다.")
+            return render(request, "login.html")
+
+        # 비밀번호 체크
+        if not check_password(password, user.password):
+            messages.error(request, "비밀번호가 올바르지 않습니다.")
+            return render(request, "login.html")
+
+        # 로그인 성공 → 세션에 저장
+        request.session["user_id"] = user.user_id
+        request.session["user_name"] = user.name
+        request.session["nickname"] = user.nickname
+
+        # 로그인 유지 선택 시 세션 만료 시간 변경
+        if remember:
+            request.session.set_expiry(60 * 60 * 24 * 7)  # 7일 유지
+        else:
+            request.session.set_expiry(0)  # 브라우저 닫으면 만료
+
+        return redirect("/")   # 로그인 후 이동 경로
+
+    return render(request, "login.html")
+
+def logout(request):
+    request.session.flush()
+    return redirect("/")
 
 
 # 회원 가입 부분 ----------------------------------------

@@ -10,4 +10,5 @@ urlpatterns = [
     path('myarticle/', views.myarticle),
     path('myjoin/', views.myjoin),
     
+    
 ]

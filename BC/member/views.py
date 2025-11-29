@@ -1,22 +1,31 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator
+from member.models import Member
 
 
 from common.utils import get_recruitment_dummy_list
 
 
 def info(request):
-    member = {
-        'name':'최재영',
-        'user_id':'young010514',
-        'nickname':'ㅇㅇㅇ',
-        'birthday' : '2001-01-01',
-        'email':'test@email.com',
-        'phone_num':'010-1111-2222',
-        'addr1' :'서울특별시',
-        'addr2' :'양천구',
-        'addr3' :'신정동',
+    login_id = request.session.get("user_id")
+
+    # DB 에서 회원 정보 가져오기
+    user = Member.objects.get(user_id=login_id)
+
+    # 템플릿으로 전달될 데이터
+    context = {
+        "name": user.name,
+        "user_id": user.user_id,
+        "nickname": user.nickname,
+        "birthday": user.birthday,
+        "email": user.email if hasattr(user, "email") else "",
+        "phone_num": user.phone_num,
+        "addr1": user.addr1,
+        "addr2": user.addr2,
+        "addr3": user.addr3 if hasattr(user, "addr3") else "",
     }
+
+    return render(request, "info.html", context)
 
 
     return render(request, 'info.html', member)
