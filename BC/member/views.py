@@ -290,31 +290,17 @@ def edit_password(request):
 
 
 def myreservation(request):
-
-    # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요 - 더미 데이터 생성 (100개, 캐싱됨)
-    dummy_list = get_recruitment_dummy_list()
-
+    # 로그인 체크
+    login_id = request.session.get("user_id")
+    if not login_id:
+        return redirect('/login?next=/member/myreservation/')
     
-    # 검색 기능
-    keyword = request.GET.get("keyword", "")
-    search_type = request.GET.get("search_type", "all")
-    
-    if keyword:
-        if search_type == "title":
-            dummy_list = [item for item in dummy_list if keyword in item["title"]]
-        elif search_type == "author":
-            dummy_list = [item for item in dummy_list if keyword in item["author"]]
-        elif search_type == "all":
-            dummy_list = [item for item in dummy_list if keyword in item["title"] or keyword in item.get("author", "")]
+    # TODO: DB 연결 이후 Reservation 모델에서 본인의 예약 내역 조회
+    # 예: Reservation.objects.filter(member_id=user, delete_yn=0).order_by('-reg_date')
+    dummy_list = []  # DB 연결 전까지 빈 리스트
     
     # 정렬 기능
     sort = request.GET.get("sort", "recent")
-    if sort == "title":
-        dummy_list.sort(key=lambda x: x["title"])
-    elif sort == "views":
-        dummy_list.sort(key=lambda x: x["views"], reverse=True)
-    else:  # recent
-        dummy_list.sort(key=lambda x: x["date"], reverse=True)
     
     # 페이지네이션
     per_page = int(request.GET.get("per_page", 15))
@@ -343,11 +329,9 @@ def myreservation(request):
         "block_range": block_range,
         "block_start": block_start,
         "block_end": block_end,
-        # "pinned_posts": pinned_posts,
     }
     
-    
-    return render('', 'myreservation.html', context)
+    return render(request, 'myreservation.html', context)
 
 
 
@@ -357,30 +341,17 @@ def myreservation(request):
 
 
 def myrecruitment(request):
-    # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요 - 더미 데이터 생성 (100개, 캐싱됨)
-    dummy_list = get_recruitment_dummy_list()
-
+    # 로그인 체크
+    login_id = request.session.get("user_id")
+    if not login_id:
+        return redirect('/login?next=/member/myrecruitment/')
     
-    # 검색 기능
-    keyword = request.GET.get("keyword", "")
-    search_type = request.GET.get("search_type", "all")
-    
-    if keyword:
-        if search_type == "title":
-            dummy_list = [item for item in dummy_list if keyword in item["title"]]
-        elif search_type == "author":
-            dummy_list = [item for item in dummy_list if keyword in item["author"]]
-        elif search_type == "all":
-            dummy_list = [item for item in dummy_list if keyword in item["title"] or keyword in item.get("author", "")]
+    # TODO: DB 연결 이후 Community 모델에서 본인의 모집글 조회
+    # 예: Community.objects.filter(member_id=user, delete_date__isnull=True).order_by('-reg_date')
+    dummy_list = []  # DB 연결 전까지 빈 리스트
     
     # 정렬 기능
     sort = request.GET.get("sort", "recent")
-    if sort == "title":
-        dummy_list.sort(key=lambda x: x["title"])
-    elif sort == "views":
-        dummy_list.sort(key=lambda x: x["views"], reverse=True)
-    else:  # recent
-        dummy_list.sort(key=lambda x: x["date"], reverse=True)
     
     # 페이지네이션
     per_page = int(request.GET.get("per_page", 15))
@@ -409,45 +380,57 @@ def myrecruitment(request):
         "block_range": block_range,
         "block_start": block_start,
         "block_end": block_end,
-        # "pinned_posts": pinned_posts,
     }
     
-    return render('', 'myrecruitment.html',context)
+    return render(request, 'myrecruitment.html', context)
 
 
 
 
 def myarticle(request):
-    # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요 - 더미 데이터 생성 (100개, 캐싱됨)
-    dummy_list = get_recruitment_dummy_list()
-
+    # 로그인 체크
+    login_id = request.session.get("user_id")
+    if not login_id:
+        return redirect('/login?next=/member/myarticle/')
     
-    # 검색 기능
-    keyword = request.GET.get("keyword", "")
-    search_type = request.GET.get("search_type", "all")
-    
-    if keyword:
-        if search_type == "title":
-            dummy_list = [item for item in dummy_list if keyword in item["title"]]
-        elif search_type == "author":
-            dummy_list = [item for item in dummy_list if keyword in item["author"]]
-        elif search_type == "all":
-            dummy_list = [item for item in dummy_list if keyword in item["title"] or keyword in item.get("author", "")]
+    try:
+        # 로그인한 사용자 정보 가져오기
+        user = Member.objects.get(user_id=login_id)
+        
+        # DB에서 본인이 작성한 자유게시판(post) 게시글 조회
+        from board.models import Article, Category
+        from board.utils import get_category_by_type
+        
+        category = get_category_by_type('post')
+        articles = Article.objects.select_related('member_id', 'category_id').filter(
+            member_id=user,
+            category_id=category,
+            delete_date__isnull=True
+        ).order_by('-reg_date')
+        
+    except Member.DoesNotExist:
+        messages.error(request, "회원 정보를 찾을 수 없습니다.")
+        return redirect('/login/')
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] 내 게시글 조회 오류: {str(e)}")
+        print(traceback.format_exc())
+        articles = Article.objects.none()
     
     # 정렬 기능
     sort = request.GET.get("sort", "recent")
     if sort == "title":
-        dummy_list.sort(key=lambda x: x["title"])
+        articles = articles.order_by('title')
     elif sort == "views":
-        dummy_list.sort(key=lambda x: x["views"], reverse=True)
+        articles = articles.order_by('-view_cnt')
     else:  # recent
-        dummy_list.sort(key=lambda x: x["date"], reverse=True)
+        articles = articles.order_by('-reg_date')
     
     # 페이지네이션
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
     
-    paginator = Paginator(dummy_list, per_page)
+    paginator = Paginator(articles, per_page)
     page_obj = paginator.get_page(page)
     
     # 페이지 블록 계산
@@ -470,7 +453,6 @@ def myarticle(request):
         "block_range": block_range,
         "block_start": block_start,
         "block_end": block_end,
-        # "pinned_posts": pinned_posts,
     }
     
     return render(request, 'myarticle.html', context)
