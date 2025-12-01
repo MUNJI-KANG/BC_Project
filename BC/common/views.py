@@ -145,7 +145,7 @@ def signup(request):
             phone_num=phone,
         )
 
-        return redirect("/login")
+        return render(request, 'signup_success.html')
 
     return render(request, "signup.html")
 
