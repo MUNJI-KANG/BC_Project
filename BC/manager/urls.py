@@ -9,8 +9,9 @@ urlpatterns = [
     path('sport_type/', views.sport_type, name='sport_type'),
     
     # 종목 관리
-    path('sports/add/', views.sport_add, name='sport_add'),
-    path('sports/delete/', views.sport_delete, name='sport_delete'),
+    path("add_sport/", views.add_sport, name="add_sport"),
+    path("save_selected_sports/", views.save_selected_sports, name="save_selected_sports"),
+    path('sport_delete/', views.sport_delete, name='sport_delete'),
 
     path('facility_list/', views.facility_list, name='facility_list'),
     path('recruitment_manager/', views.recruitment_manager, name='recruitment_manager'),

@@ -52,11 +52,11 @@
                         id="applySportsFilter" name="apply_sports" {% if request.GET.apply_sports %}checked{% endif %}>
                     종목 적용 </label> <button type="button" id="openSportsPopup" class="btn-sports-manage"> 종목 관리 </button>
             </div>
-            <select id="sido" name="cpNm" class="filter-select">
+            <select id="sido" name="sido" class="filter-select">
                 <option value="">시/도 선택</option>
             </select>
 
-            <select id="sigungu" name="cpbNm" class="filter-select">
+            <select id="sigungu" name="sigungu" class="filter-select">
                 <option value="">구/군 선택</option>
             </select>
 
@@ -130,11 +130,31 @@
         </div>
     </main>
 
-    <script src="{% static 'js/facility_add_manager.js' %}"></script>
-    {# 종목 관리 팝업 #} 
-    
 
-   
+    {# 종목 관리 팝업 #}
+    <!-- 종목 관리 팝업 -->
+    <script id="sportData" type="application/json">
+        {{ sports_json|safe }}
+    </script>
+    <div id="sportsPopup" class="sports-popup">
+        <div class="popup-content">
+            <h2 class="popup-title">종목 관리</h2>
+
+            <div id="sportsCardContainer" class="sports-card-grid">
+                <!-- JS가 카드 생성해서 넣음 -->
+            </div>
+            <div class="sport-add-wrap">
+                <input type="text" id="newSportName" class="sport-add-input" placeholder="추가할 종목명 입력">
+                <button type="button" id="addSportBtn" class="sport-add-btn">추가</button>
+            </div>
+            <div class="popup-bottom">
+                <button id="closeSportsPopup" class="popup-close-btn">닫기</button>
+                <button id="saveSportsBtn" class="popup-save-btn">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/facility_add_manager.js' %}"></script>
 </body>
 
 </html>

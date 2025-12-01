@@ -45,51 +45,51 @@ def manager(request):
 def facility(request):
     DATA_API_KEY = os.getenv("DATA_API_KEY")
 
-    cp_nm = request.GET.get("cpNm", "") or "서울특별시"
-    cpb_nm = request.GET.get("cpbNm", "")
+    cp_nm = request.GET.get("sido", "") or "서울특별시"
+    cpb_nm = request.GET.get("sigungu", "")
     keyword = request.GET.get("keyword", "")
     
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
     apply_sports = request.GET.get("apply_sports", "")
-    # 시설 api 정보
+
     queryset = Facility.objects.all()
-    
-    sports_list = Sports.objects.all()
+    # sports_list = Sports.objects.all()
 
-    if apply_sports:
-        if sports_list.exists():
+
+    selected_ids = request.session.get("selected_sports", [])
+    selected_ids = list(map(int, selected_ids)) if selected_ids else []
+
+    # 종목 필터 적용
+    if apply_sports and selected_ids:
+        selected_sports = Sports.objects.filter(sports_id__in=selected_ids)
+        if selected_sports.exists():
             q = Q()
-            for s in sports_list:
+            for s in selected_sports:
                 word = s.s_name.strip()
-                if not word:
-                    continue
-
-                q |= (
-                    Q(faci_nm__icontains=word) |
-                    Q(ftype_nm__icontains=word) |
-                    Q(cp_nm__icontains=word) |
-                    Q(cpb_nm__icontains=word)
-                )
-
+                if word:
+                    q |= (
+                        Q(faci_nm__icontains=word) |
+                        Q(ftype_nm__icontains=word) |
+                        Q(cp_nm__icontains=word) |
+                        Q(cpb_nm__icontains=word)
+                    )
             queryset = queryset.filter(q)
-    
+
+    # 지역 필터
     if cp_nm:
         queryset = queryset.filter(faci_addr__icontains=cp_nm)
-
     if cpb_nm:
         queryset = queryset.filter(faci_addr__icontains=cpb_nm)
-
     if keyword:
         queryset = queryset.filter(faci_nm__icontains=keyword)
 
-    # 등록된 시설들 제외
+    # 등록된 시설 제외
     registered_ids = FacilityInfo.objects.values_list("facility_id", flat=True)
     queryset = queryset.exclude(id__in=registered_ids)
 
     paginator = Paginator(queryset, per_page)
     page_obj = paginator.get_page(page)
-
 
     block_size = 5
     current_block = (page - 1) // block_size
@@ -97,32 +97,77 @@ def facility(request):
     block_end = min(block_start + block_size - 1, paginator.num_pages)
 
     start_index = (page_obj.number - 1) * per_page
-    facility_page = []
 
-    for idx, item in enumerate(page_obj.object_list):
-        facility_page.append({
+    facility_page = [
+        {
             "id": item.id,
             "name": item.faci_nm,
             "address": item.faci_addr,
             "row_no": start_index + idx + 1,
-        })
+        }
+        for idx, item in enumerate(page_obj.object_list)
+    ]
+
+    # 🔥 종목 JSON — 선택 여부 포함
+    all_sports = Sports.objects.all()
+    sports_json = json.dumps(
+        [
+            {
+                "id": s.sports_id,
+                "s_name": s.s_name,
+                "selected": s.sports_id in selected_ids
+            }
+            for s in all_sports
+        ],
+        ensure_ascii=False
+    )
 
     context = {
         "page_obj": page_obj,
-        "paginator": paginator,
+        "block_range": range(block_start, block_end + 1),
         "per_page": per_page,
         "page": page,
-        "block_range": range(block_start, block_end + 1),
-        "block_start": block_start,
-        "block_end": block_end,
-        "cpNm": cp_nm,
-        "cpbNm": cpb_nm,
-        "sports_list": sports_list,
+        "sido": cp_nm,
+        "sigungu": cpb_nm,
         "keyword": keyword,
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
+        "sports_json": sports_json,
     }
-
     return render(request, "facility_add_manager.html", context)
+
+# 종목 추가
+def add_sport(request):
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+
+        if not name:
+            return JsonResponse({"status": "error", "message": "종목명을 입력하세요."})
+
+        # 중복 체크
+        if Sports.objects.filter(s_name=name).exists():
+            return JsonResponse({"status": "error", "message": "이미 존재하는 종목입니다."})
+
+        sport = Sports.objects.create(s_name=name)
+
+        return JsonResponse({
+            "status": "success",
+            "id": sport.sports_id,
+            "name": sport.s_name
+        })
+
+    return JsonResponse({"status": "error", "message": "Invalid request"})
+
+
+# 선택된 종목 서버에 저장
+def save_selected_sports(request):
+    if request.method == "POST":
+        ids = request.POST.getlist("ids[]", [])
+        ids = list(map(int, ids))
+        request.session["selected_sports"] = ids
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"})
+
+
 
 def sport_type(request):
     return render(request, 'sport_type_manager.html')
