@@ -158,28 +158,9 @@ def update(request, pk):
 
     # 4) POST: 실제 수정 처리
     if request.method == "POST":
-        title = request.POST.get("title")
-        region = request.POST.get("sido")
-        region2 = request.POST.get("sigungu")
-        sport_type = request.POST.get("sport")
-        num_member = request.POST.get("personnel")
         contents = request.POST.get("content")
-        chat_url = request.POST.get("openchat_url") or None
-
-        raw_facility = request.POST.get("facility", "").strip()
-        if raw_facility:
-            facility = raw_facility
-        else:
-            facility = "미정"
-
-        community.title = title
-        community.region = region
-        community.region2 = region2
-        community.sport_type = sport_type
-        community.num_member = num_member
         community.contents = contents
-        community.chat_url = chat_url
-        community.facility = facility
+
         community.update_date = timezone.now()
         community.save()
 

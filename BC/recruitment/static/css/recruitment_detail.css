@@ -360,3 +360,66 @@
         margin-top: 6px;
     }
 }
+
+
+
+/* =========================
+   첨부파일 섹션
+========================= */
+.attach-section {
+    margin-top: 24px;
+}
+
+.attach-section .section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 10px;
+}
+
+.attach-box {
+    border-radius: 8px;
+    border: 1px dashed #d1d5db;
+    background: #f9fafb;
+    padding: 10px 12px;
+    transition: background 0.15s ease, border-color 0.15s ease,
+                transform 0.05s ease, box-shadow 0.15s ease;
+}
+
+.attach-box:hover {
+    background: #eef2ff;
+    border-color: #a5b4fc;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+}
+
+.attach-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #111827;
+    font-size: 14px;
+}
+
+.attach-icon {
+    font-size: 18px;
+}
+
+.attach-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attach-size {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.attach-empty {
+    font-size: 14px;
+    color: #6b7280;
+    padding: 10px 0;
+}
