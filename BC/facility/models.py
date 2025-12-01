@@ -27,6 +27,8 @@ class FacilityInfo(models.Model):
     # Facility 테이블 원본 복사본
     faci_nm = models.CharField(max_length=200)
     address = models.CharField(max_length=300)
+    sido = models.CharField(max_length=200, null=True, blank=True)
+    sigugun = models.CharField(max_length=200, null=True, blank=True)
     tel = models.CharField(max_length=50, null=True, blank=True)
     homepage = models.CharField(max_length=200, null=True, blank=True)
 

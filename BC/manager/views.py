@@ -92,8 +92,10 @@ def manager(request):
     
     return render(request, 'login_manager.html')
 
+
+# 시설 추가
 def facility(request):
-    DATA_API_KEY = os.getenv("DATA_API_KEY")
+    #DATA_API_KEY = os.getenv("DATA_API_KEY")
 
     cp_nm = request.GET.get("sido", "") or "서울특별시"
     cpb_nm = request.GET.get("sigungu", "")
@@ -269,6 +271,8 @@ def facility_register(request):
                 facility=fac,
                 faci_nm=fac.faci_nm or "",
                 address=fac.faci_road_addr or "",
+                sido = fac.cp_nm or "",
+                sigugun = fac.cpb_nm or "",
                 tel=fac.faci_tel_no or "",
                 homepage=fac.faci_homepage or "",
                 sports=None,
@@ -284,6 +288,64 @@ def facility_register(request):
         traceback.print_exc()
         return JsonResponse({"status": "error", "message": str(e)})
 
+
+# 시설관리
+def facility_list(request):
+
+    # 필터 파라미터
+    sido = request.GET.get("sido", "")
+    sigungu = request.GET.get("sigungu", "")
+    keyword = request.GET.get("keyword", "")
+    per_page = int(request.GET.get("per_page", 15))
+    page = int(request.GET.get("page", 1))
+
+    
+    # 시설 api 정보
+    queryset = FacilityInfo.objects.all()
+    
+    if sido:
+        queryset = queryset.filter(address__icontains=sido)
+
+    if sigungu:
+        queryset = queryset.filter(address__icontains=sigungu)
+
+    if keyword:
+        queryset = queryset.filter(faci_nm__icontains=keyword)
+
+    paginator = Paginator(queryset, per_page)
+    page_obj = paginator.get_page(page)
+
+    block_size = 10
+    current_block = (page - 1) // block_size
+    block_start = current_block * block_size + 1
+    block_end = block_start + block_size - 1
+    if block_end > paginator.num_pages:
+        block_end = paginator.num_pages
+
+    block_range = range(block_start, block_end + 1)
+
+    start_index = (page_obj.number - 1) * per_page
+    facility_page = []
+
+    for idx, item in enumerate(page_obj.object_list):
+        facility_page.append({
+            "id": item.id,
+            "name": item.faci_nm,
+            "address": item.address,
+            "row_no": start_index + idx + 1,
+        })
+
+    context = {
+        "page_obj": page_obj,
+        "per_page": per_page,
+        "sido": sido,
+        "sigungu": sigungu,
+        "keyword": keyword,
+        "facility_json": json.dumps(facility_page, ensure_ascii=False),
+        "block_range": block_range,
+    }
+
+    return render(request, "facility_list_manager.html", context)
 
 
 def sport_type(request):
@@ -656,69 +718,6 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 
-# 시설관리
-def facility_list(request):
-
-    # 필터 파라미터
-    sido = request.GET.get("sido", "")
-    sigungu = request.GET.get("sigungu", "")
-    keyword = request.GET.get("keyword", "")
-    per_page = int(request.GET.get("per_page", 15))
-    page = int(request.GET.get("page", 1))
-
-    
-    # 시설 api 정보
-    queryset = FacilityInfo.objects.all()
-    
-    block_size = 10
-    current_block = (page - 1) // block_size
-    block_start = current_block * block_size + 1
-    block_end = block_start + block_size - 1
-    if block_end > paginator.num_pages:
-        block_end = paginator.num_pages
-
-    block_range = range(block_start, block_end + 1)
-    
-    if sido:
-        queryset = queryset.filter(faci_addr__icontains=sido)
-
-    if sigungu:
-        queryset = queryset.filter(faci_addr__icontains=sigungu)
-
-    if keyword:
-        queryset = queryset.filter(faci_nm__icontains=keyword)
-
-    # 등록된 시설들 제외
-    registered_ids = FacilityInfo.objects.values_list("facility_id", flat=True)
-    queryset = queryset.exclude(id__in=registered_ids)
-
-    paginator = Paginator(queryset, per_page)
-    page_obj = paginator.get_page(page)
-
-    start_index = (page_obj.number - 1) * per_page
-    facility_page = []
-
-    for idx, item in enumerate(page_obj.object_list):
-        facility_page.append({
-            "id": item.id,
-            "name": item.faci_nm,
-            "address": item.faci_addr,
-            "row_no": start_index + idx + 1,
-        })
-
-    context = {
-        "page_obj": page_obj,
-        "per_page": per_page,
-        "sido": sido,
-        "sigungu": sigungu,
-        "keyword": keyword,
-        "sports_list": sports_list,  # 관리자가 다루는 모든 종목
-        "facility_json": json.dumps(facility_page, ensure_ascii=False),
-        "block_range": range(1, paginator.num_pages + 1),
-    }
-
-    return render(request, "facility_list_manager.html", context)
-
 # 종목관리
 def sport_add(request):
     if request.method != "POST":
@@ -745,26 +744,6 @@ def sport_add(request):
     
 
 
-@csrf_exempt
-def sport_delete(request):
-    if request.method != "POST":
-        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
-
-    try:
-        data = json.loads(request.body)
-        ids = data.get("ids", [])
-
-        if not ids:
-            return JsonResponse({"status": "error", "msg": "삭제할 항목 없음"})
-
-        Sports.objects.filter(sports_id__in=ids).delete()
-
-        return JsonResponse({"status": "ok", "deleted": ids})
-
-    except Exception as e:
-        return JsonResponse({"status": "error", "msg": str(e)})
-    
-    
 
 # 예약관리
 def recruitment_manager(request):
