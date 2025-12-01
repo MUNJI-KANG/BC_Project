@@ -27,6 +27,7 @@ from facility.models import FacilityInfo
 
 
 from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404
 
 # 제거예정
 from django.views.decorators.csrf import csrf_exempt
@@ -304,10 +305,10 @@ def facility_list(request):
     queryset = FacilityInfo.objects.all()
     
     if sido:
-        queryset = queryset.filter(address__icontains=sido)
+        queryset = queryset.filter(sido__icontains=sido)
 
     if sigungu:
-        queryset = queryset.filter(address__icontains=sigungu)
+        queryset = queryset.filter(sigugun__icontains=sigungu)
 
     if keyword:
         queryset = queryset.filter(faci_nm__icontains=keyword)
@@ -346,6 +347,23 @@ def facility_list(request):
     }
 
     return render(request, "facility_list_manager.html", context)
+
+
+# 시설상세보기 
+def facility_detail(request, id):
+    facilityInfo = get_object_or_404(FacilityInfo, id=id)
+
+    context = {
+        "facilityInfo": facilityInfo
+    }
+    return render(request, "facility_detail.html", context)
+
+
+# 시설수정
+def facility_modify(request, id):
+    return
+
+    
 
 
 def sport_type(request):
