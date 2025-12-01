@@ -69,6 +69,9 @@
       
       <form class="login-form" method="post" action="/login/">
         {% csrf_token %}
+        {% if next %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
         <div class="form-group">
           <label class="form-label" for="username">아이디</label>
           <input 

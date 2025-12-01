@@ -16,9 +16,13 @@
 <div class="detail-wrapper">
 
     <!-- 제목 영역 -->
-    <div class="detail-title-box">
+    <div class="detail-title-box {% if is_deleted %}deleted-post{% endif %}">
         <h1 class="detail-title-text">{{ recruit.title }}</h1>
-
+        {% if is_deleted %}
+        <div class="deleted-notice" style="background-color: #fff3cd; color: #856404; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ffeaa7;">
+            ⚠️ 삭제된 게시글입니다. (삭제 일자: {{ recruit.delete_date|date:"Y-m-d H:i" }})
+        </div>
+        {% endif %}
         <div class="detail-info-line">
             <span>작성자: {{ recruit.member_id }}</span>
             <span>{{ recruit.reg_date|date:"Y.m.d" }}</span>
@@ -56,7 +60,11 @@
             </a>
         {% else %}
             <!-- 그 외 유저일 때 -->
-            <a href="{% url 'recruitment_join' recruit.community_id %}" class="detail-btn btn-join">참여하기</a>
+            {% if is_deleted %}
+                <span class="detail-btn btn-join" style="opacity: 0.5; cursor: not-allowed; pointer-events: none;">삭제된 게시글입니다</span>
+            {% else %}
+                <a href="{% url 'recruitment_join' recruit.community_id %}" class="detail-btn btn-join">참여하기</a>
+            {% endif %}
         {% endif %}
 
         <!-- 항상 보이는 목록 버튼 -->

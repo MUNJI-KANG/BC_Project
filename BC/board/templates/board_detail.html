@@ -22,8 +22,13 @@
     <div class="sub-content">
         
         <!-- 게시글 정보 -->
-        <section class="article-header">
+        <section class="article-header {% if is_deleted %}deleted-post{% endif %}">
             <h1 class="article-title">{{ article.title }}</h1>
+            {% if is_deleted %}
+            <div class="deleted-notice" style="background-color: #fff3cd; color: #856404; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ffeaa7;">
+                ⚠️ 삭제된 게시글입니다. (삭제 일자: {{ article.delete_date }})
+            </div>
+            {% endif %}
             <div class="article-meta">
                 <div class="article-meta-left">
                     <span class="article-author {% if article.is_admin %}admin-badge{% endif %}">
@@ -39,7 +44,7 @@
                         {% for file in article.files %}
                         <li class="file-item">
                             <a href="{{ file.url }}" download class="file-link">
-                                <span class="file-icon">📎</span>
+                                <span class="file-icon">{% if file.is_image %}🖼️{% else %}📎{% endif %}</span>
                                 <span class="file-name">{{ file.name }}</span>
                             </a>
                         </li>
@@ -55,7 +60,7 @@
         <!-- 게시글 내용 -->
         <section class="article-content">
             <div class="article-body">
-                <pre>{{ article.contents|linebreaksbr }}</pre>
+                {{ article.contents|linebreaksbr }}
                 
                 <!-- 이미지 파일 표시 -->
                 {% if article.images %}
@@ -85,15 +90,18 @@
             <!-- 댓글 리스트 -->
             <ul class="comment-list">
                 {% for comment in comments %}
-                <li class="comment-item">
-                    <div class="comment-meta">
+                <li class="comment-item {% if comment.is_deleted %}comment-deleted{% endif %}">
+                    <div class="comment-header">
                         <span class="comment-writer {% if comment.is_admin %}admin-badge{% endif %}">
                             {{ comment.author }}{% if comment.is_admin %} 👑{% endif %}
                         </span>
+                        <span class="comment-separator">|</span>
+                        <span class="comment-content">{{ comment.comment|linebreaksbr }}</span>
                         <span class="comment-date">{{ comment.reg_date|date:"Y-m-d H:i" }}</span>
-                        <!-- TODO: 수정/삭제 버튼 (본인만 표시) -->
+                        {% if is_manager and not comment.is_deleted %}
+                        <button type="button" class="comment-delete-btn" data-comment-id="{{ comment.comment_id }}">삭제</button>
+                        {% endif %}
                     </div>
-                    <p class="comment-content">{{ comment.comment|linebreaksbr }}</p>
                 </li>
                 {% empty %}
                 <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
@@ -113,6 +121,62 @@
 
     </div>
 </div>
+
+<script>
+// 관리자 댓글 삭제 기능
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('.comment-delete-btn');
+    
+    // CSRF 토큰 가져오기
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+    
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentId = this.getAttribute('data-comment-id');
+            
+            if (!confirm('이 댓글을 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            fetch('/board/api/comment/delete/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ comment_id: parseInt(commentId) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    alert('댓글이 삭제되었습니다.');
+                    location.reload();
+                } else {
+                    alert('삭제 중 오류가 발생했습니다: ' + data.msg);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            });
+        });
+    });
+});
+</script>
 
 {% endblock %}
 

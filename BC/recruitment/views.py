@@ -211,9 +211,18 @@ def detail(request, pk):
         except Member.DoesNotExist:
             login_member = None
 
-    # 모집글
+    # 관리자 여부 확인
+    manager_id = request.session.get('manager_id')
+    is_manager = manager_id == 1 if manager_id else False
+
+    # 모집글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
     try:
-        recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
+        if is_manager:
+            # 관리자는 삭제된 게시글도 조회 가능
+            recruit = Community.objects.get(pk=pk)
+        else:
+            # 일반 사용자는 삭제되지 않은 게시글만 조회 가능
+            recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
     except Community.DoesNotExist:
         raise Http404("존재하지 않는 모집글입니다.")
 
@@ -232,14 +241,20 @@ def detail(request, pk):
 
     # ✅ 댓글 목록 (여기는 원래 쓰시던 코드로)
     comments = Comment.objects.filter(
-        community_id=recruit
+        community_id=recruit,
+        delete_date__isnull=True  # 삭제되지 않은 댓글만 표시
     ).order_by("reg_date")
+
+    # 삭제 여부 확인
+    is_deleted = recruit.delete_date is not None
 
     context = {
         "recruit": recruit,
         "is_owner": is_owner,
         "join_list": join_list,
         "comments": comments,
+        "is_deleted": is_deleted,
+        "is_manager": is_manager,
     }
     return render(request, "recruitment_detail.html", context)
 

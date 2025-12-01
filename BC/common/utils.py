@@ -436,3 +436,108 @@ def _parse_address_string(address_str, address_detail=""):
         return (addr1, addr2, addr3)
     
     return (address_str, "", address_detail)
+
+
+# 파일 업로드 처리 함수
+# -----------------------------------------------------
+import os
+import uuid
+from django.conf import settings
+from django.contrib import messages
+from common.models import AddInfo
+
+
+def handle_file_uploads(request, article):
+    """게시글에 첨부된 파일들을 처리하고 AddInfo에 저장
+    보안: 이미지(jpg, jpeg, png, gif, bmp, webp) 및 PDF만 허용, 최대 2MB 제한
+    
+    Args:
+        request: Django request 객체
+        article: Article 모델 인스턴스
+    
+    Returns:
+        list: 업로드된 파일 정보 리스트
+    """
+    uploaded_files = []
+    
+    # 허용된 파일 확장자
+    ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.pdf']
+    MAX_FILE_SIZE = 2 * 1024 * 1024  # 2MB
+    
+    print(f"[DEBUG] handle_file_uploads 호출: article_id={article.article_id}")
+    
+    if 'file' in request.FILES:
+        files = request.FILES.getlist('file')
+        print(f"[DEBUG] 첨부된 파일 개수: {len(files)}")
+        
+        # media 디렉토리 생성
+        media_dir = settings.MEDIA_ROOT
+        upload_dir = os.path.join(media_dir, 'uploads', 'articles')
+        print(f"[DEBUG] 업로드 디렉토리: {upload_dir}")
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        for file in files:
+            try:
+                print(f"[DEBUG] 파일 처리 시작: {file.name}, 크기: {file.size} bytes")
+                
+                # 파일 확장자 검증
+                file_ext = os.path.splitext(file.name)[1].lower()
+                if file_ext not in ALLOWED_EXTENSIONS:
+                    messages.error(request, f"허용되지 않은 파일 형식입니다: {file.name} (허용: 이미지, PDF)")
+                    print(f"[ERROR] 허용되지 않은 파일 형식: {file.name} (확장자: {file_ext})")
+                    continue
+                
+                # 파일 크기 검증 (2MB 제한)
+                if file.size > MAX_FILE_SIZE:
+                    messages.error(request, f"파일 크기가 너무 큽니다: {file.name} (최대 2MB)")
+                    print(f"[ERROR] 파일 크기 초과: {file.name} ({file.size} bytes > {MAX_FILE_SIZE} bytes)")
+                    continue
+                
+                # 파일명 생성 (UUID로 고유성 보장)
+                encoded_name = f"{uuid.uuid4()}{file_ext}"
+                file_path = os.path.join(upload_dir, encoded_name)
+                
+                print(f"[DEBUG] 저장 경로: {file_path}")
+                
+                # 파일 저장
+                with open(file_path, 'wb+') as destination:
+                    for chunk in file.chunks():
+                        destination.write(chunk)
+                
+                print(f"[DEBUG] 파일 저장 완료: {file_path}")
+                
+                # 상대 경로 저장 (media/uploads/articles/...)
+                relative_path = f"uploads/articles/{encoded_name}"
+                print(f"[DEBUG] 상대 경로: {relative_path}, 길이: {len(relative_path)}")
+                
+                # AddInfo에 저장
+                add_info = AddInfo.objects.create(
+                    path=relative_path,
+                    file_name=file.name,
+                    encoded_name=encoded_name,
+                    article_id=article,
+                )
+                
+                print(f"[DEBUG] AddInfo 저장 성공: add_info_id={add_info.add_info_id}")
+                
+                uploaded_files.append({
+                    'id': add_info.add_info_id,
+                    'name': file.name,
+                    'path': relative_path,
+                    'url': f"{settings.MEDIA_URL}{relative_path}",
+                    'is_image': file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
+                })
+                
+                print(f"[DEBUG] 파일 업로드 성공: {file.name} -> {relative_path}")
+                
+            except Exception as e:
+                import traceback
+                print(f"[ERROR] 파일 업로드 실패 ({file.name}): {str(e)}")
+                print(traceback.format_exc())
+                messages.error(request, f"파일 업로드 실패: {file.name}")
+                continue
+    else:
+        print(f"[DEBUG] request.FILES에 'file' 키가 없음. 사용 가능한 키: {list(request.FILES.keys())}")
+    
+    print(f"[DEBUG] handle_file_uploads 완료: {len(uploaded_files)}개 파일 업로드됨")
+    return uploaded_files

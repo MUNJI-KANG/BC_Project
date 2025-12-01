@@ -47,18 +47,21 @@ def login(request):
         user_id = request.POST.get("username")
         password = request.POST.get("password")
         remember = request.POST.get("remember")  # 체크박스 여부
+        next_url = request.POST.get("next") or request.GET.get("next", "")  # 이전 페이지 URL
 
         try:
             user = Member.objects.get(user_id=user_id)
 
         except Member.DoesNotExist:
             messages.error(request, "존재하지 않는 아이디입니다.")
-            return render(request, "login.html")
+            context = {"next": next_url} if next_url else {}
+            return render(request, "login.html", context)
 
         # 비밀번호 체크
         if not check_password(password, user.password):
             messages.error(request, "비밀번호가 올바르지 않습니다.")
-            return render(request, "login.html")
+            context = {"next": next_url} if next_url else {}
+            return render(request, "login.html", context)
 
         # 로그인 성공 → 세션에 저장
         request.session["user_id"] = user.user_id
@@ -74,6 +77,10 @@ def login(request):
                 request.session.set_expiry(60 * 60 * 24 * 7)  # 7일 유지
             else:
                 request.session.set_expiry(0)  # 브라우저 닫으면 만료
+            
+            # 이전 페이지가 있으면 그곳으로, 없으면 관리자 대시보드로
+            if next_url:
+                return redirect(next_url)
             return redirect("/manager/dashboard/")  # 관리자는 관리자 페이지로
 
         # 일반 사용자
@@ -83,9 +90,15 @@ def login(request):
         else:
             request.session.set_expiry(0)  # 브라우저 닫으면 만료
 
+        # 이전 페이지가 있으면 그곳으로, 없으면 홈으로
+        if next_url:
+            return redirect(next_url)
         return redirect("/")   # 로그인 후 이동 경로
 
-    return render(request, "login.html")
+    # GET 요청: next 파라미터를 템플릿에 전달
+    next_url = request.GET.get("next", "")
+    context = {"next": next_url} if next_url else {}
+    return render(request, "login.html", context)
 
 def logout(request):
     request.session.flush()

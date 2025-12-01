@@ -110,7 +110,7 @@
     font-size: 16px;
     line-height: 1.8;
     color: var(--color-text-primary);
-    white-space: pre-wrap;
+    white-space: normal;
 }
 
 /* 게시글 내 이미지 */
@@ -221,13 +221,10 @@
 
 .comment-item {
     padding: var(--spacing-lg);
-    border-bottom: 0;
+    border-bottom: 1px solid var(--color-soft-gray-line);
     background: var(--color-card-box);
     border-radius: 8px;
-    margin-bottom: 0;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
+    margin-bottom: calc(var(--spacing-sm) / 2);
 }
 
 .comment-item:last-child {
@@ -235,18 +232,25 @@
     margin-bottom: 0;
 }
 
-.comment-meta {
+.comment-header {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
     font-size: 14px;
-    flex-shrink: 0;
+    width: 100%;
 }
 
 .comment-writer {
     font-weight: 600;
     color: var(--color-text-primary);
     white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.comment-separator {
+    color: var(--color-text-secondary);
+    margin: 0 var(--spacing-xs);
+    flex-shrink: 0;
 }
 
 /* 관리자 배지 스타일 */
@@ -270,20 +274,44 @@
     font-size: 13px;
 }
 
-.comment-date {
-    color: var(--color-text-secondary);
-    font-size: 13px;
-    white-space: nowrap;
-}
-
 .comment-content {
     color: var(--color-text-primary);
     line-height: 1.6;
     margin: 0;
     flex: 1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.comment-date {
+    color: var(--color-text-secondary);
+    font-size: 13px;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.comment-delete-btn {
+    margin-left: var(--spacing-sm);
+    padding: 4px 8px;
+    border: 1px solid #dc3545;
+    border-radius: 4px;
+    background: #fff;
+    color: #dc3545;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    flex-shrink: 0;
+}
+
+.comment-delete-btn:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
+.comment-deleted .comment-content {
+    color: var(--color-text-secondary);
+    font-style: italic;
 }
 
 .comment-empty {
@@ -396,10 +424,15 @@
         padding: var(--spacing-md);
     }
 
-    .comment-meta {
-        flex-direction: column;
-        align-items: flex-start;
+    .comment-header {
+        flex-wrap: wrap;
         gap: var(--spacing-xs);
+    }
+
+    .comment-date {
+        margin-left: 0;
+        width: 100%;
+        text-align: right;
     }
 }
 

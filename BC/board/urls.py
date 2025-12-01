@@ -14,4 +14,7 @@ urlpatterns = [
     path('post/<int:article_id>/comment/', views.post_comment, name='post_comment'),
     path('post/write/', views.post_write, name='post_write'),
     path('faq/', views.faq, name='faq'),
+    
+    # 관리자 댓글 삭제 API
+    path('api/comment/delete/', views.delete_comment, name='delete_comment'),
 ]

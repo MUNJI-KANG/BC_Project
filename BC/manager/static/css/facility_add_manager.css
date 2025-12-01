@@ -1,101 +1,47 @@
 /*****************************************
-    기본 레이아웃
+    기본 레이아웃 (시설추가 페이지 전용)
+    다른 CSS 영향 차단 - CSS 특이성 높임
 *****************************************/
-body {
+html body.facility-add-page {
     margin: 0;
     display: flex;
     min-height: 100vh;
     background: #F4F8FB;
     font-family: 'Pretendard', sans-serif;
-}
-
-/*****************************************
-    사이드바
-*****************************************/
-.admin-sidebar {
-    width: 230px;
-    background: #1A2A43;
-    color: white;
-    padding: 25px 22px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid rgba(255,255,255,0.08);
-}
-
-.sidebar-title {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 25px;
-    line-height: 1.4;
-    color: #ffffff;
-    letter-spacing: -0.3px;
-}
-
-/* 기본 목록 스타일 제거 */
-.sidebar-menu {
-    list-style: none;
     padding: 0;
-    margin: 0;
 }
 
-/* li 간격 */
-.sidebar-menu li {
-    margin: 8px 0;
-}
-
-/* 모든 링크 공통 스타일 */
-.sidebar-menu a {
-    color: white;
-    text-decoration: none;
-    font-size: 15px;
-    display: block;
-    padding: 8px 8px;
-    border-radius: 6px;
-}
-
-/* hover 효과 */
-.sidebar-menu a:hover {
-    background: rgba(255,255,255,0.14);
-}
-
-/* 1Depth 제목 */
-.menu-title {
-    margin-top: 22px;
-    margin-bottom: 6px;
-    font-size: 13px;
-    color: #b4c4d9;
-    font-weight: 600;
-}
-
-/* 2Depth 메뉴 */
-.submenu {
-    list-style: none;
-    padding-left: 10px;
-    margin: 0 0 10px 0;
-}
-
-.submenu li {
-    margin: 5px 0;
-}
+/* 사이드바 스타일은 dashboard.css에서 통일 관리 */
 
 /*****************************************
-    메인 영역
+    메인 영역 (시설추가 페이지 전용)
+    다른 CSS 영향 차단 - CSS 특이성 높임
 *****************************************/
-.dashboard-main {
+html body.facility-add-page .dashboard-main.facility-add-main,
+html body.facility-add-page main.dashboard-main {
     flex: 1;
     padding: 30px 40px;
+    background: #F4F8FB;
+    margin: 0;
+    margin-left: 0;
+    margin-top: 0;
 }
 
 /*****************************************
-    필터 영역
+    필터 영역 (시설추가 페이지 전용)
+    다른 CSS 영향 차단 - CSS 특이성 높임
 *****************************************/
-.filter-container {
+html body.facility-add-page form.filter-container.facility-add-filter,
+html body.facility-add-page .filter-container {
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 12px;
     margin-bottom: 22px;
+    margin-top: 0;
+    padding: 0;
+    position: relative;
+    top: 0;
 }
 
 .filter-select {

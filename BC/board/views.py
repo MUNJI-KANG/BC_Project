@@ -4,9 +4,11 @@ from django.db.models import Q
 from django.contrib import messages
 from django.utils import timezone
 from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 import os
 import uuid
-from common.utils import check_login
+from common.utils import check_login, handle_file_uploads
 from board.models import Article, Board, Category
 from board.utils import get_category_by_type, get_board_by_name
 from common.models import Comment, AddInfo
@@ -33,10 +35,8 @@ def notice(request):
             )
         ).order_by('-reg_date')
         
-        # 상단 고정 게시글 (always_on=0)
+        # 상단 고정 게시글 (always_on=0) - 고정 섹션용
         pinned_articles = articles.filter(always_on=0).order_by('-reg_date')[:5]
-        # 일반 게시글 (always_on=1)
-        normal_articles = articles.filter(always_on=1)
         
         # 검색 기능
         keyword = request.GET.get("keyword", "")
@@ -44,28 +44,28 @@ def notice(request):
         
         if keyword:
             if search_type == "title":
-                normal_articles = normal_articles.filter(title__icontains=keyword)
+                articles = articles.filter(title__icontains=keyword)
             elif search_type == "author":
-                normal_articles = normal_articles.filter(member_id__nickname__icontains=keyword)
+                articles = articles.filter(member_id__nickname__icontains=keyword)
             elif search_type == "all":
-                normal_articles = normal_articles.filter(
+                articles = articles.filter(
                     Q(title__icontains=keyword) | Q(member_id__nickname__icontains=keyword)
                 )
         
         # 정렬 기능
         sort = request.GET.get("sort", "recent")
         if sort == "title":
-            normal_articles = normal_articles.order_by('title')
+            articles = articles.order_by('title')
         elif sort == "views":
-            normal_articles = normal_articles.order_by('-view_cnt')
+            articles = articles.order_by('-view_cnt')
         else:  # recent
-            normal_articles = normal_articles.order_by('-reg_date')
+            articles = articles.order_by('-reg_date')
         
-        # 페이징
+        # 페이징 (고정 게시글 포함하여 전체 표시)
         per_page = int(request.GET.get("per_page", 15))
         page = int(request.GET.get("page", 1))
         
-        paginator = Paginator(normal_articles, per_page)
+        paginator = Paginator(articles, per_page)
         page_obj = paginator.get_page(page)
         
         # 상단 고정 게시글 변환
@@ -84,8 +84,8 @@ def notice(request):
         # DB 오류 시 빈 리스트
         print(f"[ERROR] notice 함수 오류: {str(e)}")
         pinned_posts = []
-        normal_articles = Article.objects.none()
-        paginator = Paginator(normal_articles, 15)
+        articles = Article.objects.none()
+        paginator = Paginator(articles, 15)
         page_obj = paginator.get_page(1)
     
     # 페이지 기준 블록
@@ -134,10 +134,8 @@ def event(request):
             )
         ).order_by('-reg_date')
         
-        # 상단 고정 게시글 (always_on=0)
+        # 상단 고정 게시글 (always_on=0) - 고정 섹션용
         pinned_articles = articles.filter(always_on=0).order_by('-reg_date')[:5]
-        # 일반 게시글 (always_on=1)
-        normal_articles = articles.filter(always_on=1)
         
         # 검색 기능
         keyword = request.GET.get("keyword", "")
@@ -145,28 +143,28 @@ def event(request):
         
         if keyword:
             if search_type == "title":
-                normal_articles = normal_articles.filter(title__icontains=keyword)
+                articles = articles.filter(title__icontains=keyword)
             elif search_type == "author":
-                normal_articles = normal_articles.filter(member_id__nickname__icontains=keyword)
+                articles = articles.filter(member_id__nickname__icontains=keyword)
             elif search_type == "all":
-                normal_articles = normal_articles.filter(
+                articles = articles.filter(
                     Q(title__icontains=keyword) | Q(member_id__nickname__icontains=keyword)
                 )
         
         # 정렬 기능
         sort = request.GET.get("sort", "recent")
         if sort == "title":
-            normal_articles = normal_articles.order_by('title')
+            articles = articles.order_by('title')
         elif sort == "views":
-            normal_articles = normal_articles.order_by('-view_cnt')
+            articles = articles.order_by('-view_cnt')
         else:  # recent
-            normal_articles = normal_articles.order_by('-reg_date')
+            articles = articles.order_by('-reg_date')
         
-        # 페이지네이션
+        # 페이지네이션 (고정 게시글 포함하여 전체 표시)
         per_page = int(request.GET.get("per_page", 15))
         page = int(request.GET.get("page", 1))
         
-        paginator = Paginator(normal_articles, per_page)
+        paginator = Paginator(articles, per_page)
         page_obj = paginator.get_page(page)
         
         # 상단 고정 게시글 변환
@@ -185,8 +183,8 @@ def event(request):
         # DB 오류 시 빈 리스트
         print(f"[ERROR] event 함수 오류: {str(e)}")
         pinned_posts = []
-        normal_articles = Article.objects.none()
-        paginator = Paginator(normal_articles, 15)
+        articles = Article.objects.none()
+        paginator = Paginator(articles, 15)
         page_obj = paginator.get_page(1)
     
     # 페이지 블록 계산
@@ -425,34 +423,47 @@ def notice_detail(request, article_id):
         category = get_category_by_type('notice')
         print(f"[DEBUG] notice_detail: category={category.category_type} (ID: {category.category_id})")
         
-        # DB에서 게시글 조회
-        article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
-            article_id=article_id,
-            category_id=category,
-            delete_date__isnull=True
-        )
+        # 관리자 여부 확인
+        manager_id = request.session.get('manager_id')
+        is_manager = manager_id == 1 if manager_id else False
+        
+        # DB에서 게시글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
+        if is_manager:
+            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+                article_id=article_id,
+                category_id=category
+            )
+        else:
+            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+                article_id=article_id,
+                category_id=category,
+                delete_date__isnull=True
+            )
         print(f"[DEBUG] notice_detail: 게시글 조회 성공 - title={article_obj.title}")
         
-        # 조회수 증가
-        article_obj.view_cnt += 1
-        article_obj.save(update_fields=['view_cnt'])
+        # 조회수 증가 (삭제되지 않은 게시글만)
+        if not article_obj.delete_date:
+            article_obj.view_cnt += 1
+            article_obj.save(update_fields=['view_cnt'])
         
-        # 댓글 조회 및 변환
+        # 댓글 조회 및 변환 (삭제된 댓글도 포함)
         comment_objs = Comment.objects.select_related('member_id').filter(
-            article_id=article_id,
-            delete_date__isnull=True
+            article_id=article_id
         ).order_by('reg_date')
         
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
             comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
+            is_deleted = comment_obj.delete_date is not None
+            # DB에 저장된 댓글 내용 그대로 사용 (이미 '관리자에 의해 삭제된 댓글입니다.'로 저장됨)
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
                 'author': comment_author,
                 'is_admin': comment_is_admin,
                 'reg_date': comment_obj.reg_date,
+                'is_deleted': is_deleted,
             })
         
         # 작성자 정보 안전하게 가져오기
@@ -474,8 +485,13 @@ def notice_detail(request, article_id):
             }
             if is_image:
                 images.append(file_data)
+                # 이미지 파일도 다운로드 링크로 표시하기 위해 files에 추가
+                files.append(file_data)
             else:
                 files.append(file_data)
+        
+        # 삭제 여부 확인
+        is_deleted = article_obj.delete_date is not None
         
         article = {
             'article_id': article_obj.article_id,
@@ -488,12 +504,15 @@ def notice_detail(request, article_id):
             'reg_date': article_obj.reg_date,
             'images': images,  # 이미지 파일들
             'files': files,     # 일반 파일들 (PDF 등)
+            'delete_date': article_obj.delete_date.strftime('%Y-%m-%d %H:%M') if article_obj.delete_date else None,
         }
         
         context = {
             'article': article,
             'comments': comments,
             'board_type': 'notice',
+            'is_manager': is_manager,
+            'is_deleted': is_deleted,
         }
         
         print(f"[DEBUG] notice_detail: article_id={article_id}, title={article_obj.title}")
@@ -534,34 +553,47 @@ def event_detail(request, article_id):
         category = get_category_by_type('event')
         print(f"[DEBUG] event_detail: category={category.category_type} (ID: {category.category_id})")
         
-        # DB에서 게시글 조회
-        article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
-            article_id=article_id,
-            category_id=category,
-            delete_date__isnull=True
-        )
+        # 관리자 여부 확인
+        manager_id = request.session.get('manager_id')
+        is_manager = manager_id == 1 if manager_id else False
+        
+        # DB에서 게시글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
+        if is_manager:
+            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+                article_id=article_id,
+                category_id=category
+            )
+        else:
+            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+                article_id=article_id,
+                category_id=category,
+                delete_date__isnull=True
+            )
         print(f"[DEBUG] event_detail: 게시글 조회 성공 - title={article_obj.title}")
         
-        # 조회수 증가
-        article_obj.view_cnt += 1
-        article_obj.save(update_fields=['view_cnt'])
+        # 조회수 증가 (삭제되지 않은 게시글만)
+        if not article_obj.delete_date:
+            article_obj.view_cnt += 1
+            article_obj.save(update_fields=['view_cnt'])
         
-        # 댓글 조회 및 변환
+        # 댓글 조회 및 변환 (삭제된 댓글도 포함)
         comment_objs = Comment.objects.select_related('member_id').filter(
-            article_id=article_id,
-            delete_date__isnull=True
+            article_id=article_id
         ).order_by('reg_date')
         
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
             comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
+            is_deleted = comment_obj.delete_date is not None
+            # DB에 저장된 댓글 내용 그대로 사용 (이미 '관리자에 의해 삭제된 댓글입니다.'로 저장됨)
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
                 'author': comment_author,
                 'is_admin': comment_is_admin,
                 'reg_date': comment_obj.reg_date,
+                'is_deleted': is_deleted,
             })
         
         # 작성자 정보 안전하게 가져오기
@@ -583,8 +615,13 @@ def event_detail(request, article_id):
             }
             if is_image:
                 images.append(file_data)
+                # 이미지 파일도 다운로드 링크로 표시하기 위해 files에 추가
+                files.append(file_data)
             else:
                 files.append(file_data)
+        
+        # 삭제 여부 확인
+        is_deleted = article_obj.delete_date is not None
         
         article = {
             'article_id': article_obj.article_id,
@@ -597,12 +634,15 @@ def event_detail(request, article_id):
             'reg_date': article_obj.reg_date,
             'images': images,  # 이미지 파일들
             'files': files,     # 일반 파일들 (PDF 등)
+            'delete_date': article_obj.delete_date.strftime('%Y-%m-%d %H:%M') if article_obj.delete_date else None,
         }
         
         context = {
             'article': article,
             'comments': comments,
             'board_type': 'event',
+            'is_manager': is_manager,
+            'is_deleted': is_deleted,
         }
         
         return render(request, 'board_detail.html', context)
@@ -636,33 +676,46 @@ def post_detail(request, article_id):
         # category_type='post'로 조회
         category = get_category_by_type('post')
         
-        # DB에서 게시글 조회
-        article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
-            article_id=article_id,
-            category_id=category,
-            delete_date__isnull=True
-        )
+        # 관리자 여부 확인
+        manager_id = request.session.get('manager_id')
+        is_manager = manager_id == 1 if manager_id else False
         
-        # 조회수 증가
-        article_obj.view_cnt += 1
-        article_obj.save(update_fields=['view_cnt'])
+        # DB에서 게시글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
+        if is_manager:
+            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+                article_id=article_id,
+                category_id=category
+            )
+        else:
+            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+                article_id=article_id,
+                category_id=category,
+                delete_date__isnull=True
+            )
         
-        # 댓글 조회 및 변환
+        # 조회수 증가 (삭제되지 않은 게시글만)
+        if not article_obj.delete_date:
+            article_obj.view_cnt += 1
+            article_obj.save(update_fields=['view_cnt'])
+        
+        # 댓글 조회 및 변환 (삭제된 댓글도 포함)
         comment_objs = Comment.objects.select_related('member_id').filter(
-            article_id=article_id,
-            delete_date__isnull=True
+            article_id=article_id
         ).order_by('reg_date')
         
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
             comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
+            is_deleted = comment_obj.delete_date is not None
+            # DB에 저장된 댓글 내용 그대로 사용 (이미 '관리자에 의해 삭제된 댓글입니다.'로 저장됨)
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
                 'author': comment_author,
                 'is_admin': comment_is_admin,
                 'reg_date': comment_obj.reg_date,
+                'is_deleted': is_deleted,
             })
         
         # 작성자 정보 안전하게 가져오기
@@ -684,8 +737,13 @@ def post_detail(request, article_id):
             }
             if is_image:
                 images.append(file_data)
+                # 이미지 파일도 다운로드 링크로 표시하기 위해 files에 추가
+                files.append(file_data)
             else:
                 files.append(file_data)
+        
+        # 삭제 여부 확인
+        is_deleted = article_obj.delete_date is not None
         
         article = {
             'article_id': article_obj.article_id,
@@ -698,12 +756,15 @@ def post_detail(request, article_id):
             'reg_date': article_obj.reg_date,
             'images': images,  # 이미지 파일들
             'files': files,     # 일반 파일들 (PDF 등)
+            'delete_date': article_obj.delete_date.strftime('%Y-%m-%d %H:%M') if article_obj.delete_date else None,
         }
         
         context = {
             'article': article,
             'comments': comments,
             'board_type': 'post',
+            'is_manager': is_manager,
+            'is_deleted': is_deleted,
         }
         
         return render(request, 'board_detail.html', context)
@@ -817,75 +878,53 @@ def create_comment(request, article_id, board_type):
         return redirect(f'/board/{board_type}/{article_id}/')
 
 
-# 파일 업로드 처리 함수
-def handle_file_uploads(request, article):
-    """게시글에 첨부된 파일들을 처리하고 AddInfo에 저장"""
-    uploaded_files = []
+# 파일 업로드 처리 함수는 common/utils.py로 이동됨
+
+@csrf_exempt
+def delete_comment(request):
+    """관리자 댓글 삭제 API (soft delete)"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'msg': '잘못된 요청입니다.'}, status=400)
     
-    print(f"[DEBUG] handle_file_uploads 호출: article_id={article.article_id}")
+    # 관리자 권한 확인
+    manager_id = request.session.get('manager_id')
+    if not manager_id or manager_id != 1:
+        return JsonResponse({'status': 'error', 'msg': '관리자 권한이 필요합니다.'}, status=403)
     
-    if 'file' in request.FILES:
-        files = request.FILES.getlist('file')
-        print(f"[DEBUG] 첨부된 파일 개수: {len(files)}")
+    try:
+        import json
+        data = json.loads(request.body)
+        comment_id = data.get('comment_id')
         
-        # media 디렉토리 생성
-        media_dir = settings.MEDIA_ROOT
-        upload_dir = os.path.join(media_dir, 'uploads', 'articles')
-        print(f"[DEBUG] 업로드 디렉토리: {upload_dir}")
-        os.makedirs(upload_dir, exist_ok=True)
+        if not comment_id:
+            return JsonResponse({'status': 'error', 'msg': '댓글 ID가 필요합니다.'}, status=400)
         
-        for file in files:
-            try:
-                print(f"[DEBUG] 파일 처리 시작: {file.name}, 크기: {file.size} bytes")
-                
-                # 파일명 생성 (UUID로 고유성 보장)
-                file_ext = os.path.splitext(file.name)[1]
-                encoded_name = f"{uuid.uuid4()}{file_ext}"
-                file_path = os.path.join(upload_dir, encoded_name)
-                
-                print(f"[DEBUG] 저장 경로: {file_path}")
-                
-                # 파일 저장
-                with open(file_path, 'wb+') as destination:
-                    for chunk in file.chunks():
-                        destination.write(chunk)
-                
-                print(f"[DEBUG] 파일 저장 완료: {file_path}")
-                
-                # 상대 경로 저장 (media/uploads/articles/...)
-                relative_path = f"uploads/articles/{encoded_name}"
-                print(f"[DEBUG] 상대 경로: {relative_path}, 길이: {len(relative_path)}")
-                
-                # AddInfo에 저장
-                add_info = AddInfo.objects.create(
-                    path=relative_path,
-                    file_name=file.name,
-                    encoded_name=encoded_name,
-                    article_id=article,
-                )
-                
-                print(f"[DEBUG] AddInfo 저장 성공: add_info_id={add_info.add_info_id}")
-                
-                uploaded_files.append({
-                    'id': add_info.add_info_id,
-                    'name': file.name,
-                    'path': relative_path,
-                    'url': f"{settings.MEDIA_URL}{relative_path}",
-                    'is_image': file_ext.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
-                })
-                
-                print(f"[DEBUG] 파일 업로드 성공: {file.name} -> {relative_path}")
-                
-            except Exception as e:
-                import traceback
-                print(f"[ERROR] 파일 업로드 실패 ({file.name}): {str(e)}")
-                print(traceback.format_exc())
-                continue
-    else:
-        print(f"[DEBUG] request.FILES에 'file' 키가 없음. 사용 가능한 키: {list(request.FILES.keys())}")
-    
-    print(f"[DEBUG] handle_file_uploads 완료: {len(uploaded_files)}개 파일 업로드됨")
-    return uploaded_files
+        # 댓글 조회
+        comment = Comment.objects.get(comment_id=comment_id)
+        
+        # 이미 삭제된 댓글인지 확인
+        if comment.delete_date:
+            return JsonResponse({'status': 'error', 'msg': '이미 삭제된 댓글입니다.'}, status=400)
+        
+        # Soft delete: delete_date 설정
+        from datetime import datetime
+        comment.delete_date = datetime.now()
+        comment.comment = '관리자에 의해 삭제된 댓글입니다.'
+        comment.save()
+        
+        return JsonResponse({
+            'status': 'ok',
+            'msg': '댓글이 삭제되었습니다.',
+            'comment_id': comment_id
+        })
+        
+    except Comment.DoesNotExist:
+        return JsonResponse({'status': 'error', 'msg': '댓글을 찾을 수 없습니다.'}, status=404)
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] delete_comment 오류: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({'status': 'error', 'msg': f'삭제 중 오류가 발생했습니다: {str(e)}'}, status=500)
 
 def faq(request):
     return render(request, 'faq.html')

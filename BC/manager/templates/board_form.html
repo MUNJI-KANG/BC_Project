@@ -16,7 +16,7 @@
     <div class="sub-content">
 
         <div class="form-wrapper">
-            <form method="post" action="/manager/board_form/" enctype="multipart/form-data">
+            <form method="post" action="{% if is_edit %}/manager/board_edit/{{ article.article_id }}/{% else %}/manager/board_form/{% endif %}" enctype="multipart/form-data">
                 {% csrf_token %}
 
             <!-- 파일 첨부 -->
@@ -32,25 +32,38 @@
 
                     <div class="file-list" id="fileList"></div>
                 </div>
+                
+                {% if is_edit and existing_files %}
+                <div class="existing-files" style="margin-top: 10px;">
+                    <label class="form-label" style="font-size: 14px;">기존 첨부파일:</label>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px;">
+                        {% for file in existing_files %}
+                        <div style="padding: 5px 10px; background: #f5f5f5; border-radius: 4px; font-size: 13px;">
+                            <a href="{{ file.url }}" target="_blank" style="text-decoration: none; color: #2f5c9c;">{{ file.name }}</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <!-- 제목 -->
             <div class="form-group full-row">
                 <label class="form-label">제목</label>
-                <input type="text" name="title" class="form-input" placeholder="제목 입력">
+                <input type="text" name="title" class="form-input" placeholder="제목 입력" value="{% if is_edit %}{{ article.title }}{% endif %}">
             </div>
 
             <!-- 내용 -->
             <div class="form-group full-row">
                 <label class="form-label">내용 / 설명</label>
-                <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요"></textarea>
+                <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요">{% if is_edit %}{{ article.contents }}{% endif %}</textarea>
             </div>
 
             <!-- 상단 고정 설정 -->
             <div class="form-group full-row">
                 <label class="form-label">상단 고정</label>
                 <div class="notice-type">
-                    <label><input type="checkbox" name="pin_top" value="1"> 상단에 고정</label>
+                    <label><input type="checkbox" name="pin_top" value="1" {% if is_edit and article.always_on == 0 %}checked{% endif %}> 상단에 고정</label>
                 </div>
             </div>
 
@@ -59,29 +72,29 @@
                 <label class="form-label">공지 기간</label>
 
                 <div class="notice-type">
-                    <label><input type="radio" name="notice_type" value="always" checked> 상시 공지</label>
-                    <label><input type="radio" name="notice_type" value="period"> 기간 공지</label>
+                    <label><input type="radio" name="notice_type" value="always" {% if is_edit and not article.start_date %}checked{% elif not is_edit %}checked{% endif %}> 상시 공지</label>
+                    <label><input type="radio" name="notice_type" value="period" {% if is_edit and article.start_date %}checked{% endif %}> 기간 공지</label>
                 </div>
             </div>
 
             <!-- 날짜 영역 (초기 hidden) -->
-            <div id="date-section" class="hidden">
+            <div id="date-section" class="{% if is_edit and article.start_date %}{% else %}hidden{% endif %}">
                 <div class="form-row">
                     <div class="form-group small">
                         <label class="form-label">시작 날짜</label>
-                        <input type="datetime-local" name="start_date" class="form-input">
+                        <input type="datetime-local" name="start_date" class="form-input" value="{% if is_edit %}{{ start_date }}{% endif %}">
                     </div>
 
                     <div class="form-group small">
                         <label class="form-label">종료 날짜</label>
-                        <input type="datetime-local" name="end_date" class="form-input">
+                        <input type="datetime-local" name="end_date" class="form-input" value="{% if is_edit %}{{ end_date }}{% endif %}">
                     </div>
                 </div>
             </div>
 
             <!-- 버튼 -->
             <div class="btn-row">
-                <button type="submit" class="btn btn-submit">등록</button>
+                <button type="submit" class="btn btn-submit">{% if is_edit %}수정{% else %}등록{% endif %}</button>
                 <button type="button" class="btn btn-list" onclick="history.back()">목록</button>
             </div>
 

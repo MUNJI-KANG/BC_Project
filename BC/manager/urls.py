@@ -27,6 +27,8 @@ urlpatterns = [
     path('board_manager/', views.board_manager, name='board_manager'),
     path('event_form/', views.event_form, name='event_form'),
     path('board_form/', views.board_form, name='board_form'),
+    path('event_edit/<int:article_id>/', views.event_edit, name='event_edit'),
+    path('board_edit/<int:article_id>/', views.board_edit, name='board_edit'),
 
 
     # 배너 페이지
