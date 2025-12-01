@@ -21,6 +21,7 @@ urlpatterns = [
     path('banner/', views.banner_manager, name='banner_manager'),
     path('event_form/', views.event_form, name='event_form'),
     path('board_form/', views.board_form, name='board_form'),
+    
     # 관리자 전용 상세 페이지
     path('post/<int:article_id>/', views.manager_post_detail, name='manager_post_detail'),
     path('notice/<int:article_id>/', views.manager_notice_detail, name='manager_notice_detail'),
