@@ -423,3 +423,33 @@
     color: #6b7280;
     padding: 10px 0;
 }
+
+
+
+.comment-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+}
+
+.comment-action-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    border-radius: 999px;
+    font-size: 11px;
+    padding: 2px 10px;
+    cursor: pointer;
+    text-decoration: none;
+    color: #374151;
+    transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.comment-action-btn:hover {
+    background: #eef2ff;
+    transform: translateY(-1px);
+}
+
+.comment-delete {
+    color: #b91c1c;
+    border-color: #fecaca;
+}
