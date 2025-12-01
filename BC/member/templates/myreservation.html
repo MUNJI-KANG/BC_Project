@@ -64,6 +64,13 @@ mypage base
 
   <!-- 목록 영역 -->
   <div class="mypage-board-list">
+    <!-- 헤더 -->
+    <div class="mypage-board-header">
+      <span class="col-number">번호</span>
+      <span class="col-title">시설명</span>
+      <span class="col-date">예약일자</span>
+      <span class="col-views">예약번호</span>
+    </div>
     {% for reservation in page_obj %}
       <!-- 한 줄 전체가 클릭되는 행 -->
       <a href="#" class="mypage-board-row">
