@@ -146,6 +146,7 @@ def index(request):
             for fac in random_facilities:
                 facilities.append({
                     'id': fac.id,
+                    'faci_id': fac.facility_id,
                     'name': fac.faci_nm,
                     'address': fac.address,
                     'description': fac.tel if fac.tel else '시설 정보',
