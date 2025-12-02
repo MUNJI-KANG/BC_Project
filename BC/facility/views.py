@@ -88,42 +88,94 @@ def facility(data, rows=200):
 
 # 시설목록
 def facility_list(request):
-         
-    KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")  
+
+    KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")
 
     cp_nm = request.GET.get('cpNm')
     cpb_nm = request.GET.get('cpbNm')
     keyword = request.GET.get('keyword')    
     if keyword is None:
         keyword = ''
-    
-    # data = {'cp_nm' : cp_nm, 'cpb_nm' : cpb_nm, 'keyword' : keyword}
-    # facilities = facility(data)
 
-    # 로그인 되어있는지 세션체크
+    # ----------------------------
+    # 🔥 1) 시/도 파싱 데이터
+    # ----------------------------
+    SIDO_LIST = [
+        ("서울특별시", ["서울", "서울시"]),
+        ("부산광역시", ["부산", "부산시"]),
+        ("대구광역시", ["대구"]),
+        ("인천광역시", ["인천"]),
+        ("광주광역시", ["광주"]),
+        ("대전광역시", ["대전"]),
+        ("울산광역시", ["울산"]),
+        ("세종특별자치시", ["세종"]),
+        ("경기도", ["경기"]),
+        ("강원도", ["강원"]),
+        ("충청북도", ["충북"]),
+        ("충청남도", ["충남"]),
+        ("전라북도", ["전북"]),
+        ("전라남도", ["전남"]),
+        ("경상북도", ["경북"]),
+        ("경상남도", ["경남"]),
+        ("제주특별자치도", ["제주"]),
+    ]
+
+    def parse_addr(addr_text: str):
+        """
+        addr1 에 "경기 과천시" 같이 들어온 경우
+        시/도 + 시군구 자동 분리 후 정식명칭 반환
+        """
+        if not addr_text:
+            return None, None
+
+        addr_text = addr_text.strip()
+
+        for sido_full, patterns in SIDO_LIST:
+            for p in patterns:
+                if addr_text.startswith(p):
+                    sigungu = addr_text[len(p):].strip()
+                    return sido_full, sigungu
+
+        # 못 찾으면 fallback (거의 없음)
+        return addr_text, ""
+
+    # ----------------------------
+    # 🔥 2) 로그인 사용자 주소 파싱
+    # ----------------------------
     user = request.session.get("user_id")
-    
+
     if not cp_nm or not cpb_nm:
         if user:
             try:
                 member = Member.objects.get(user_id=user)
-                # addr1 = 서울특별시 / addr2 = 강남구 이런 구조라고 가정
+
+                parsed_sido, parsed_sigungu = parse_addr(member.addr1)
+
+                # 시/도
                 if not cp_nm:
-                    cp_nm = member.addr1.strip()
+                    cp_nm = parsed_sido
+
+                # 구/군 (addr2 우선 → 없으면 addr1에서 파싱)
                 if not cpb_nm:
-                    cpb_nm = member.addr2.strip()
+                    cpb_nm = member.addr2.strip() if member.addr2 else parsed_sigungu
+
             except Member.DoesNotExist:
                 pass
 
-    # 비로그인
-    if not keyword : 
+    # ----------------------------
+    # 🔥 3) 비로그인 기본값
+    # ----------------------------
+    if not keyword: 
         if not cp_nm:
             cp_nm = "서울특별시"
         if not cpb_nm:
             cpb_nm = "강남구"
 
+    # ----------------------------
+    # 🔥 4) DB 필터링
+    # ----------------------------
     qs = Facility.objects.all()
-    # qs.filter(faci_gb_nm__icontains'공공')
+
     if cp_nm:
         qs = qs.filter(cp_nm=cp_nm)
 
@@ -134,11 +186,15 @@ def facility_list(request):
         qs = qs.filter(faci_nm__icontains=keyword)
 
     qs = qs.filter(faci_stat_nm__icontains='정상운영')
+
+    # ----------------------------
+    # 🔥 5) 가공 데이터 생성
+    # ----------------------------
     facilities = []
- 
+
     for f in qs:
         facilities.append({
-            "id": f.faci_cd,                       # 상세 이동 key
+            "id": f.faci_cd,
             "name": f.faci_nm or "",
             "address": f.faci_road_addr or f.faci_addr or "",
             "sido": f.cp_nm or "",
@@ -159,29 +215,32 @@ def facility_list(request):
     no_result = (len(facilities) == 0)
     per_page = int(request.GET.get("per_page", 10))
     page = int(request.GET.get("page", 1))
- 
+
     paginator = Paginator(facilities, per_page)
     page_obj = paginator.get_page(page)
 
     page_facilities = kakao_for_map(page_obj)
 
+    # ----------------------------
+    # 🔥 6) 페이징 블록 계산
+    # ----------------------------
     block_size = 10
     current_block = (page - 1) // block_size
     block_start = current_block * block_size + 1
-    block_end = block_start + block_size - 1
-    if block_end > paginator.num_pages:
-        block_end = paginator.num_pages
-
+    block_end = min(block_start + block_size - 1, paginator.num_pages)
     block_range = range(block_start, block_end + 1)
 
+    # ----------------------------
+    # 🔥 7) 최종 렌더
+    # ----------------------------
     context = {
         "page_obj": page_obj,
         "page_facilities": page_facilities,
         "paginator": paginator,
         "per_page": per_page,
-        "cpNm" : cp_nm,
-        "cpbNm" : cpb_nm,
-        "keyword" : keyword,
+        "cpNm": cp_nm,
+        "cpbNm": cpb_nm,
+        "keyword": keyword,
         "page": page,
         "merged_count": len(facilities),
         "block_range": block_range,
