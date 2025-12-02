@@ -278,6 +278,56 @@
     pointer-events: none;
 }
 
+/* 버튼 박스 배치 (이미 있으면 생략) */
+.detail-btn-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* form을 인라인처럼 보이게 */
+.detail-inline-form {
+    display: inline-block;
+    margin: 0;
+}
+
+/* 공통 버튼 스타일 (이미 있을 수 있음) */
+.detail-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #d0d7e2;
+    background-color: #ffffff;
+    color: #333;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: 0.15s ease-in-out;
+}
+
+/* 모집 마감 버튼 */
+.detail-btn.btn-close {
+    background-color: #e53935;
+    border-color: #e53935;
+    color: #ffffff;
+}
+
+.detail-btn.btn-close:hover {
+    background-color: #c62828;
+    border-color: #c62828;
+}
+
+/* “모집 마감됨” 표시용 */
+.detail-btn.btn-closed-label {
+    background-color: #9e9e9e;
+    border-color: #9e9e9e;
+    color: #ffffff;
+    cursor: default;
+}
 
 
 
