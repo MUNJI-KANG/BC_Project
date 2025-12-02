@@ -100,7 +100,7 @@ def manager(request):
 def facility(request):
     #DATA_API_KEY = os.getenv("DATA_API_KEY")
 
-    cp_nm = request.GET.get("sido", "") or "서울특별시"
+    cp_nm = request.GET.get("sido", "") 
     cpb_nm = request.GET.get("sigungu", "")
     keyword = request.GET.get("keyword", "")
     
@@ -165,7 +165,7 @@ def facility(request):
         {
             "id": item.id,
             "name": item.faci_nm,
-            "address": item.faci_addr,
+            "address": item.faci_road_addr,
             "row_no": start_index + idx + 1,
         }
         for idx, item in enumerate(page_obj.object_list)
@@ -420,6 +420,63 @@ def facility_modify(request, id):
 
     messages.success(request, "시설 정보가 수정되었습니다.")
     return redirect("facility_detail", id=id)
+
+@csrf_exempt
+def facility_delete(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        ids = data.get("ids", [])
+
+        if not ids:
+            return JsonResponse({"status": "error", "msg": "삭제할 항목이 없습니다."})
+
+        # -------------------------------------------------
+        # 1) AddInfo 첨부파일 삭제
+        # -------------------------------------------------
+        files = AddInfo.objects.filter(facility_id__in=ids)
+
+        for f in files:
+            if f.path:
+                file_path = os.path.join(settings.MEDIA_ROOT, f.path)  # ★ 반드시 MEDIA_ROOT 기준 경로로 변환
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except Exception:
+                        pass
+
+        files.delete()
+
+        # -------------------------------------------------
+        # 2) FacilityInfo 대표이미지 삭제
+        # -------------------------------------------------
+        infos = FacilityInfo.objects.filter(id__in=ids)
+
+        for info in infos:
+            # info.photo는 "uploads/facility/photo/xxxxx.png" 형태
+            if info.photo and info.photo.name:
+                photo_path = os.path.join(settings.MEDIA_ROOT, info.photo.name)
+                if os.path.exists(photo_path):
+                    try:
+                        os.remove(photo_path)
+                    except Exception:
+                        pass
+
+        # -------------------------------------------------
+        # 3) FacilityInfo 레코드 삭제
+        # -------------------------------------------------
+        FacilityInfo.objects.filter(id__in=ids).delete()
+
+        return JsonResponse({"status": "success", "deleted": ids})
+
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return JsonResponse({"status": "error", "msg": str(e)})
+
+
+
 
 def sport_type(request):
     return render(request, 'sport_type_manager.html')

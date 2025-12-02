@@ -4,20 +4,7 @@ from django.db import models
 # FacilityInfo (시설)
 # -----------------------------------------------------
 class FacilityInfo(models.Model):
-    facility = models.ForeignKey(
-        "facility.Facility",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL
-    )
-
-    sports = models.ForeignKey(
-        "reservation.Sports",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL
-    )
-
+    facility_id = models.CharField(max_length=50, unique=True)
     # 사진 업로드
     photo = models.ImageField(upload_to="facility_photos/", null=True, blank=True)
 
