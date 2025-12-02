@@ -82,14 +82,23 @@
                 </p>
 
                 <section class="detail-buttons">
+
                     {% if can_reserve %}
-                    <a href="/reservation/reserve/{{ facility.id }}">예약하기</a>
+                    <a href="/reservation/reserve/{{ facility.id }}" class="btn-reserve">
+                        예약하기
+                    </a>
                     {% endif %}
-                    <a href="/recruitment/{{ facility.id }}">모집글가기</a>
-                    
+
+                    {% if can_recruit %}
+                    <a href="/recruitment/{{ facility.id }}" class="btn-recruit">
+                        모집글가기
+                    </a>
+                    {% endif %}
+
                     <a href="javascript:history.back();" class="back-btn">
                         리스트로 돌아가기
                     </a>
+
                 </section>
             </section>
 

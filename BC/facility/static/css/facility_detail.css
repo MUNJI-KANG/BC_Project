@@ -103,7 +103,9 @@
     white-space: normal;
 }
 
-/* 버튼 스타일 */
+/* ===========================
+   버튼 스타일 (레이아웃 유지)
+=========================== */
 .detail-buttons {
     margin-top: var(--spacing-lg);
     display: flex;
@@ -115,28 +117,38 @@
     padding: 0.9rem 1rem;
     text-align: center;
     border-radius: 10px;
-    color: #fff;
     font-size: 1rem;
     font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    display: block;
     transition: background var(--transition-base);
 }
 
-/* 예약 버튼: deep blue */
-.detail-buttons a:first-child {
+/* 예약 버튼 */
+.btn-reserve {
     background: var(--color-deep-blue);
 }
-.detail-buttons a:first-child:hover {
+.btn-reserve:hover {
     background: var(--color-deep-blue-hover);
 }
 
-/* 모집글 버튼: muted blue */
-.detail-buttons a:last-child {
+/* 모집 버튼 */
+.btn-recruit {
     background: var(--color-muted-blue);
 }
-.detail-buttons a:last-child:hover {
+.btn-recruit:hover {
     background: #7aaac7;
 }
 
+/* 돌아가기 버튼 */
+.back-btn {
+    background: #ddd;
+    color: #333;
+}
+.back-btn:hover {
+    background: #ccc;
+}
 /* ===========================
    지도 스타일
 =========================== */

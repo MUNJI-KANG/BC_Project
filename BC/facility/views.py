@@ -4,6 +4,7 @@ import json
 import requests
 import urllib.request
 import urllib.parse
+import re, time
 from django.core.cache import cache
 from django.shortcuts import render
 from django.core.paginator import Paginator
@@ -86,112 +87,83 @@ def facility(data, rows=200):
 
 
 
-# 시설목록
 def facility_list(request):
 
     KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")
 
     cp_nm = request.GET.get('cpNm')
     cpb_nm = request.GET.get('cpbNm')
-    keyword = request.GET.get('keyword')    
-    if keyword is None:
-        keyword = ''
+    keyword = request.GET.get('keyword')
+    keyword = keyword or ''
+
+    
 
     # ----------------------------
-    # 🔥 1) 시/도 파싱 데이터
-    # ----------------------------
-    SIDO_LIST = [
-        ("서울특별시", ["서울", "서울시"]),
-        ("부산광역시", ["부산", "부산시"]),
-        ("대구광역시", ["대구"]),
-        ("인천광역시", ["인천"]),
-        ("광주광역시", ["광주"]),
-        ("대전광역시", ["대전"]),
-        ("울산광역시", ["울산"]),
-        ("세종특별자치시", ["세종"]),
-        ("경기도", ["경기"]),
-        ("강원도", ["강원"]),
-        ("충청북도", ["충북"]),
-        ("충청남도", ["충남"]),
-        ("전라북도", ["전북"]),
-        ("전라남도", ["전남"]),
-        ("경상북도", ["경북"]),
-        ("경상남도", ["경남"]),
-        ("제주특별자치도", ["제주"]),
-    ]
-
-    def parse_addr(addr_text: str):
-        """
-        addr1 에 "경기 과천시" 같이 들어온 경우
-        시/도 + 시군구 자동 분리 후 정식명칭 반환
-        """
-        if not addr_text:
-            return None, None
-
-        addr_text = addr_text.strip()
-
-        for sido_full, patterns in SIDO_LIST:
-            for p in patterns:
-                if addr_text.startswith(p):
-                    sigungu = addr_text[len(p):].strip()
-                    return sido_full, sigungu
-
-        # 못 찾으면 fallback (거의 없음)
-        return addr_text, ""
-
-    # ----------------------------
-    # 🔥 2) 로그인 사용자 주소 파싱
+    # 로그인 기본 주소
     # ----------------------------
     user = request.session.get("user_id")
 
-    if not cp_nm or not cpb_nm:
-        if user:
-            try:
-                member = Member.objects.get(user_id=user)
-
-                parsed_sido, parsed_sigungu = parse_addr(member.addr1)
-
-                # 시/도
-                if not cp_nm:
-                    cp_nm = parsed_sido
-
-                # 구/군 (addr2 우선 → 없으면 addr1에서 파싱)
-                if not cpb_nm:
-                    cpb_nm = member.addr2.strip() if member.addr2 else parsed_sigungu
-
-            except Member.DoesNotExist:
-                pass
+    if not keyword:
+        if not cp_nm or not cpb_nm:
+            if user:
+                SIDO_MAP = {
+                    "서울": "서울특별시",
+                    "경기": "경기도",
+                    "부산": "부산광역시",
+                    "대구": "대구광역시",
+                    "인천": "인천광역시",
+                    "광주": "광주광역시",
+                    "대전": "대전광역시",
+                    "울산": "울산광역시",
+                    "세종": "세종특별자치시",
+                    "강원": "강원도",
+                    "충북": "충청북도",
+                    "충남": "충청남도",
+                    "전북": "전라북도",
+                    "전남": "전라남도",
+                    "경북": "경상북도",
+                    "경남": "경상남도",
+                    "제주": "제주특별자치도",
+                }
+                
+                try:
+                    member = Member.objects.get(user_id=user)
+                    addr1_raw = (member.addr1 or "").strip()
+                    # addr1 = 서울특별시 / addr2 = 강남구 이런 구조라고 가정
+                    if not cp_nm:
+                        cp_nm = SIDO_MAP.get(addr1_raw, addr1_raw)
+                    if not cpb_nm:
+                        cpb_nm = member.addr2.strip()
+                except Member.DoesNotExist:
+                    pass
 
     # ----------------------------
-    # 🔥 3) 비로그인 기본값
+    # 비로그인 기본값
     # ----------------------------
-    if not keyword: 
+    if not keyword:
         if not cp_nm:
             cp_nm = "서울특별시"
         if not cpb_nm:
             cpb_nm = "강남구"
 
     # ----------------------------
-    # 🔥 4) DB 필터링
+    # DB 조회
     # ----------------------------
     qs = Facility.objects.all()
 
     if cp_nm:
         qs = qs.filter(cp_nm=cp_nm)
-
     if cpb_nm:
         qs = qs.filter(cpb_nm=cpb_nm)
-
     if keyword:
         qs = qs.filter(faci_nm__icontains=keyword)
 
-    qs = qs.filter(faci_stat_nm__icontains='정상운영')
+    #qs = qs.filter(faci_stat_nm__icontains='정상운영')
 
     # ----------------------------
-    # 🔥 5) 가공 데이터 생성
+    # 데이터 가공
     # ----------------------------
     facilities = []
-
     for f in qs:
         facilities.append({
             "id": f.faci_cd,
@@ -200,29 +172,22 @@ def facility_list(request):
             "sido": f.cp_nm or "",
             "sigungu": f.cpb_nm or "",
             "phone": f.faci_tel_no or "",
-
-            "fcob_nm": f.fcob_nm or "",
-            "homepage": getattr(f, "faci_homepage", "") or "",
-            "faci_stat_nm": getattr(f, "faci_stat_nm", "") or "",
-            "schk_tot_grd_nm": getattr(f, "schk_tot_grd_nm", "") or "",
-            "schk_open_ymd": getattr(f, "schk_open_ymd", "") or "",
-            "faci_gfa": getattr(f, "faci_gfa", "") or "",
-
             "lat": f.faci_lat,
             "lng": f.faci_lot,
         })
-
     no_result = (len(facilities) == 0)
+
     per_page = int(request.GET.get("per_page", 10))
     page = int(request.GET.get("page", 1))
 
     paginator = Paginator(facilities, per_page)
     page_obj = paginator.get_page(page)
 
+    # 지도용 데이터 (lat/lng 정상값만)
     page_facilities = kakao_for_map(page_obj)
 
     # ----------------------------
-    # 🔥 6) 페이징 블록 계산
+    # 페이징 블록 계산
     # ----------------------------
     block_size = 10
     current_block = (page - 1) // block_size
@@ -230,9 +195,6 @@ def facility_list(request):
     block_end = min(block_start + block_size - 1, paginator.num_pages)
     block_range = range(block_start, block_end + 1)
 
-    # ----------------------------
-    # 🔥 7) 최종 렌더
-    # ----------------------------
     context = {
         "page_obj": page_obj,
         "page_facilities": page_facilities,
@@ -250,76 +212,157 @@ def facility_list(request):
         "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
     }
     
+    
     return render(request, "facility_list.html", context)
 
 
+_geo_cache = {}
+GEO_CACHE_TTL = 60 * 60 * 24  # 24시간
 
-# 주소를 기반으로 지도에 표시하기 위한 작업
+
+# -----------------------------
+# 1) 주소 정규화 함수
+# -----------------------------
+def clean_address(addr):
+    if not addr:
+        return ""
+
+    addr = re.sub(r'\(.*?\)', '', addr)           # (목동) 제거
+    addr = re.sub(r'지하?\d*층?', '', addr)        # 지하2층, 지층 제거
+    addr = re.sub(r'B\d+호?', '', addr)            # B02호 제거
+    addr = re.sub(r'\d+블럭', '', addr)            # 6블럭 제거
+    addr = addr.replace(",", " ")
+
+    return addr.strip()
+
+
+# -----------------------------
+# 2) 캐시 조회/저장
+# -----------------------------
 def _get_cached_geo(address):
     entry = _geo_cache.get(address)
     if not entry:
         return None
+
     if time.time() - entry["ts"] > GEO_CACHE_TTL:
         _geo_cache.pop(address, None)
         return None
+
     return entry["coords"]
 
 
 def _set_cached_geo(address, lat, lng):
     _geo_cache[address] = {
         "coords": (lat, lng),
-        "ts": time.time()
+        "ts": time.time(),
     }
 
 
+# -----------------------------
+# 3) 시군구 중심좌표 fallback
+# -----------------------------
+def get_sigungu_center(sido, sigungu):
+    """시군구 중심 좌표 가져오는 fallback"""
+    query = f"{sido} {sigungu}"
+
+    key = os.getenv("KAKAO_REST_API_KEY")
+    headers = {"Authorization": f"KakaoAK {key}"}
+
+    try:
+        resp = requests.get(
+            "https://dapi.kakao.com/v2/local/search/address.json",
+            params={"query": query},
+            headers=headers,
+            timeout=3
+        )
+        docs = resp.json().get("documents")
+        if docs:
+            return float(docs[0]["y"]), float(docs[0]["x"])
+
+    except:
+        pass
+
+    # 최종 fallback → 서울
+    return 37.5665, 126.9780
+
+
+# -----------------------------
+# 4) kakao_for_map — 여기만 바꾸면 OK
+# -----------------------------
 def kakao_for_map(page_obj):
     KAKAO_REST_KEY = os.getenv("KAKAO_REST_API_KEY")
     headers = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"} if KAKAO_REST_KEY else None
 
+    result = []
+
     for fac in page_obj:
+        raw_addr = fac.get("address") or ""
+        clean_addr_text = clean_address(raw_addr)
 
-        # 공공데이터 주소는 이미 완전한 도로명주소다!
-        full_addr = fac.get("address") or ""
-        fac["full_address"] = full_addr
+        fac["full_address"] = raw_addr
+        lat = None
+        lng = None
 
-        fac["lat"] = None
-        fac["lng"] = None
+        # ----------------------------------
+        # 1) 원래 DB 좌표가 있으면 최우선 사용
+        # ----------------------------------
+        if fac.get("lat") and fac.get("lng"):
+            lat = fac["lat"]
+            lng = fac["lng"]
+        
+        else:
+            # -------------------------------
+            # 2) 캐시 조회
+            # -------------------------------
+            if clean_addr_text:
+                cached = _get_cached_geo(clean_addr_text)
+                if cached:
+                    lat, lng = cached
 
-        if not (headers and full_addr):
-            continue
+            # -------------------------------
+            # 3) 카카오 지오코딩 호출
+            # -------------------------------
+            if headers and clean_addr_text and (lat is None or lng is None):
+                try:
+                    resp = requests.get(
+                        "https://dapi.kakao.com/v2/local/search/address.json",
+                        params={"query": clean_addr_text},
+                        headers=headers,
+                        timeout=3,
+                    )
+                    docs = resp.json().get("documents")
 
-        cached_coords = _get_cached_geo(full_addr)
-        if cached_coords:
-            fac["lat"], fac["lng"] = cached_coords
-            continue
+                    if docs:
+                        lat = float(docs[0]["y"])
+                        lng = float(docs[0]["x"])
+                        _set_cached_geo(clean_addr_text, lat, lng)
 
-        try:
-            resp = requests.get(
-                "https://dapi.kakao.com/v2/local/search/address.json",
-                params={"query": full_addr},
-                headers=headers,
-                timeout=3,
-            )
-            data = resp.json()
-            docs = data.get("documents")
+                except Exception as e:
+                    print("[지오코딩 오류]", e)
 
-            if docs:
-                lat = float(docs[0]["y"])
-                lng = float(docs[0]["x"])
-                fac["lat"] = lat
-                fac["lng"] = lng
-                _set_cached_geo(full_addr, lat, lng)
+            # -------------------------------
+            # 4) 여전히 좌표가 없으면 시군구 fallback
+            # -------------------------------
+            if lat is None or lng is None:
+                lat, lng = get_sigungu_center(fac["sido"], fac["sigungu"])
 
-        except Exception as e:
-            print("카카오 지오코딩 오류:", e)
+        # 최종 좌표 부여
+        fac["lat"] = lat
+        fac["lng"] = lng
 
-    return list(page_obj)
+        # 지도에 반드시 추가 → 누락되는 시설 없음!
+        result.append(fac)
+
+    return result
 
 def facility_detail(request, fk):
+
     KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")
 
     try:
+        # ======================================================
         # 1) FacilityInfo / Facility 조회
+        # ======================================================
         facility_info = FacilityInfo.objects.filter(facility_id=fk).first()
         facility = Facility.objects.filter(faci_cd=fk).first()
 
@@ -328,7 +371,9 @@ def facility_detail(request, fk):
                 "error": "시설 정보를 찾을 수 없습니다."
             })
 
-        # 2) 기본 데이터 구조
+        # ======================================================
+        # 2) 기본 데이터 (공통 구조)
+        # ======================================================
         r_data = {
             "id": fk,
             "name": "",
@@ -345,46 +390,48 @@ def facility_detail(request, fk):
             "image_url": "/media/default.png",
         }
 
-        # ✅ 예약 관련 기본값
-        can_reserve = False
+        # 버튼 표시 조건
+        can_reserve = False               # 예약하기
+        can_recruit = False               # 모집하기
         reserve_message = "해당 시설에 문의해주세요"
 
-        # 3) Case 1: FacilityInfo 우선 적용
+        # ======================================================
+        # 3) FacilityInfo 있는 경우 (관리자 커스텀 데이터)
+        # ======================================================
         if facility_info:
-            # 기본 정보
-            r_data["name"] = facility_info.faci_nm or r_data["name"]
-            r_data["address"] = facility_info.address or r_data["address"]
-            r_data["sido"] = facility_info.sido or r_data["sido"]
-            r_data["sigungu"] = facility_info.sigugun or r_data["sigungu"]
-            r_data["phone"] = facility_info.tel or r_data["phone"]
-            r_data["homepage"] = facility_info.homepage or r_data["homepage"]
 
-            # ★ 이미지: FacilityInfo 먼저
+            # 기본값 우선 채우기
+            r_data["name"] = facility_info.faci_nm or facility.faci_nm
+            r_data["address"] = facility_info.address or facility.faci_road_addr or facility.faci_addr
+            r_data["sido"] = facility_info.sido or facility.cp_nm
+            r_data["sigungu"] = facility_info.sigugun or facility.cpb_nm
+            r_data["phone"] = facility_info.tel or facility.faci_tel_no
+            r_data["homepage"] = facility_info.homepage or facility.faci_homepage
+
+            # 이미지
             if facility_info.photo:
                 r_data["image_url"] = facility_info.photo.url
-            else:
-                r_data["image_url"] = "/media/default.png"
 
-            # ✅ 예약 가능 여부 (reservation_time 이 있으면 True)
+            # 예약 가능 여부
             if facility_info.reservation_time:
                 can_reserve = True
                 reserve_message = "가능"
 
-            # 부족한 부분 Facility 테이블에서 채우기
+            # 모집 가능 여부 (★ FacilityInfo 존재하면 모집 가능)
+            can_recruit = True
+
+            # Facility에서 부족한 값 보완
             if facility:
-                r_data["sido"] = r_data["sido"] or facility.cp_nm
-                r_data["sigungu"] = r_data["sigungu"] or facility.cpb_nm
-                r_data["phone"] = r_data["phone"] or facility.faci_tel_no
-                r_data["homepage"] = r_data["homepage"] or facility.faci_homepage
                 r_data["fcob_nm"] = facility.fcob_nm or ""
                 r_data["faci_stat_nm"] = facility.faci_stat_nm or ""
                 r_data["schk_tot_grd_nm"] = facility.schk_tot_grd_nm or ""
                 r_data["lat"] = facility.faci_lat
                 r_data["lng"] = facility.faci_lot
 
-        # 4) Case 2: FacilityInfo가 없는 경우 (→ 네이버 이미지)
+        # ======================================================
+        # 4) FacilityInfo 없는 경우 (Facility 원본 + 네이버 이미지)
+        # ======================================================
         else:
-            # Facility 데이터로 기본 채우기
             r_data = {
                 "id": facility.faci_cd,
                 "name": facility.faci_nm or "",
@@ -401,28 +448,36 @@ def facility_detail(request, fk):
                 "image_url": "/media/default.png",
             }
 
-            # ★ FacilityInfo 없으면 네이버 이미지 검색 실행
+            # 네이버 이미지 검색 적용
             query = r_data["name"]
             img_url = get_naver_image(query)
-
             if img_url:
                 r_data["image_url"] = img_url
-            else:
-                r_data["image_url"] = "/media/default.png"
 
-            # 🔹 FacilityInfo가 아예 없으니까 can_reserve=False 유지
-            #     => "해당 시설에 문의해주세요" + 예약 버튼 없음
+            # ★ facility_info 없으니 모집/예약 버튼 둘 다 숨김
+            can_reserve = False
+            can_recruit = False
 
-        # 5) 좌표 없으면 카카오 지오코딩
+        # ======================================================
+        # 5) 좌표 없을 시 카카오 지오코딩 자동 보완
+        # ======================================================
         if not r_data["lat"] or not r_data["lng"]:
-            r_data = kakao_for_map([r_data])[0]
+            try:
+                geo_fixed = kakao_for_map([r_data])[0]
+                r_data["lat"] = geo_fixed["lat"]
+                r_data["lng"] = geo_fixed["lng"]
+            except:
+                print("카카오 지오코딩 실패 → 좌표 없음")
 
+        # ======================================================
         # 6) 템플릿 렌더링
+        # ======================================================
         return render(request, "facility_view.html", {
             "facility": r_data,
             "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
-            "can_reserve": can_reserve,          # ✅ 추가
-            "reserve_message": reserve_message,  # ✅ 추가
+            "can_reserve": can_reserve,
+            "can_recruit": can_recruit,
+            "reserve_message": reserve_message,
         })
 
     except Exception as e:
@@ -432,6 +487,7 @@ def facility_detail(request, fk):
         return render(request, "facility_view.html", {
             "error": f"상세 정보를 불러오는 중 오류가 발생했습니다: {str(e)}"
         })
+
 
 
 
