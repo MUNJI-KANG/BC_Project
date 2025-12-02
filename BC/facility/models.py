@@ -4,7 +4,7 @@ from django.db import models
 # FacilityInfo (시설)
 # -----------------------------------------------------
 class FacilityInfo(models.Model):
-    facility_id = models.CharField(max_length=50, unique=True)
+    facility_id = models.CharField(max_length=50, unique=True, null=True, blank=True)
     # 사진 업로드
     photo = models.ImageField(upload_to="facility_photos/", null=True, blank=True)
 
