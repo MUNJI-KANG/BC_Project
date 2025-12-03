@@ -67,22 +67,27 @@ def reservation_list(request):
     return render(request, "reservation_list.html", context)
 
 
-def reservation_detail(request, pk):
-    facility = get_object_or_404(FacilityInfo, pk=pk)
+def reservation_detail(request, facility_id):
+    facility = get_object_or_404(FacilityInfo, facility_id=facility_id)
 
-
+    # facility_id는 UUID 문자열이므로 Reservation.facility와 문자열 비교
     reservations = Reservation.objects.filter(
-        facility=pk,
+        facility=facility_id,
         delete_yn=0
     ).values("reservation_date", "hour")
 
     reserved_list = []
     for r in reservations:
         date_str = r["reservation_date"].strftime("%Y-%m-%d")
+
+        hour_data = r["hour"]
+        if isinstance(hour_data, str):
+            hour_data = json.loads(hour_data)
+
         reserved_list.append({
             "date": date_str,
-            "start": r["hour"]["start"],
-            "end": r["hour"]["end"]
+            "start": hour_data["start"],
+            "end": hour_data["end"]
         })
 
     return render(request, "reservation_detail.html", {
@@ -90,7 +95,6 @@ def reservation_detail(request, pk):
         "reservation_time_json": json.dumps(facility.reservation_time),
         "reserved_json": json.dumps(reserved_list)
     })
-
 
 @csrf_exempt
 def reservation_save(request):
