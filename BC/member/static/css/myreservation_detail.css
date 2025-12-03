@@ -156,3 +156,27 @@ body {
     padding: 4px 0;
     color: #2c3e50;
 }
+.slot-checkbox {
+    margin-left: 12px;
+    transform: scale(1.3);
+    display: none; /* 기본 숨김 */
+    cursor: pointer;
+}
+
+.time-line {
+    padding: 6px 0;
+    display: flex;
+    justify-content: space-between; /* 글자 왼쪽, 체크박스 오른쪽 */
+    align-items: center;
+}
+
+.time-line.cancelled {
+    text-decoration: line-through;
+    color: #c0392b;
+}
+
+.cancel-tag {
+    font-size: 14px;
+    color: #e74c3c;
+    margin-left: 6px;
+}

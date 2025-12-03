@@ -115,11 +115,13 @@ def reservation_list(request):
     return render(request, "reservation_list.html", context)
 
 
-def reservation_detail(request, facility_id):  # facility_id=문자열 코드!
+def reservation_detail(request, facility_id):
     facility = get_object_or_404(FacilityInfo, facility_id=facility_id)
 
+    # delete_yn = 0 인 시간만 예약 불가 처리
     time_slots = TimeSlot.objects.filter(
-        facility_id=facility      # FK 비교는 객체
+        facility_id=facility,
+        delete_yn=0
     ).values("date", "start_time", "end_time")
 
     reserved_list = []
@@ -135,7 +137,6 @@ def reservation_detail(request, facility_id):  # facility_id=문자열 코드!
         "reservation_time_json": json.dumps(facility.reservation_time),
         "reserved_json": json.dumps(reserved_list)
     })
-
 @csrf_exempt
 def reservation_save(request):
     if request.method != "POST":

@@ -312,11 +312,10 @@ def myreservation(request):
     login_id = request.session.get("user_id")
     if not login_id:
         return redirect(f'/login?next={reverse("member:myreservation")}')
-    
+
     try:
         user = Member.objects.get(user_id=login_id)
 
-        # 취소된 예약도 모두 표시해야 하므로 전체 조회
         reservations = Reservation.objects.filter(
             member=user
         ).order_by('-reg_date')
@@ -324,42 +323,47 @@ def myreservation(request):
         reservation_list = []
 
         for r in reservations:
-            # 해당 예약의 모든 시간대 (시작 시간 기준 오름차순)
-            slots = TimeSlot.objects.filter(reservation_id=r).order_by('date', 'start_time')
+            # 모든 슬롯 조회
+            slots = TimeSlot.objects.filter(reservation_id=r)
 
+            # 슬롯이 하나도 없다 = 완전 취소
             if not slots.exists():
-                # 시간이 모두 취소되어도 예약은 남아있어야 하므로 표시 필요
                 reservation_list.append({
                     "facility_name": "(취소된 예약)",
                     "reservation_date": "-",
                     "reservation_num": r.reservation_num,
-                    "is_cancelled": True
+                    "status": "cancelled"
                 })
                 continue
 
-            # 시설 정보 (첫 슬롯 기준)
-            facility = slots.first().facility_id
+            # 취소된 슬롯 개수
+            cancelled_slots = slots.filter(delete_yn=1).count()
+            total_slots = slots.count()
 
-            # 대표 날짜 = 첫 슬롯 날짜
+            # 상태 계산
+            if cancelled_slots == total_slots:
+                status = "cancelled"     # 전체 취소
+            elif cancelled_slots > 0:
+                status = "partial"       # 부분 취소
+            else:
+                status = "active"        # 예약중
+
+            # 시설 정보
+            facility = slots.first().facility_id
             representative_date = slots.first().date.strftime("%Y-%m-%d")
 
             reservation_list.append({
                 "facility_name": facility.faci_nm,
                 "reservation_date": representative_date,
                 "reservation_num": r.reservation_num,
-                "is_cancelled": (r.delete_yn == 1)
+                "status": status
             })
 
-    except Member.DoesNotExist:
-        messages.error(request, "회원 정보를 찾을 수 없습니다.")
-        return redirect('/login/')
     except Exception as e:
-        import traceback
-        print("[ERROR] 내 예약 조회 오류:", e)
-        print(traceback.format_exc())
+        print("[myreservation ERROR]", e)
         reservation_list = []
 
-    # 페이지네이션
+    # 페이징 처리
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
 
@@ -373,7 +377,7 @@ def myreservation(request):
 
     block_range = range(block_start, block_end + 1)
 
-    context = {
+    return render(request, "myreservation.html", {
         "page_obj": page_obj,
         "paginator": paginator,
         "per_page": per_page,
@@ -381,40 +385,34 @@ def myreservation(request):
         "block_range": block_range,
         "block_start": block_start,
         "block_end": block_end,
-    }
-
-    return render(request, 'myreservation.html', context)
+    })
 
 @csrf_exempt
 def cancel_timeslot(request, reservation_num):
     data = json.loads(request.body)
-    slot_list = data.get("slots", [])
+    slots = data.get("slots", [])
 
-    reservation = get_object_or_404(Reservation, reservation_num=reservation_num)
+    try:
+        reservation = Reservation.objects.get(reservation_num=reservation_num)
 
-    # 선택된 슬롯만 delete_yn=1 처리
-    for s in slot_list:
-        TimeSlot.objects.filter(
-            reservation_id=reservation,
-            date=s["date"],
-            start_time=s["start"],
-            end_time=s["end"]
-        ).update(delete_yn=1)
+        for s in slots:
+            TimeSlot.objects.filter(
+                reservation_id=reservation,
+                date=s["date"],
+                start_time=s["start"],
+                end_time=s["end"]
+            ).update(delete_yn=1)
 
-    # 남은 슬롯들 체크
-    remaining = TimeSlot.objects.filter(
-        reservation_id=reservation,
-        delete_yn=0
-    ).exists()
+        # 남은 슬롯이 모두 delete_yn = 1이면 예약 전체 취소
+        if not TimeSlot.objects.filter(reservation_id=reservation, delete_yn=0).exists():
+            reservation.delete_yn = 1
+            reservation.delete_date = datetime.now()
+            reservation.save()
 
-    # 남아있는 슬롯이 0개면 예약 자체 취소
-    if not remaining:
-        reservation.delete_yn = 1
-        reservation.delete_date = datetime.now()
-        reservation.save()
+        return JsonResponse({"result": "ok", "msg": "선택한 시간대가 취소되었습니다."})
 
-    return JsonResponse({"result": "ok", "msg": "선택한 시간대가 취소되었습니다."})
-
+    except Exception as e:
+        return JsonResponse({"result": "error", "msg": "취소 실패"})
 
 # 예약 상세페이지 
 
@@ -422,9 +420,7 @@ def myreservation_detail(request, reservation_num):
     try:
         reservation = Reservation.objects.get(reservation_num=reservation_num)
 
-        slots = TimeSlot.objects.filter(
-            reservation_id=reservation
-        ).order_by("date", "start_time")
+        slots = TimeSlot.objects.filter(reservation_id=reservation).order_by("date", "start_time")
 
         if not slots.exists():
             messages.error(request, "예약 정보가 존재하지 않습니다.")
@@ -432,13 +428,20 @@ def myreservation_detail(request, reservation_num):
 
         facility = slots.first().facility_id
 
+        # 전체 취소 여부 확인
+        all_cancelled = True
+
         slot_list = []
         for s in slots:
+            is_cancelled = (s.delete_yn == 1)
+            if not is_cancelled:
+                all_cancelled = False
+
             slot_list.append({
                 "date": s.date.strftime("%Y-%m-%d"),
                 "start": s.start_time,
                 "end": s.end_time,
-                "is_cancelled": (s.delete_yn == 1)   # ★ 여기를 반드시 추가
+                "is_cancelled": is_cancelled
             })
 
         context = {
@@ -447,7 +450,8 @@ def myreservation_detail(request, reservation_num):
             "facility_tel": facility.tel,
             "reservation_num": reservation.reservation_num,
             "reg_date": reservation.reg_date.strftime("%Y-%m-%d %H:%M"),
-            "slot_list": slot_list
+            "slot_list": slot_list,
+            "all_cancelled": all_cancelled,   # ← 상세페이지에서 버튼 숨기기 용도
         }
 
         return render(request, "myreservation_detail.html", context)
@@ -455,7 +459,6 @@ def myreservation_detail(request, reservation_num):
     except Reservation.DoesNotExist:
         messages.error(request, "예약을 찾을 수 없습니다.")
         return redirect("member:myreservation")
-
 
 
 @csrf_exempt
