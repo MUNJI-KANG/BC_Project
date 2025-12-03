@@ -7,31 +7,83 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import make_aware
 from datetime import datetime
 from facility.models import FacilityInfo
+from reservation.models import Sports, Reservation
 from member.models import Member
 from .models import TimeSlot
+from django.db.models import Q
 
 # TODO: DB 연결 이후 FacilityInfo 모델에서 시설 정보 조회
 # from facility.models import FacilityInfo
 
 def reservation_list(request):
-    # TODO: DB 연결 이후 FacilityInfo 모델에서 시설 정보 조회
-    # facilities = FacilityInfo.objects.all().order_by('-reg_date')
-    # 필드 매핑: facility_addr1 -> sido, facility_addr2 -> sigugun, 
-    #           facility_name -> faci_nm, facility_num -> faci_cd 등
-    facility_list = []  # 빈 리스트 (DB 연결 후 교체)
+    # 종목불러오기
+    sports = Sports.objects.all()
+    # 시설불러오기
+    facilities = FacilityInfo.objects.all()
+
+    sido = request.GET.get('sido')
+    sigungu = request.GET.get('sigungu')
+    keyword = request.GET.get('keyword')
+    sport = request.GET.get('sport')
+
+    if sido:
+        facilities = facilities.filter(sido=sido)
+    if sigungu:
+        facilities = facilities.filter(sigugun=sigungu)
+    if keyword:
+        facilities = facilities.filter(faci_nm__icontains=keyword)
+    
+    q = Q()
+    
+    if sport:
+        q |= (
+                Q(faci_nm__icontains=sport) |
+                Q(ftype_nm__icontains=sport) |
+                Q(cp_nm__icontains=sport) |
+                Q(cpb_nm__icontains=sport)
+        )
+    facilities = facilities.filter(q)
+
+
+    if sport:
+        facilities = facilities.filter()
+
+
+    sports_list = []
+    for s in sports:
+        sports_list.append({
+            "sName" : s.s_name
+        })
 
     # 정렬 값 (기본값: 제목순)
     sort = request.GET.get("sort", "title")
 
     # 정렬 적용 (DB 연결 후 쿼리로 교체)
-    # if sort == "title":
-    #     facilities = facilities.order_by('faci_nm')
-    # elif sort == "views":
-    #     facilities = facilities.order_by('-view_cnt')
-    # elif sort == "distance":
-    #     facilities = facilities.order_by('distance')
-    # elif sort == "rating":
-    #     facilities = facilities.order_by('-rating')
+    if sort == "title":
+        facilities = facilities.order_by('faci_nm')
+    elif sort == "views":
+        facilities = facilities.order_by('-view_cnt')
+    elif sort == "distance":
+        facilities = facilities.order_by('distance')
+    elif sort == "rating":
+        facilities = facilities.order_by('-rating')
+
+    facility_list = []  # 빈 리스트 (DB 연결 후 교체)
+    
+    
+
+
+    for f in facilities:
+        facility_list.append({
+            "id": f.facility_id,
+            "name": f.faci_nm or "",
+            "address": f.address,
+            "sido": f.sido or "",
+            "sigungu": f.sigugun or "",
+            "phone": f.tel or "",
+            "homepage": f.homepage or "",
+            "viewCnt": f.view_cnt
+        })
 
     # 페이지당 개수
     per_page = int(request.GET.get("per_page", 15))
@@ -58,11 +110,14 @@ def reservation_list(request):
         "page_obj": page_obj,
         "paginator": paginator,
         "per_page": per_page,
+        "sido" : sido,
+        "sigungu" : sigungu,
         "page": page,
         "sort": sort,
         "block_range": block_range,
         "block_start": block_start,
         "block_end": block_end,
+        "sportsList" : sports_list
     }
 
     return render(request, "reservation_list.html", context)
