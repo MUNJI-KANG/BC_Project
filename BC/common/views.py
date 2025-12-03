@@ -3,6 +3,7 @@ import random
 import re
 import string
 from datetime import timedelta
+from urllib.parse import quote
 
 import requests
 from django.contrib import messages
@@ -146,6 +147,7 @@ def index(request):
             for fac in random_facilities:
                 facilities.append({
                     'id': fac.id,
+                    'faci_id': fac.facility_id,
                     'name': fac.faci_nm,
                     'address': fac.address,
                     'description': fac.tel if fac.tel else '시설 정보',
@@ -249,13 +251,17 @@ def kakao_login(request):
     if next_url:
         request.session['kakao_next'] = next_url
     
-    REDIRECT_URI = request.build_absolute_uri('/login/kakao/callback/')
+    # 환경변수 우선, 없으면 자동 생성
+    REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI') or request.build_absolute_uri('/login/kakao/callback/')
+    
+    # URL 인코딩 (안전하게 처리)
+    encoded_redirect_uri = quote(REDIRECT_URI, safe='')
 
     # 자동로그인 방지: 항상 카카오 로그인/계정 선택 화면을 띄우도록 요청
     kakao_auth_url = (
         "https://kauth.kakao.com/oauth/authorize"
         f"?client_id={KAKAO_REST_API_KEY}"
-        f"&redirect_uri={REDIRECT_URI}"
+        f"&redirect_uri={encoded_redirect_uri}"
         "&response_type=code"
         "&prompt=login"
     )
@@ -273,7 +279,8 @@ def kakao_callback(request):
         messages.error(request, "카카오 로그인 설정이 완료되지 않았습니다.")
         return redirect('/login/')
     
-    REDIRECT_URI = request.build_absolute_uri('/login/kakao/callback/')
+    # 동일한 Redirect URI 사용 (중요!)
+    REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI') or request.build_absolute_uri('/login/kakao/callback/')
     
     try:
         # 1. 토큰 받기
