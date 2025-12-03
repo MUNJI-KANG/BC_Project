@@ -18,7 +18,9 @@ class FacilityInfo(models.Model):
     sigugun = models.CharField(max_length=200, null=True, blank=True)
     tel = models.CharField(max_length=50, null=True, blank=True)
     homepage = models.CharField(max_length=200, null=True, blank=True)
-    
+    # 예약가능한상태인지
+    rs_posible = models.IntegerField(default=0)
+
     reg_date = models.DateTimeField(auto_now_add=True)
     view_cnt = models.IntegerField(default=0)
     class Meta:
@@ -67,7 +69,7 @@ class Facility(models.Model):
     schk_open_ymd = models.CharField(max_length=20, null=True, blank=True)
     sdwn_ymd = models.CharField(max_length=20, null=True, blank=True)
     th_ymd = models.CharField(max_length=20, null=True, blank=True)
-
+    view_cnt = models.IntegerField(default=0)
     row_num = models.IntegerField(null=True, blank=True)
 
     reg_date = models.DateTimeField(auto_now_add=True)
