@@ -73,10 +73,10 @@ mypage base
     </div>
     {% for reservation in page_obj %}
       <!-- 한 줄 전체가 클릭되는 행 -->
-      <a href="#" class="mypage-board-row">
+    <a href="{% url 'member:myreservation_detail' reservation.reservation_num %}" class="mypage-board-row">
         <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
-        <span class="col-title">{{ reservation.facility }}</span>
-        <span class="col-date">{{ reservation.reservation_date|date:"Y-m-d" }}</span>
+        <span class="col-title">{{ reservation.facility_name }}</span>
+        <span class="col-date">{{ reservation.reservation_date }}</span>
         <span class="col-views">예약번호: {{ reservation.reservation_num }}</span>
       </a>
     {% empty %}

@@ -10,6 +10,8 @@ from datetime import datetime
 import re
 import json
 from member.models import Member
+from facility.models import FacilityInfo
+from reservation.models import Reservation, TimeSlot
 
 
 def info(request):
@@ -305,90 +307,174 @@ def edit_password(request):
 
 
 
-
-
-
-
-
-
-
-
-
+# ---------- 마이 페이지 예약 ----------------------
 def myreservation(request):
-    # 로그인 체크
     login_id = request.session.get("user_id")
     if not login_id:
         return redirect(f'/login?next={reverse("member:myreservation")}')
     
     try:
-        # 로그인한 사용자 정보 가져오기
         user = Member.objects.get(user_id=login_id)
-        
-        # DB에서 본인의 예약 내역 조회 (취소되지 않은 것만, 삭제되지 않은 것만)
-        from reservation.models import Reservation
-        
+
+        # 취소된 예약도 모두 표시해야 하므로 전체 조회
         reservations = Reservation.objects.filter(
-            member=user,
-            delete_yn=0,
-            delete_date__isnull=True
+            member=user
         ).order_by('-reg_date')
-        
+
+        reservation_list = []
+
+        for r in reservations:
+            # 해당 예약의 모든 시간대 (시작 시간 기준 오름차순)
+            slots = TimeSlot.objects.filter(reservation_id=r).order_by('date', 'start_time')
+
+            if not slots.exists():
+                # 시간이 모두 취소되어도 예약은 남아있어야 하므로 표시 필요
+                reservation_list.append({
+                    "facility_name": "(취소된 예약)",
+                    "reservation_date": "-",
+                    "reservation_num": r.reservation_num,
+                    "is_cancelled": True
+                })
+                continue
+
+            # 시설 정보 (첫 슬롯 기준)
+            facility = slots.first().facility_id
+
+            # 대표 날짜 = 첫 슬롯 날짜
+            representative_date = slots.first().date.strftime("%Y-%m-%d")
+
+            reservation_list.append({
+                "facility_name": facility.faci_nm,
+                "reservation_date": representative_date,
+                "reservation_num": r.reservation_num,
+                "is_cancelled": (r.delete_yn == 1)
+            })
+
     except Member.DoesNotExist:
         messages.error(request, "회원 정보를 찾을 수 없습니다.")
         return redirect('/login/')
     except Exception as e:
         import traceback
-        print(f"[ERROR] 내 예약 내역 조회 오류: {str(e)}")
+        print("[ERROR] 내 예약 조회 오류:", e)
         print(traceback.format_exc())
-        reservations = Reservation.objects.none()
-    
-    # 정렬 기능
-    sort = request.GET.get("sort", "recent")
-    if sort == "title":
-        # 예약에는 제목이 없으므로 시설명으로 정렬
-        reservations = reservations.order_by('facility')
-    elif sort == "views":
-        # 예약에는 조회수가 없으므로 예약일자로 정렬
-        reservations = reservations.order_by('-reservation_date')
-    else:  # recent
-        reservations = reservations.order_by('-reg_date')
-    
+        reservation_list = []
+
     # 페이지네이션
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
-    
-    paginator = Paginator(reservations, per_page)
+
+    paginator = Paginator(reservation_list, per_page)
     page_obj = paginator.get_page(page)
-    
-    # 페이지 블록 계산
+
     block_size = 5
     current_block = (page - 1) // block_size
     block_start = current_block * block_size + 1
-    block_end = block_start + block_size - 1
-    
-    if block_end > paginator.num_pages:
-        block_end = paginator.num_pages
-    
+    block_end = min(block_start + block_size - 1, paginator.num_pages)
+
     block_range = range(block_start, block_end + 1)
-    
+
     context = {
         "page_obj": page_obj,
         "paginator": paginator,
         "per_page": per_page,
         "page": page,
-        "sort": sort,
         "block_range": block_range,
         "block_start": block_start,
         "block_end": block_end,
     }
-    
+
     return render(request, 'myreservation.html', context)
 
+@csrf_exempt
+def cancel_timeslot(request, reservation_num):
+    data = json.loads(request.body)
+    date = data.get("date")
+    start = data.get("start")
+    end = data.get("end")
+
+    try:
+        reservation = Reservation.objects.get(reservation_num=reservation_num)
+
+        TimeSlot.objects.filter(
+            reservation_id=reservation,
+            date=date,
+            start_time=start,
+            end_time=end
+        ).delete()
+
+        # 남은 슬롯 없으면 예약 전체 취소 처리
+        if not TimeSlot.objects.filter(reservation_id=reservation).exists():
+            reservation.delete_yn = 1
+            reservation.delete_date = datetime.now()
+            reservation.save()
+
+        return JsonResponse({"result": "ok"})
+
+    except Exception:
+        return JsonResponse({"result": "error", "msg": "취소 실패"})
 
 
+# 예약 상세페이지 
+
+def myreservation_detail(request, reservation_num):
+    try:
+        # Reservation 가져오기
+        reservation = Reservation.objects.get(reservation_num=reservation_num)
+
+        # 연결된 모든 TimeSlot
+        slots = TimeSlot.objects.filter(reservation_id=reservation).order_by("date", "start_time")
+
+        if not slots.exists():
+            messages.error(request, "예약 정보가 존재하지 않습니다.")
+            return redirect("member:myreservation")
+
+        # 시설 정보 (첫 슬롯 기준)
+        facility = slots.first().facility_id
+
+        slot_list = []
+        for s in slots:
+            slot_list.append({
+                "date": s.date.strftime("%Y-%m-%d"),
+                "start": s.start_time,
+                "end": s.end_time
+            })
+
+        context = {
+            "facility_name": facility.faci_nm,
+            "facility_address": facility.address,
+            "facility_tel": facility.tel,
+            "reservation_num": reservation.reservation_num,
+            "reg_date": reservation.reg_date.strftime("%Y-%m-%d %H:%M"),
+            "slot_list": slot_list
+        }
+
+        return render(request, "myreservation_detail.html", context)
+
+    except Reservation.DoesNotExist:
+        messages.error(request, "예약을 찾을 수 없습니다.")
+        return redirect("member:myreservation")
 
 
+@csrf_exempt
+def reservation_cancel(request, reservation_num):
+    if request.method != "POST":
+        return JsonResponse({"result": "error", "msg": "잘못된 요청"})
 
+    try:
+        reservation = Reservation.objects.get(reservation_num=reservation_num)
+
+        # 예약 취소 상태 업데이트
+        reservation.delete_yn = 1
+        reservation.delete_date = datetime.now()
+        reservation.save()
+
+        # 연결된 모든 TimeSlot 삭제
+        TimeSlot.objects.filter(reservation_id=reservation).delete()
+
+        return JsonResponse({"result": "ok"})
+
+    except Reservation.DoesNotExist:
+        return JsonResponse({"result": "error", "msg": "예약을 찾을 수 없습니다."})
 
 
 def myrecruitment(request):
@@ -705,7 +791,3 @@ def delete_my_community(request):
         print(f"[ERROR] delete_my_community 오류: {str(e)}")
         print(traceback.format_exc())
         return JsonResponse({"status": "error", "msg": str(e)})
-
-
-
-

@@ -1,0 +1,158 @@
+body {
+    background: #f3f6fb;
+}
+
+.detail-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 60px;
+    margin-bottom: 80px;
+}
+
+.detail-box {
+    width: 650px;
+    background: #ffffff;
+
+    padding: 35px 45px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.detail-header {
+    font-size: 26px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 30px;
+    color: #2c3e50;
+    letter-spacing: -0.5px;
+}
+
+.detail-row {
+    margin-bottom: 18px;
+    font-size: 17px;
+    color: #2c3e50;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eef0f3;
+}
+
+.detail-row span {
+    font-weight: 600;
+    display: inline-block;
+    width: 140px;
+    color: #1a1a1a;
+}
+
+/* ------------------------------ */
+/*       예약 시간 하이라이트      */
+/* ------------------------------ */
+
+.time-highlight-box {
+    background: linear-gradient(135deg, #eef4ff 0%, #f7faff 100%);
+    border-left: 6px solid #3b7cff;
+    padding: 16px 20px;
+    margin-top: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(59, 124, 255, 0.15);
+    transition: 0.25s ease;
+}
+
+.time-highlight-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 22px rgba(59, 124, 255, 0.25);
+}
+
+.time-item {
+    font-size: 17px;
+    color: #1f2d3d;
+    font-weight: 600;
+    padding-left: 32px;
+    position: relative;
+    line-height: 1.6;
+}
+
+.time-item::before {
+    content: "⏰";
+    position: absolute;
+    left: 0;
+    top: 1px;
+    font-size: 20px;
+    color: #3b7cff;
+}
+
+/* ------------------------------ */
+/*             버튼들              */
+/* ------------------------------ */
+
+.detail-buttons {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.detail-btn {
+    padding: 12px 28px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 600;
+    margin: 0 10px;
+    transition: 0.25s ease;
+}
+
+.detail-btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-ok {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-cancel {
+    background: #e74c3c;
+    color: white;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 18px;
+    font-size: 17px;
+    color: #2c3e50;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eef0f3;
+}
+
+.detail-row span {
+    font-weight: 600;
+    width: 140px;
+    color: #1a1a1a;
+}
+
+.detail-value {
+    flex: 1;
+}
+
+.time-item { margin-bottom: 8px; }
+
+.cancelled {
+    text-decoration: line-through;
+    color: red;
+}
+.cancel-tag {
+    color: red;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+.time-line {
+    font-size: 17px;
+    line-height: 1.6;
+    padding: 4px 0;
+    color: #2c3e50;
+}

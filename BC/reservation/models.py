@@ -42,6 +42,7 @@ class TimeSlot(models.Model):
     start_time = models.CharField(max_length=20)
     end_time = models.CharField(max_length=20)
     reservation_id = models.ForeignKey(Reservation, null=True, blank=True, on_delete=models.SET_NULL)
+    delete_yn = models.IntegerField(default=0) 
 
     class Meta:
         db_table = "time_slot"
