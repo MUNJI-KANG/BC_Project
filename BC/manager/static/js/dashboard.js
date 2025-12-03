@@ -127,36 +127,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 4. 성별 분포
+    // 4. 성별 분포 비교 (전체/예약자/참여자)
     const genderCtx = document.getElementById('genderChart');
     if (genderCtx) {
         const gender = genderData || {};
-        const labels = [];
-        const data = [];
+        const reservationGender = reservationGenderData || {};
+        const participationGender = participationGenderData || {};
         
-        // gender 데이터가 '0', '1' 키로 되어있을 수 있음
-        if (gender['0'] !== undefined || gender['1'] !== undefined) {
-            labels.push('남성', '여성');
-            data.push(gender['0'] || 0, gender['1'] || 0);
-        } else {
-            // 다른 형식일 경우
-            const keys = Object.keys(gender);
-            keys.forEach(key => {
-                labels.push(key === '0' ? '남성' : key === '1' ? '여성' : key);
-                data.push(gender[key]);
-            });
-        }
+        const labels = ['남성', '여성'];
+        const allData = [gender['0'] || 0, gender['1'] || 0];
+        const reservationData = [reservationGender['0'] || 0, reservationGender['1'] || 0];
+        const participationData = [participationGender['0'] || 0, participationGender['1'] || 0];
         
         new Chart(genderCtx, {
-            type: 'doughnut',
+            type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    data: data,
-                    backgroundColor: [
-                        'rgba(52, 152, 219, 0.8)',
-                        'rgba(231, 76, 60, 0.8)'
-                    ]
+                    label: '전체 회원',
+                    data: allData,
+                    backgroundColor: 'rgba(52, 152, 219, 0.7)'
+                }, {
+                    label: '예약자',
+                    data: reservationData,
+                    backgroundColor: 'rgba(46, 204, 113, 0.7)'
+                }, {
+                    label: '참여자',
+                    data: participationData,
+                    backgroundColor: 'rgba(155, 89, 182, 0.7)'
                 }]
             },
             options: {
@@ -165,14 +163,171 @@ document.addEventListener('DOMContentLoaded', function() {
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'bottom'
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
                     }
                 }
             }
         });
     }
 
-    // 5. 게시판 통계
+    // 5. 예약 취소율 추이
+    const cancellationRateCtx = document.getElementById('cancellationRateChart');
+    if (cancellationRateCtx) {
+        const cancellationData = dailyCancellationRate || {};
+        const labels = Object.keys(cancellationData).sort();
+        const rateData = labels.map(date => cancellationData[date]?.rate || 0);
+        const totalData = labels.map(date => cancellationData[date]?.total || 0);
+        const cancelledData = labels.map(date => cancellationData[date]?.cancelled || 0);
+        
+        new Chart(cancellationRateCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '취소율 (%)',
+                    data: rateData,
+                    borderColor: 'rgb(231, 76, 60)',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y'
+                }, {
+                    label: '전체 예약',
+                    data: totalData,
+                    borderColor: 'rgba(149, 165, 166, 0.5)',
+                    backgroundColor: 'rgba(149, 165, 166, 0.1)',
+                    type: 'bar',
+                    yAxisID: 'y1'
+                }, {
+                    label: '취소',
+                    data: cancelledData,
+                    borderColor: 'rgba(231, 76, 60, 0.5)',
+                    backgroundColor: 'rgba(231, 76, 60, 0.3)',
+                    type: 'bar',
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: '취소율 (%)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '예약 수'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 6. 참여율 추이
+    const participationRateCtx = document.getElementById('participationRateChart');
+    if (participationRateCtx) {
+        const participationData = dailyParticipationRate || {};
+        const labels = Object.keys(participationData).sort();
+        const rateData = labels.map(date => participationData[date]?.rate || 0);
+        const totalData = labels.map(date => participationData[date]?.total || 0);
+        const completedData = labels.map(date => participationData[date]?.completed || 0);
+        
+        new Chart(participationRateCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '참여율 (%)',
+                    data: rateData,
+                    borderColor: 'rgb(46, 204, 113)',
+                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y'
+                }, {
+                    label: '전체 참가',
+                    data: totalData,
+                    borderColor: 'rgba(149, 165, 166, 0.5)',
+                    backgroundColor: 'rgba(149, 165, 166, 0.1)',
+                    type: 'bar',
+                    yAxisID: 'y1'
+                }, {
+                    label: '완료',
+                    data: completedData,
+                    borderColor: 'rgba(46, 204, 113, 0.5)',
+                    backgroundColor: 'rgba(46, 204, 113, 0.3)',
+                    type: 'bar',
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: '참여율 (%)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '참가 수'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 7. 게시판 통계
     const boardCtx = document.getElementById('boardChart');
     if (boardCtx && boardStats && boardStats.length > 0) {
         const boardLabels = boardStats.map(b => b.board_id__board_name || '기타');
@@ -208,46 +363,5 @@ document.addEventListener('DOMContentLoaded', function() {
         boardCtx.parentElement.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 40px;">게시판 데이터가 없습니다.</p>';
     }
 
-    // 6. 지역별 평균 평점
-    const ratingCtx = document.getElementById('ratingChart');
-    if (ratingCtx) {
-        const ratings = regionRatings || {};
-        const labels = Object.keys(ratings);
-        const avgData = labels.map(region => {
-            const rating = ratings[region];
-            return rating && rating.mean ? rating.mean : 0;
-        });
-        
-        if (labels.length > 0) {
-            new Chart(ratingCtx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '평균 평점',
-                        data: avgData,
-                        backgroundColor: 'rgba(46, 204, 113, 0.7)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 5
-                        }
-                    }
-                }
-            });
-        } else {
-            ratingCtx.parentElement.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 40px;">평점 데이터가 없습니다.</p>';
-        }
-    }
 });
 

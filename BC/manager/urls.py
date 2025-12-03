@@ -23,6 +23,9 @@ urlpatterns = [
     path('facility/<id>/', views.facility_detail, name='facility_detail'),
     path('facility/<id>/modify/', views.facility_modify, name='facility_modify'),
     path('delete/', views.facility_delete, name='facility_delete'),
+    path('facility_inspection_stats/', views.facility_inspection_stats, name='facility_inspection_stats'),
+    path('facility_inspection_stats/yearly/', views.facility_inspection_yearly_detail, name='facility_inspection_yearly_detail'),
+    path('facility_inspection_stats/grade/', views.facility_inspection_grade_detail, name='facility_inspection_grade_detail'),
 
 
     path('post_manager/', views.post_manager, name='post_manager'),

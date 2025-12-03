@@ -10,6 +10,8 @@
 {% block content %}
     <!-- 메인 콘텐츠 -->
     <div class="admin-main">
+            <h1 class="box-header" style="text-align: center;">커뮤니티 대시보드</h1>
+            
             <!-- 필터 -->
             <div class="filter-section">
                 <form method="GET" class="filter-form">
@@ -78,42 +80,28 @@
                     <canvas id="memberChart"></canvas>
                 </div>
 
-                <!-- 성별 분포 -->
+                <!-- 성별 분포 (개선: 전체/예약자/참여자 비교) -->
                 <div class="chart-card">
-                    <h3>성별 분포</h3>
+                    <h3>성별 분포 비교</h3>
                     <canvas id="genderChart"></canvas>
+                </div>
+
+                <!-- 예약 취소율 추이 -->
+                <div class="chart-card">
+                    <h3>예약 취소율 추이</h3>
+                    <canvas id="cancellationRateChart"></canvas>
+                </div>
+
+                <!-- 참여율 추이 -->
+                <div class="chart-card">
+                    <h3>참여율 추이</h3>
+                    <canvas id="participationRateChart"></canvas>
                 </div>
 
                 <!-- 게시판 통계 -->
                 <div class="chart-card">
                     <h3>게시판별 게시글 수</h3>
                     <canvas id="boardChart"></canvas>
-                </div>
-
-                <!-- 평점 통계 -->
-                <div class="chart-card">
-                    <h3>지역별 평균 평점</h3>
-                    <canvas id="ratingChart"></canvas>
-                </div>
-            </div>
-
-            <!-- 통계 요약 -->
-            <div class="stats-summary">
-                <div class="stat-box">
-                    <h4>예약 취소율</h4>
-                    <div class="stat-value">{{ cancellation_rate }}%</div>
-                </div>
-                <div class="stat-box">
-                    <h4>참여율</h4>
-                    <div class="stat-value">{{ participation_rate }}%</div>
-                </div>
-                <div class="stat-box">
-                    <h4>평균 평점</h4>
-                    <div class="stat-value">{{ rating_stats.avg }}/5.0</div>
-                </div>
-                <div class="stat-box">
-                    <h4>댓글 수</h4>
-                    <div class="stat-value">{{ comment_count }}</div>
                 </div>
             </div>
     </div>
@@ -128,8 +116,11 @@
         const completionTrend = {{ completion_trend|safe }};
         const dailyMembers = {{ daily_members|safe }};
         const genderData = {{ gender_data|safe }};
+        const reservationGenderData = {{ reservation_gender_data|safe }};
+        const participationGenderData = {{ participation_gender_data|safe }};
+        const dailyCancellationRate = {{ daily_cancellation_rate|safe }};
+        const dailyParticipationRate = {{ daily_participation_rate|safe }};
         const boardStats = {{ board_stats|safe }};
-        const regionRatings = {{ region_ratings|safe }};
     </script>
 {% endblock %}
 
