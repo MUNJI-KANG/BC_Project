@@ -144,44 +144,47 @@ def reservation_save(request):
     data = json.loads(request.body)
 
     date = data.get("date")
-    start = data.get("start")
-    end = data.get("end")
+    slots = data.get("slots")  # ★ 여러 시간대
     facility_code = data.get("facility_id")
 
-    if not (date and start and end and facility_code):
+    if not (date and slots and facility_code):
         return JsonResponse({"result": "error", "msg": "필수 데이터 누락"})
 
-    # facility_id(문자열 코드)로 시설 조회
     try:
         facility = FacilityInfo.objects.get(facility_id=facility_code)
     except FacilityInfo.DoesNotExist:
         return JsonResponse({"result": "error", "msg": "시설을 찾을 수 없습니다."})
 
-    # 중복 체크
-    conflict = TimeSlot.objects.filter(
-        facility_id=facility,  # ← 여기 중요!
-        date=date,
-        start_time=start,
-        end_time=end
-    ).exists()
-
-    if conflict:
-        return JsonResponse({"result": "error", "msg": "이미 예약된 시간입니다."})
-
-    # Reservation 생성
+    # 1) 예약 생성 (한번만)
     reservation_num = str(random.randint(10000000, 99999999))
     reservation = Reservation.objects.create(
         reservation_num=reservation_num,
         member=Member.objects.get(user_id=request.session["user_id"])
     )
 
-    # TimeSlot 생성
-    time_slot = TimeSlot.objects.create(
-        facility_id=facility,  # ← 반드시 facility_id 필드에 넣기
-        date=date,
-        start_time=start,
-        end_time=end,
-        reservation_id=reservation
-    )
+    # 2) 여러 TimeSlot 저장
+    for slot in slots:
+        start = slot["start"]
+        end = slot["end"]
+
+        # 중복 체크
+        conflict = TimeSlot.objects.filter(
+            facility_id=facility,
+            date=date,
+            start_time=start,
+            end_time=end
+        ).exists()
+
+        if conflict:
+            return JsonResponse({"result": "error", "msg": f"{start}~{end} 은 이미 예약됨"})
+
+        # 저장
+        TimeSlot.objects.create(
+            facility_id=facility,
+            date=date,
+            start_time=start,
+            end_time=end,
+            reservation_id=reservation
+        )
 
     return JsonResponse({"result": "ok"})

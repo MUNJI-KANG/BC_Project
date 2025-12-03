@@ -115,13 +115,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 div.style.pointerEvents = "none";
             } else {
                 div.addEventListener("click", function () {
-                    
+
                     if (!requireLogin()) return;
 
-                    document.querySelectorAll(".slot")
-                        .forEach(s => s.classList.remove("selected"));
-                    div.classList.add("selected");
-                    selectedTimeEl.textContent = slotText;
+                    if (div.classList.contains("selected")) {
+                        div.classList.remove("selected");
+                    } else {
+                        div.classList.add("selected");
+                    }
+
+                    // ★ 선택된 모든 시간대를 취합
+                    const selectedSlots = Array.from(document.querySelectorAll(".slot.selected"))
+                        .map(s => s.textContent);
+
+                    if (selectedSlots.length === 0) {
+                        selectedTimeEl.textContent = "-";
+                    } else {
+                        selectedTimeEl.textContent = selectedSlots.join(", ");
+                    }
                 });
             }
 
@@ -140,15 +151,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!requireLogin()) return;
 
-        const date = document.getElementById("selected-date").textContent;
-        const time = document.getElementById("selected-time").textContent;
+        const date = selectedDateEl.textContent;
+        const selected = selectedTimeEl.textContent;
 
-        if (date === "-" || time === "-") {
+        if (date === "-" || selected === "-") {
             alert("날짜와 시간을 선택해주세요.");
             return;
         }
 
-        const [start, end] = time.split(" ~ ");
+        // 선택된 모든 슬롯 배열로 변환
+        const slotList = selected.split(", ").map(t => {
+            const [s, e] = t.split(" ~ ");
+            return { start: s, end: e };
+        });
 
         fetch("/reservation/save/", {
             method: "POST",
@@ -158,41 +173,19 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             body: JSON.stringify({
                 date: date,
-                start: start,
-                end: end,
+                slots: slotList,   // ★ 여러 시간대 전송
                 facility_id: facilityId
             })
         })
         .then(res => res.json())
         .then(data => {
             if (data.result === "ok") {
-
                 alert("예약이 완료되었습니다!");
 
-          
-                reservedData.push({
-                    date: date,
-                    start: start,
-                    end: end
-                });
-
-
-                generateSlots(
-                    reservationTime[new Date(date).toLocaleString("en-US", { weekday: "long" }).toLowerCase()].open,
-                    reservationTime[new Date(date).toLocaleString("en-US", { weekday: "long" }).toLowerCase()].close,
-                    reservationTime[new Date(date).toLocaleString("en-US", { weekday: "long" }).toLowerCase()].interval
-                );
-
-
                 window.location.href = `/reservation/${facilityId}`;
-            } 
-            else {
+            } else {
                 alert(data.msg);
             }
-        })
-        .catch(err => {
-            console.error("서버 오류:", err);
-            alert("서버와 통신 중 오류가 발생했습니다.");
         });
     });
 
@@ -233,7 +226,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const todayCell = document.querySelector(`[data-date="${todayStr}"]`);
         if (todayCell) {
-            // 수동으로 dateClick 핸들러 실행
             calendar.trigger('dateClick', {
                 date: today,
                 dateStr: todayStr,
