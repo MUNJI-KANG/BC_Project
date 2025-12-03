@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-                window.location.href = `/reservation/detail/${facilityId}`;
+                window.location.href = `/reservation/${facilityId}`;
             } 
             else {
                 alert(data.msg);
@@ -222,4 +222,23 @@ document.addEventListener("DOMContentLoaded", function () {
         return true;
     }
 
+    calendar.render();
+
+    (function selectToday() {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const dd = String(today.getDate()).padStart(2, "0");
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+
+        const todayCell = document.querySelector(`[data-date="${todayStr}"]`);
+        if (todayCell) {
+            // 수동으로 dateClick 핸들러 실행
+            calendar.trigger('dateClick', {
+                date: today,
+                dateStr: todayStr,
+                dayEl: todayCell
+            });
+        }
+    })();
 });

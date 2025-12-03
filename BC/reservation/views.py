@@ -8,6 +8,7 @@ from django.utils.timezone import make_aware
 from datetime import datetime
 from facility.models import FacilityInfo
 from member.models import Member
+from .models import TimeSlot
 
 # TODO: DB 연결 이후 FacilityInfo 모델에서 시설 정보 조회
 # from facility.models import FacilityInfo
@@ -67,27 +68,19 @@ def reservation_list(request):
     return render(request, "reservation_list.html", context)
 
 
-def reservation_detail(request, facility_id):
+def reservation_detail(request, facility_id):  # facility_id=문자열 코드!
     facility = get_object_or_404(FacilityInfo, facility_id=facility_id)
 
-    # facility_id는 UUID 문자열이므로 Reservation.facility와 문자열 비교
-    reservations = Reservation.objects.filter(
-        facility=facility_id,
-        delete_yn=0
-    ).values("reservation_date", "hour")
+    time_slots = TimeSlot.objects.filter(
+        facility_id=facility      # FK 비교는 객체
+    ).values("date", "start_time", "end_time")
 
     reserved_list = []
-    for r in reservations:
-        date_str = r["reservation_date"].strftime("%Y-%m-%d")
-
-        hour_data = r["hour"]
-        if isinstance(hour_data, str):
-            hour_data = json.loads(hour_data)
-
+    for t in time_slots:
         reserved_list.append({
-            "date": date_str,
-            "start": hour_data["start"],
-            "end": hour_data["end"]
+            "date": t["date"].strftime("%Y-%m-%d"),
+            "start": t["start_time"],
+            "end": t["end_time"]
         })
 
     return render(request, "reservation_detail.html", {
@@ -106,35 +99,42 @@ def reservation_save(request):
     date = data.get("date")
     start = data.get("start")
     end = data.get("end")
-    facility_id = data.get("facility_id")
+    facility_code = data.get("facility_id")
 
-    if not (date and start and end and facility_id):
+    if not (date and start and end and facility_code):
         return JsonResponse({"result": "error", "msg": "필수 데이터 누락"})
 
-    reservation_num = str(random.randint(10000000, 99999999))
+    # facility_id(문자열 코드)로 시설 조회
+    try:
+        facility = FacilityInfo.objects.get(facility_id=facility_code)
+    except FacilityInfo.DoesNotExist:
+        return JsonResponse({"result": "error", "msg": "시설을 찾을 수 없습니다."})
 
-    # ★★★★★ make_aware 삭제 — MySQL + USE_TZ=False 환경은 naive datetime만 허용 ★★★★★
-    reservation_datetime = datetime.strptime(f"{date} {start}", "%Y-%m-%d %H:%M")
-
-    # 중복 예약 체크
-    exists = Reservation.objects.filter(
-        reservation_date=reservation_datetime,
-        delete_yn=0,
-        facility=facility_id
+    # 중복 체크
+    conflict = TimeSlot.objects.filter(
+        facility_id=facility,  # ← 여기 중요!
+        date=date,
+        start_time=start,
+        end_time=end
     ).exists()
 
-    if exists:
+    if conflict:
         return JsonResponse({"result": "error", "msg": "이미 예약된 시간입니다."})
 
-    r = Reservation.objects.create(
+    # Reservation 생성
+    reservation_num = str(random.randint(10000000, 99999999))
+    reservation = Reservation.objects.create(
         reservation_num=reservation_num,
-        reservation_date=reservation_datetime,
-        hour={"start": start, "end": end},
-        facility=facility_id,
-        member = Member.objects.get(user_id=request.session["user_id"])
+        member=Member.objects.get(user_id=request.session["user_id"])
     )
 
-    return JsonResponse({
-        "result": "ok",
-        "reservation_id": r.reservation_id
-    })
+    # TimeSlot 생성
+    time_slot = TimeSlot.objects.create(
+        facility_id=facility,  # ← 반드시 facility_id 필드에 넣기
+        date=date,
+        start_time=start,
+        end_time=end,
+        reservation_id=reservation
+    )
+
+    return JsonResponse({"result": "ok"})

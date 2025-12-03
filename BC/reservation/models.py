@@ -6,13 +6,10 @@ from django.db import models
 class Reservation(models.Model):
     reservation_id = models.AutoField(primary_key=True)
     reservation_num = models.CharField(max_length=8)
-    reservation_date = models.DateTimeField()
-    hour = models.JSONField()
-    facility = models.CharField(max_length=100)
     delete_yn = models.IntegerField(default=0)          # 예약상태 (0=예약중, 1=취소)
     reg_date = models.DateTimeField(auto_now_add=True)
     delete_date = models.DateTimeField(null=True, blank=True)
-    t_id = models.ForeignKey("reservation.TimeSlot", null=True, blank=True, on_delete=models.SET_NULL)
+   
 
     member = models.ForeignKey("member.Member", on_delete=models.DO_NOTHING)
     
