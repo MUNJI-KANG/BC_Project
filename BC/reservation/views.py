@@ -9,6 +9,7 @@ from datetime import datetime
 from facility.models import FacilityInfo
 from reservation.models import Sports, Reservation
 from member.models import Member
+from django.db.models import Q
 
 # TODO: DB 연결 이후 FacilityInfo 모델에서 시설 정보 조회
 # from facility.models import FacilityInfo
@@ -19,20 +20,33 @@ def reservation_list(request):
     # 시설불러오기
     facilities = FacilityInfo.objects.all()
 
-    cp_nm = request.GET.get('sido')
-    cpb_nm = request.GET.get('sigungu')
+    sido = request.GET.get('sido')
+    sigungu = request.GET.get('sigungu')
     keyword = request.GET.get('keyword')
     sport = request.GET.get('sport')
 
-    if cp_nm:
-        facilities = facilities.filter(cp_nm=cp_nm)
-    if cpb_nm:
-        facilities = facilities.filter(cpb_nm=cpb_nm)
+    if sido:
+        facilities = facilities.filter(sido=sido)
+    if sigungu:
+        facilities = facilities.filter(sigugun=sigungu)
     if keyword:
         facilities = facilities.filter(faci_nm__icontains=keyword)
+    
+    q = Q()
+    
+    if sport:
+        q |= (
+                Q(faci_nm__icontains=sport) |
+                Q(ftype_nm__icontains=sport) |
+                Q(cp_nm__icontains=sport) |
+                Q(cpb_nm__icontains=sport)
+        )
+    facilities = facilities.filter(q)
+
 
     if sport:
-        sports = sports.fillter(s_name=sport)
+        facilities = facilities.filter()
+
 
     sports_list = []
     for s in sports:
@@ -95,8 +109,8 @@ def reservation_list(request):
         "page_obj": page_obj,
         "paginator": paginator,
         "per_page": per_page,
-        "sido" : cp_nm,
-        "sigungu" : cpb_nm,
+        "sido" : sido,
+        "sigungu" : sigungu,
         "page": page,
         "sort": sort,
         "block_range": block_range,
