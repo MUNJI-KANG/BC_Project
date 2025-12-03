@@ -96,7 +96,6 @@
                 </p>
 
                 <section class="detail-buttons">
-
                     {% if can_reserve %}
                     <a href="/reservation/{{ facility.id }}" class="btn-reserve">
                         예약하기
@@ -104,7 +103,7 @@
                     {% endif %}
 
                     {% if can_recruit %}
-                    <a href="/recruitment/{{ facility.id }}" class="btn-recruit">
+                    <a href="/recruitment/?search_type=facility&keyword={{ facility.name }}" class="btn-recruit">
                         모집글가기
                     </a>
                     {% endif %}

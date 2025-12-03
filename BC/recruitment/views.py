@@ -2,10 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
 from django.utils import timezone
 from django.core.paginator import Paginator
-from .models import *
 
+from .models import *
+from reservation.models import *
 from member.models import Member
 from common.models import Comment
+from facility.models import FacilityInfo
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
@@ -14,6 +16,10 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.db import transaction, IntegrityError
 from django.db.models import Q, F, Count
+
+from collections import OrderedDict
+
+
 
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
 # from common.utils import get_recruitment_dummy_list
@@ -27,88 +33,6 @@ from django.db.models import Q, F, Count
 from django.db.models import Q
 from django.core.paginator import Paginator
 
-# def recruitment_list(request):
-#     # 0) 검색 파라미터 받기
-#     search_type = request.GET.get("search_type", "all")   # all / facility / sport
-#     keyword = request.GET.get("keyword", "").strip()
-
-#     # 폼에서는 여전히 name="sido", "sigungu" 쓰고 있음
-#     sido = request.GET.get("sido", "")
-#     sigungu = request.GET.get("sigungu", "")
-
-#     # 1) 기본 QuerySet
-#     qs = Community.objects.filter(delete_date__isnull=True)
-
-#     # 2) 지역 필터  👉 실제 필드는 region / region2
-#     if sido:
-#         qs = qs.filter(region=sido)
-#     if sigungu:
-#         qs = qs.filter(region2=sigungu)
-
-#     # 3) 검색어 필터  👉 실제 필드는 facility / sport_type
-#     if keyword:
-#         if search_type == "facility":
-#             qs = qs.filter(facility__icontains=keyword)
-#         elif search_type == "sport":
-#             qs = qs.filter(sport_type__icontains=keyword)
-#         else:  # all
-#             qs = qs.filter(
-#                 Q(title__icontains=keyword) |
-#                 Q(facility__icontains=keyword) |
-#                 Q(sport_type__icontains=keyword)
-#             )
-
-#     # 4) 정렬값
-#     sort = request.GET.get("sort", "recent")
-
-#     if sort == "title":
-#         qs = qs.order_by("title")
-#     elif sort == "views":
-#         qs = qs.order_by("-view_cnt")
-#     else:  # recent (등록일 최신순)
-#         qs = qs.order_by("-reg_date")
-
-#     # 5) 페이지당 표시 개수
-#     per_page = int(request.GET.get("per_page", 15))
-
-#     # 6) 현재 페이지
-#     page = int(request.GET.get("page", 1))
-
-#     # 7) Paginator
-#     paginator = Paginator(qs, per_page)
-#     page_obj = paginator.get_page(page)
-
-#     # 8) 블록 페이징
-#     block_size = 5
-#     current_block = (page - 1) // block_size
-#     block_start = current_block * block_size + 1
-#     block_end = block_start + block_size - 1
-#     if block_end > paginator.num_pages:
-#         block_end = paginator.num_pages
-
-#     block_range = range(block_start, block_end + 1)
-
-#     for obj in page_obj:
-#         obj.is_closed = (obj.endstatus and obj.endstatus.end_stat == 1)
-
-#     context = {
-#         "page_obj": page_obj,
-#         "paginator": paginator,
-#         "per_page": per_page,
-#         "page": page,
-#         "sort": sort,
-#         "block_range": block_range,
-#         "block_start": block_start,
-#         "block_end": block_end,
-
-#         # 검색값 유지용
-#         "search_type": search_type,
-#         "keyword": keyword,
-#         "sido": sido,
-#         "sigungu": sigungu,
-#     }
-
-#     return render(request, "recruitment_list.html", context)
 
 
 def recruitment_list(request):
@@ -204,22 +128,68 @@ def recruitment_list(request):
     return render(request, "recruitment_list.html", context)
 
 
+# recruitment/views.py
+
 def write(request):
     # 0) 세션에 로그인 정보 있는지 확인
-    user_id = request.session.get("user_id")   # 로그인할 때 넣어줬던 값
+    user_id = request.session.get("user_id")
 
     if not user_id:
         messages.error(request, "로그인이 필요합니다.")
-        return redirect("/login/")  # 로그인 URL에 맞게 수정
+        return redirect("/login/")
 
     # 1) 세션의 user_id 로 Member 객체 가져오기
     try:
         member = Member.objects.get(user_id=user_id)
+        # 🔹 이 회원의 예약 목록 (삭제되지 않은 것만)
+        my_reservations = (
+            Reservation.objects
+            .filter(member=member, delete_date__isnull=True)
+            .order_by("-reg_date")
+        )
+
+
+
+
+
+        
+        my_slots = (
+            TimeSlot.objects
+            .filter(
+                reservation_id__member=member,
+                reservation_id__delete_date__isnull=True,
+            )
+            .select_related("reservation_id", "facility_id")
+            .order_by("reservation_id", "date", "start_time")
+        )
+
+        grouped_slots = OrderedDict()
+
+        for slot in my_slots:
+            rid = slot.reservation_id_id  # 또는 slot.reservation_id.pk
+
+            if rid not in grouped_slots:
+                grouped_slots[rid] = {
+                    "reservation": slot.reservation_id,
+                    "facility": slot.facility_id,
+                    "times": []
+                }
+
+            grouped_slots[rid]["times"].append({
+                "t_id": slot.t_id,
+                "date": slot.date,
+                "start_time": slot.start_time,
+                "end_time": slot.end_time,
+            })
+
+        my_reservation_slots = list(grouped_slots.values())
+        
     except Member.DoesNotExist:
-        # 세션에는 있는데 실제 회원은 없으면 세션 정리 후 로그인 페이지로
         request.session.flush()
         messages.error(request, "다시 로그인 해주세요.")
         return redirect("/login/")
+
+
 
     # 2) POST 처리
     if request.method == "POST":
@@ -229,17 +199,31 @@ def write(request):
         sport_type = request.POST.get("sport")
         num_member = request.POST.get("personnel")
         contents = request.POST.get("content")
-        chat_url = request.POST.get("openchat_url") or None   # 빈값이면 None
+        chat_url = request.POST.get("openchat_url") or None
 
-        # facility = request.POST.get("facility_name") or None   # 빈값이면 None
-        
-        # 🔹 시설 입력값 처리
-        raw_facility = request.POST.get("facility", "").strip()
-        if raw_facility:
-            facility = raw_facility
-        else:
-            facility = "미정"   # ← NULL 절대 안 보내게 강제
-        
+
+
+
+        # 시설(예약) 선택 값
+        reservation_id = request.POST.get("reservation_choice")
+
+        facility = "미정"  # 기본값
+        if reservation_id:
+            slot = (
+                TimeSlot.objects
+                .select_related("facility_id", "reservation_id")
+                .filter(
+                    reservation_id_id=reservation_id,
+                    reservation_id__delete_date__isnull=True,
+                )
+                .first()
+            )
+            if slot:
+                facility = slot.facility_id.faci_nm
+
+
+
+
         recruit = Community.objects.create(
             title=title,
             region=region,
@@ -249,14 +233,18 @@ def write(request):
             facility=facility,
             contents=contents,
             chat_url=chat_url,
-            member_id=member,   # ✅ FK 에 실제 Member 인스턴스 넣기
+            member_id=member,
         )
 
         return redirect("recruitment:recruitment_detail", pk=recruit.pk)
 
-    # 3) GET 요청이면 작성 폼 보여주기
-    return render(request, "recruitment_write.html")
-
+    # 3) GET 요청이면 작성 폼 + 내 예약 목록 넘기기
+    context = {
+        "my_reservations": my_reservations,
+        # "my_timeslots": my_timeslots,
+        "my_reservation_slots": my_reservation_slots,
+    }
+    return render(request, "recruitment_write.html", context)
 
 
 
@@ -316,106 +304,6 @@ def update(request, pk):
 
 # recruitment/views.py
 
-
-
-# def detail(request, pk):
-#     # 0) 로그인 체크
-#     user_id = request.session.get("user_id")
-#     if not user_id:
-#         messages.error(request, "로그인이 필요합니다.")
-#         return redirect("/login/")
-
-#     login_member = None
-#     if user_id:
-#         try:
-#             login_member = Member.objects.get(user_id=user_id)
-#         except Member.DoesNotExist:
-#             login_member = None
-
-#     # 관리자 여부 확인
-#     manager_id = request.session.get('manager_id')
-#     is_manager = manager_id == 1 if manager_id else False
-
-#     # 모집글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
-#     try:
-#         if is_manager:
-#             recruit = Community.objects.get(pk=pk)
-#         else:
-#             recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
-#     except Community.DoesNotExist:
-#         raise Http404("존재하지 않는 모집글입니다.")
-
-#     # 조회수 증가
-#     recruit.view_cnt += 1
-#     recruit.save()
-
-#     # 글 작성자인지 여부
-#     is_owner = (login_member is not None and recruit.member_id == login_member)
-
-#     # ✅ 참여자 공통 queryset
-#     joins_qs = JoinStat.objects.filter(community_id=recruit)
-
-#     # ✅ 인원 수 집계
-#     total_join_count = joins_qs.count()
-#     approved_count = joins_qs.filter(join_status=1).count()
-#     waiting_rejected_count = joins_qs.filter(join_status__in=[0, 2]).count()
-
-#     # ✅ 정원/마감 여부 (인원 기준)
-#     capacity = recruit.num_member or 0
-#     is_full = capacity > 0 and approved_count >= capacity
-#     remaining_slots = max(capacity - approved_count, 0)
-
-#     # ✅ EndStatus 기준 수동 마감 여부
-#     try:
-#         end_status = EndStatus.objects.get(community=recruit)
-#         is_closed = (end_status.end_stat == 1)
-#     except EndStatus.DoesNotExist:
-#         end_status = None
-#         is_closed = False
-
-#     # 둘 중 하나라도 true면 화면에서는 “모집 마감”
-#     is_closed_or_full = is_full or is_closed
-
-#     # ✅ 상세 목록은 소유자/관리자에게만
-#     join_list = []
-#     if is_owner or is_manager:
-#         join_list = (
-#             joins_qs
-#             .select_related("member_id")
-#             .order_by("join_status", "member_id__user_id")
-#         )
-
-#     # ✅ 댓글 목록
-#     comments = Comment.objects.filter(
-#         community_id=recruit,
-#         delete_date__isnull=True
-#     ).order_by("reg_date")
-
-#     # 삭제 여부 확인
-#     is_deleted = recruit.delete_date is not None
-
-#     context = {
-#         "recruit": recruit,
-#         "is_owner": is_owner,
-#         "is_manager": is_manager,
-#         "join_list": join_list,
-
-#         "total_join_count": total_join_count,
-#         "approved_count": approved_count,
-#         "waiting_rejected_count": waiting_rejected_count,
-
-#         "capacity": capacity,
-#         "is_full": is_full,
-#         "remaining_slots": remaining_slots,
-
-#         "is_closed": is_closed,
-#         "is_closed_or_full": is_closed_or_full,
-
-#         "comments": comments,
-#         "is_deleted": is_deleted,
-#     }
-
-#     return render(request, "recruitment_detail.html", context)
 
 
 
@@ -741,3 +629,28 @@ def close_recruitment(request, pk):
         messages.success(request, "모집을 마감했습니다.")
 
     return redirect("recruitment:recruitment_detail", pk=pk)
+
+
+# 시설 선택 시 지역구 자동 셀렉되게
+
+from django.http import JsonResponse
+
+def get_facility_region(request):
+    reservation_id = request.GET.get("reservation_id")
+
+    slot = (
+        TimeSlot.objects
+        .select_related("facility_id", "reservation_id")
+        .filter(reservation_id_id=reservation_id)
+        .first()
+    )
+
+    if not slot:
+        return JsonResponse({"error": "not_found"}, status=404)
+
+    facility = slot.facility_id
+
+    return JsonResponse({
+        "sido": facility.sido,
+        "sigugun": facility.sigugun,
+    })

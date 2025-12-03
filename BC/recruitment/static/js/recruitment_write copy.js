@@ -74,11 +74,9 @@ document.addEventListener("DOMContentLoaded", function () {
         "제주특별자치도": ["제주시","서귀포시"]
     };
 
-
     // HTML 요소 불러오기
     const sidoEl = document.getElementById("sido");
     const sigunguEl = document.getElementById("sigungu");
-    const timeslotSelect = document.getElementById("reservation_choice");
 
     /* 1) 시/도 목록 자동 삽입 */
     Object.keys(regionData).forEach(sido => {
@@ -105,48 +103,6 @@ document.addEventListener("DOMContentLoaded", function () {
             sigunguEl.appendChild(option);
         });
     });
-
-const reservationSelect = document.getElementById("reservation_choice");
-
-if (reservationSelect) {
-    reservationSelect.addEventListener("change", function () {
-        const reservationId = this.value;
-
-        if (!reservationId) {
-            sidoEl.disabled = false;
-            sigunguEl.disabled = false;
-            return;
-        }
-
-        // 🔥 여기만 수정
-        fetch(`/recruitment/ajax/facility-region/?reservation_id=${reservationId}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) return;
-
-                const sido = data.sido;
-                const sigugun = data.sigugun;
-
-                sidoEl.value = sido;
-
-                sigunguEl.innerHTML = `<option value="">구/군 선택</option>`;
-                regionData[sido].forEach(gu => {
-                    const option = document.createElement("option");
-                    option.value = gu;
-                    option.textContent = gu;
-                    sigunguEl.appendChild(option);
-                });
-
-                sigunguEl.value = sigugun;
-
-                sidoEl.disabled = true;
-                sigunguEl.disabled = true;
-            });
-    });
-}
-
-
-
 });
 
 

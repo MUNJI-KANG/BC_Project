@@ -74,8 +74,24 @@
         <!-- 3. 시설 -->
         <div class="form-group full-row">
           <label class="form-label">시설</label>
-          <input type="text" class="form-input" name="facility_name">
+            <select name="reservation_choice" id="reservation_choice" class="form-input">
+              <option value="">시설 선택</option>
+
+              {% for grp in my_reservation_slots %}
+                <option value="{{ grp.reservation.reservation_id }}">
+                  {{ grp.facility.faci_nm }}
+                  ( {{ grp.times.0.date }}
+                    {% for t in grp.times %}
+                     {{ t.start_time }}~{{ t.end_time }}{% if not forloop.last %}, {% endif %}
+                  {% endfor %}
+                  )
+                </option>
+              {% endfor %}
+            </select>
+
         </div>
+
+
 
         <!-- 4. 기본적인 내용 입력 -->
         <div class="form-group full-row">

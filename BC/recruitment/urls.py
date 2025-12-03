@@ -24,4 +24,6 @@ urlpatterns = [
     # 모집 마감
     path("detail/<int:pk>/close/", views.close_recruitment, name="recruitment_close"),
 
+    path("ajax/facility-region/", views.get_facility_region, name="facility_region"),
+
 ]
