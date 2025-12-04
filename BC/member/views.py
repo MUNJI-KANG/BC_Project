@@ -522,9 +522,10 @@ def myrecruitment(request):
         
         communities = Community.objects.filter(
             member_id=user,
-            delete_date__isnull=True
         ).order_by('-reg_date')
-        
+
+
+
     except Member.DoesNotExist:
         messages.error(request, "회원 정보를 찾을 수 없습니다.")
         return redirect('/login/')
