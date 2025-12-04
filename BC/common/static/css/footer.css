@@ -9,7 +9,8 @@
 .footer {
     max-width: 1200px;
     margin: 0 auto;
-    padding: calc(var(--spacing-2xl) * 0.67) var(--spacing-lg);
+    padding-top: 10px;
+    padding-bottom: 10px;
     text-align: center;
     color: #fff;
 }
@@ -37,7 +38,7 @@
 /* Footer 하단 섹션 */
 .footer-bottom {
   margin-top: 40px;
-  padding-top: 30px;
+  padding-top: 0px;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
