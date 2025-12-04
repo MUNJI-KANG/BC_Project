@@ -1,5 +1,18 @@
 document.addEventListener("DOMContentLoaded", function () {
 
+    /* ---------------------------
+        0) 로그인 체크
+    ---------------------------- */
+    const isAuth = document.getElementById("is-authenticated").value;
+    if (isAuth !== "1") {
+        alert("로그인 후 이용 가능합니다.");
+        location.href = "/login/";
+        return; 
+    }
+
+    /* ---------------------------
+        1) 데이터 로드
+    ---------------------------- */
     const reservationTime = JSON.parse(
         document.getElementById("reservation-json").textContent
     );
@@ -14,28 +27,27 @@ document.addEventListener("DOMContentLoaded", function () {
     const selectedDateEl = document.getElementById("selected-date");
     const selectedTimeEl = document.getElementById("selected-time");
 
+    /* ---------------------------
+        2) 캘린더 설정
+    ---------------------------- */
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
 
     const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
         initialView: 'dayGridMonth',
         locale: 'ko',
-
         headerToolbar: { left: 'prev', center: 'title', right: 'next' },
 
         dateClick: function (info) {
 
-             if (!requireLogin()) return;
-
             const clicked = new Date(info.dateStr);
-            clicked.setHours(0,0,0,0);
+            clicked.setHours(0, 0, 0, 0);
             if (clicked < today) return;
 
             document.querySelectorAll('.fc-day-selected')
                 .forEach(cell => cell.classList.remove('fc-day-selected'));
 
             info.dayEl.classList.add('fc-day-selected');
-
             selectedDateEl.textContent = info.dateStr;
 
             const dayOfWeek = clicked.toLocaleString("en-US", { weekday: "long" }).toLowerCase();
@@ -54,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         dayCellDidMount: function (arg) {
             const cellDate = new Date(arg.date);
-            cellDate.setHours(0,0,0,0);
+            cellDate.setHours(0, 0, 0, 0);
 
             const dayOfWeek = cellDate.toLocaleString("en-US", { weekday: "long" }).toLowerCase();
             const dayInfo = reservationTime[dayOfWeek];
@@ -76,7 +88,9 @@ document.addEventListener("DOMContentLoaded", function () {
     calendar.render();
 
 
-    // ★ 슬롯 생성
+    /* ---------------------------
+        3) 슬롯 생성 함수
+    ---------------------------- */
     function generateSlots(openTime, closeTime, interval) {
         slotGrid.innerHTML = "";
 
@@ -103,7 +117,6 @@ document.addEventListener("DOMContentLoaded", function () {
             div.classList.add("slot");
             div.textContent = slotText;
 
-            // ★ 예약된 시간일 경우 disabled 처리
             const isReserved = reservedData.some(r =>
                 r.date === selectedDate &&
                 r.start === slotStart &&
@@ -116,23 +129,17 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 div.addEventListener("click", function () {
 
-                    if (!requireLogin()) return;
-
                     if (div.classList.contains("selected")) {
                         div.classList.remove("selected");
                     } else {
                         div.classList.add("selected");
                     }
 
-                    // ★ 선택된 모든 시간대를 취합
                     const selectedSlots = Array.from(document.querySelectorAll(".slot.selected"))
                         .map(s => s.textContent);
 
-                    if (selectedSlots.length === 0) {
-                        selectedTimeEl.textContent = "-";
-                    } else {
-                        selectedTimeEl.textContent = selectedSlots.join(", ");
-                    }
+                    selectedTimeEl.textContent =
+                        selectedSlots.length === 0 ? "-" : selectedSlots.join(", ");
                 });
             }
 
@@ -141,15 +148,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    /* ---------------------------
+        4) 시간 format
+    ---------------------------- */
     function formatTime(date) {
         let h = String(date.getHours()).padStart(2, "0");
         let m = String(date.getMinutes()).padStart(2, "0");
         return `${h}:${m}`;
     }
 
+    /* ---------------------------
+        5) 예약 버튼
+    ---------------------------- */
     document.getElementById("reserve-button").addEventListener("click", function () {
-
-        if (!requireLogin()) return;
 
         const date = selectedDateEl.textContent;
         const selected = selectedTimeEl.textContent;
@@ -159,7 +170,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // 선택된 모든 슬롯 배열로 변환
         const slotList = selected.split(", ").map(t => {
             const [s, e] = t.split(" ~ ");
             return { start: s, end: e };
@@ -173,24 +183,24 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             body: JSON.stringify({
                 date: date,
-                slots: slotList,   // ★ 여러 시간대 전송
+                slots: slotList,
                 facility_id: facilityId
             })
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.result === "ok") {
-                alert("예약이 완료되었습니다!");
-
-                window.location.href = `/reservation/${facilityId}`;
-            } else {
-                alert(data.msg);
-            }
-        });
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === "ok") {
+                    alert("예약이 완료되었습니다!");
+                    window.location.href = `/reservation/${facilityId}`;
+                } else {
+                    alert(data.msg);
+                }
+            });
     });
 
-
-    // CSRF
+    /* ---------------------------
+        6) CSRF
+    ---------------------------- */
     function getCookie(name) {
         let cookieValue = null;
         const cookies = document.cookie.split(';');
@@ -204,19 +214,9 @@ document.addEventListener("DOMContentLoaded", function () {
         return cookieValue;
     }
 
-    function requireLogin() {
-        const isAuth = document.getElementById("is-authenticated").value;
-
-       if (isAuth !== "1") {
-            alert("로그인 후 이용 가능합니다.");
-            window.location.href = "/login/";
-            return false;
-        }   
-        return true;
-    }
-
-    calendar.render();
-
+    /* ---------------------------
+        7) 오늘 날짜 자동 선택
+    ---------------------------- */
     (function selectToday() {
         const today = new Date();
         const yyyy = today.getFullYear();

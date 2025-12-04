@@ -11,6 +11,7 @@
 {% block contents %}
 
 <div class="facility-detail-container">
+
     <input type="hidden" id="is-authenticated" value="{% if request.session.user_id %}1{% else %}0{% endif %}">
     <input type="hidden" id="facility-id" value="{{ facility.facility_id }}">
 
@@ -38,9 +39,7 @@
 
     <div class="divider"></div>
 
-    <!-- 예약 UI -->
     <div class="reservation-section">
-
         <div class="calendar-box">
             <div id="calendar"></div>
         </div>
@@ -49,33 +48,27 @@
             <div class="time-slot-title">시간 선택</div>
             <div class="slot-grid" id="time-slot-grid"></div>
         </div>
-
     </div>
 
-    <!-- 선택 결과 -->
     <div class="result-box">
         <div>선택된 날짜: <strong id="selected-date">-</strong></div>
         <div>선택된 시간: <strong id="selected-time">-</strong></div>
+
         <div class="total-price">
             총 결제금액: <span id="total-price">0원</span>
         </div>
     </div>
 
-    <!-- 버튼 -->
     <div class="reservation-buttons">
         <button class="btn-reserve" id="reserve-button">예약하기</button>
         <a href="{% url 'reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
     </div>
-
 </div>
 
-
-<!-- ★★★ Django에서 데이터 전달 ★★★ -->
 <script id="reservation-json" type="application/json">
     {{ reservation_time_json|safe }}
 </script>
 
-<!-- ★★★ 예약된 시간 목록 전달 ★★★ -->
 <script id="reserved-json" type="application/json">
     {{ reserved_json|safe }}
 </script>
