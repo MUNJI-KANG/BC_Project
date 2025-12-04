@@ -223,7 +223,7 @@ def facility_list(request):
     }
     
     
-    return render(request, "facility_list.html", context)
+    return render(request, "facility/facility_list.html", context)
 
 
 _geo_cache = {}
@@ -382,7 +382,7 @@ def facility_detail(request, fk):
         facility = Facility.objects.filter(faci_cd=fk).first()
 
         if not facility_info and not facility:
-            return render(request, "facility_view.html", {
+            return render(request, "facility/facility_view.html", {
                 "error": "시설 정보를 찾을 수 없습니다."
             })
 
@@ -520,7 +520,7 @@ def facility_detail(request, fk):
         # ======================================================
         # 7) 페이지 렌더링
         # ======================================================
-        return render(request, "facility_view.html", {
+        return render(request, "facility/facility_view.html", {
             "facility": r_data,
             "files": files,   # ← 여기 항상 files 있음
             "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
@@ -534,7 +534,7 @@ def facility_detail(request, fk):
         print("[facility_detail ERROR]", e)
         import traceback
         print(traceback.format_exc())
-        return render(request, "facility_view.html", {
+        return render(request, "facility/facility_view.html", {
             "error": f"상세 정보를 불러오는 중 오류가 발생했습니다: {str(e)}"
         })
     

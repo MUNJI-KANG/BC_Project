@@ -113,7 +113,7 @@ def reservation_list(request):
         "sport" : sport
     }
 
-    return render(request, "reservation_list.html", context)
+    return render(request, "reservation/reservation_list.html", context)
 
 
 def reservation_detail(request, facility_id):
@@ -138,7 +138,7 @@ def reservation_detail(request, facility_id):
             "end": t["end_time"]
         })
 
-    return render(request, "reservation_detail.html", {
+    return render(request, "reservation/reservation_detail.html", {
         "facility": facility,
         "reservation_time_json": json.dumps(facility.reservation_time),
         "reserved_json": json.dumps(reserved_list)

@@ -54,7 +54,7 @@ def manager(request):
         
             # 입력값 검증
             if not admin_id or not admin_pw:
-                return render(request, 'login_manager.html', {
+                return render(request, 'manager/login_manager.html', {
                     'error': '아이디와 비밀번호를 입력해주세요.'
                 })
         
@@ -66,19 +66,19 @@ def manager(request):
                 try:
                     admin_user = Member.objects.get(user_id=admin_id)
                 except Member.DoesNotExist:
-                    return render(request, 'login_manager.html', {
+                    return render(request, 'manager/login_manager.html', {
                         'error': '존재하지 않는 아이디입니다.'
                     })
             
                 # 관리자 권한 확인 (member_id == 1만 관리자)
                 if admin_user.member_id != 1:
-                    return render(request, 'login_manager.html', {
+                    return render(request, 'manager/login_manager.html', {
                         'error': '관리자 권한이 없습니다.'
                     })
             
                 # 비밀번호 검증
                 if not check_password(admin_pw, admin_user.password):
-                    return render(request, 'login_manager.html', {
+                    return render(request, 'manager/login_manager.html', {
                         'error': '비밀번호가 올바르지 않습니다.'
                     })
             
@@ -96,11 +96,11 @@ def manager(request):
                 import traceback
                 print(f"[ERROR] 관리자 로그인 오류: {str(e)}")
                 print(traceback.format_exc())
-                return render(request, 'login_manager.html', {
+                return render(request, 'manager/login_manager.html', {
                     'error': '로그인 중 오류가 발생했습니다.'
             })
             
-        return render(request, 'login_manager.html')
+        return render(request, 'manager/login_manager.html')
     else:
         return redirect('/manager/dashboard/')
 
@@ -209,7 +209,7 @@ def facility(request):
         "paginator": paginator,
         "apply_sports" : apply_sports,
     }
-    return render(request, "facility_add_manager.html", context)
+    return render(request, "manager/facility_add_manager.html", context)
 
 
 # 종목 추가
@@ -378,7 +378,7 @@ def facility_list(request):
         "block_range": block_range,
     }
 
-    return render(request, "facility_list_manager.html", context)
+    return render(request, "manager/facility_list_manager.html", context)
 
 
 def reservation_list_manager(request):
@@ -570,7 +570,7 @@ def reservation_list_manager(request):
         "block_range": block_range,
     }
     
-    return render(request, "reservation_list_manager.html", context)
+    return render(request, "manager/reservation_list_manager.html", context)
 
 
 # 시설상세보기 
@@ -627,7 +627,7 @@ def facility_detail(request, id):
         "comments" : comments,
         "reservation_list": reservation_list,
     }
-    return render(request, "facility_detail.html", context)
+    return render(request, "manager/facility_detail.html", context)
 
 
 # 시설수정
@@ -645,7 +645,7 @@ def facility_modify(request, id):
         # ✔ AddInfo는 FK → facility_id = info.id
         files = AddInfo.objects.filter(facility_id=info.id)
 
-        return render(request, "facility_write.html", {
+        return render(request, "manager/facility_write.html", {
             "info": info,
             "files": files,
             "time_json": time_json
@@ -737,7 +737,7 @@ def facility_delete(request):
 
 
 def sport_type(request):
-    return render(request, 'sport_type_manager.html')
+    return render(request, 'manager/sport_type_manager.html')
 
 
 
@@ -1150,7 +1150,7 @@ def dashboard(request):
         'date_range': date_range,
     }
     
-    return render(request, 'dashboard.html', context)
+    return render(request, 'manager/dashboard.html', context)
 
 
 def facility_inspection_stats(request):
@@ -1255,7 +1255,7 @@ def facility_inspection_stats(request):
         'selected_sport': sport_filter,
     }
     
-    return render(request, 'facility_inspection_stats.html', context)
+    return render(request, 'manager/facility_inspection_stats.html', context)
 
 
 def facility_inspection_yearly_detail(request):
@@ -1378,7 +1378,7 @@ def facility_inspection_yearly_detail(request):
         'selected_sport': sport_filter,
     }
     
-    return render(request, 'facility_inspection_yearly_detail.html', context)
+    return render(request, 'manager/facility_inspection_yearly_detail.html', context)
 
 
 def facility_inspection_grade_detail(request):
@@ -1498,7 +1498,7 @@ def facility_inspection_grade_detail(request):
         'selected_grade': grade_filter,
     }
     
-    return render(request, 'facility_inspection_grade_detail.html', context)
+    return render(request, 'manager/facility_inspection_grade_detail.html', context)
 
 
 # 종목관리
@@ -1578,7 +1578,7 @@ def recruitment_manager(request):
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
         "block_range": range(block_start, block_end + 1),
     }
-    return render(request, 'recruitment_manager.html', context)
+    return render(request, 'manager/recruitment_manager.html', context)
 
 # 모집글 상세페이지
 def recruitment_detail(request, id):
@@ -1587,7 +1587,7 @@ def recruitment_detail(request, id):
     admin = request.session.get("manager_id")
     if not admin:
         messages.error(request, "로그인이 필요합니다.")
-        return render(request, 'login_manager.html')
+        return render(request, 'manager/login_manager.html')
     
     is_manager = True
 
@@ -1656,7 +1656,7 @@ def recruitment_detail(request, id):
         "waiting_rejected_count":waiting_count,
     }
 
-    return render(request, "recruitment_manager_detail.html", context)
+    return render(request, "manager/recruitment_manager_detail.html", context)
 
 
 
@@ -1715,7 +1715,7 @@ def event_manager(request):
         "block_range": range(block_start, block_end + 1),
     }
 
-    return render(request, 'event_manager.html', context)
+    return render(request, 'manager/event_manager.html', context)
 
 
 def board_manager(request):
@@ -1771,7 +1771,7 @@ def board_manager(request):
         "block_range": range(block_start, block_end + 1),
     }
 
-    return render(request, "board_manager.html", context)
+    return render(request, "manager/board_manager.html", context)
 
 
 # handle_file_uploads_manager 함수는 common/utils.py의 handle_file_uploads로 통합됨
@@ -1793,17 +1793,17 @@ def event_form(request):
             member_id = request.session.get('manager_id')
             if not member_id:
                 messages.error(request, "관리자 권한이 필요합니다.")
-                return render(request, 'event_form.html')
+                return render(request, 'manager/event_form.html')
             try:
                 member = Member.objects.get(member_id=member_id)
                 if member.manager_yn != 1:
                     messages.error(request, "관리자 권한이 필요합니다.")
-                    return render(request, 'event_form.html')
+                    return render(request, 'manager/event_form.html')
             except Member.DoesNotExist:
                 member = Member.objects.first()
                 if not member:
                     messages.error(request, "회원 정보를 찾을 수 없습니다.")
-                    return render(request, 'event_form.html')
+                    return render(request, 'manager/event_form.html')
             
             # always_on 설정
             always_on = 0 if notice_type == 'always' else 1
@@ -1947,7 +1947,7 @@ def event_edit(request, article_id):
         'is_edit': True,
     }
 
-    return render(request, 'event_form.html', context)
+    return render(request, 'manager/event_form.html', context)
 
 def post_manager(request):
     # DB에서 자유게시판(post) 조회 (삭제된 것도 포함)
@@ -2002,7 +2002,7 @@ def post_manager(request):
         "block_range": range(block_start, block_end + 1),
     }
 
-    return render(request, 'post_manager.html', context)
+    return render(request, 'manager/post_manager.html', context)
 
 def manager_post_detail(request, article_id):
     """관리자 전용 자유게시판 상세 페이지"""
@@ -2078,7 +2078,7 @@ def manager_post_detail(request, article_id):
             'is_manager': True,  # 관리자 페이지임을 표시
         }
         
-        return render(request, 'board_detail.html', context)
+        return render(request, 'board/board_detail.html', context)
     except Exception as e:
         import traceback
         print(f"[ERROR] manager_post_detail 오류: {str(e)}")
@@ -2160,7 +2160,7 @@ def manager_notice_detail(request, article_id):
             'is_manager': True,  # 관리자 페이지임을 표시
         }
         
-        return render(request, 'board_detail.html', context)
+        return render(request, 'board/board_detail.html', context)
     except Exception as e:
         import traceback
         print(f"[ERROR] manager_notice_detail 오류: {str(e)}")
@@ -2242,7 +2242,7 @@ def manager_event_detail(request, article_id):
             'is_manager': True,  # 관리자 페이지임을 표시
         }
         
-        return render(request, 'board_detail.html', context)
+        return render(request, 'board/board_detail.html', context)
     except Exception as e:
         import traceback
         print(f"[ERROR] manager_event_detail 오류: {str(e)}")
@@ -2357,15 +2357,15 @@ def board_form(request):
             member_id = request.session.get('manager_id')
             if not member_id:
                 messages.error(request, "관리자 권한이 필요합니다.")
-                return render(request, 'board_form.html', {'is_edit': False})
+                return render(request, 'manager/board_form.html', {'is_edit': False})
             try:
                 member = Member.objects.get(member_id=member_id)
                 if member.manager_yn != 1:
                     messages.error(request, "관리자 권한이 필요합니다.")
-                    return render(request, 'board_form.html', {'is_edit': False})
+                    return render(request, 'manager/board_form.html', {'is_edit': False})
             except Member.DoesNotExist:
                 messages.error(request, "회원 정보를 찾을 수 없습니다.")
-                return render(request, 'board_form.html', {'is_edit': False})
+                return render(request, 'manager/board_form.html', {'is_edit': False})
 
             always_on = 0 if notice_type == 'always' else 1
             if pin_top == '1':
@@ -2498,7 +2498,7 @@ def board_edit(request, article_id):
         'is_edit': True,
     }
 
-    return render(request, 'board_form.html', context)
+    return render(request, 'manager/board_form.html', context)
 
 
 # 배너 관리----------------------------------
@@ -2532,11 +2532,11 @@ def banner_manager(request):
         "block_range": range(block_start, block_end + 1),
     }
 
-    return render(request, "banner_manager.html", context)
+    return render(request, "manager/banner_manager.html", context)
 
 def banner_detail(request, img_id):
     banner = get_object_or_404(HeroImg, img_id=img_id, delete_date__isnull=True)
-    return render(request, "banner_detail.html", {"banner": banner})
+    return render(request, "manager/banner_detail.html", {"banner": banner})
 
 
 def banner_form(request):
@@ -2550,7 +2550,7 @@ def banner_form(request):
 
         # ====== 필수값 검증 ======
         if not upload_file:
-            return render(request, "banner_form.html", {
+            return render(request, "manager/banner_form.html", {
                 "alert": "배너 이미지를 첨부해주세요.",
                 "title": title,
                 "context": context,
@@ -2560,7 +2560,7 @@ def banner_form(request):
             })
 
         if img_status == "":
-            return render(request, "banner_form.html", {
+            return render(request, "manager/banner_form.html", {
                 "alert": "배너 상태를 선택해주세요.",
                 "title": title,
                 "context": context,
@@ -2569,7 +2569,7 @@ def banner_form(request):
             })
         
         if title == "":
-            return render(request, "banner_form.html", {
+            return render(request, "manager/banner_form.html", {
                 "alert" : "제목을 입력해주세요.",
                 "title": title,
                 "context": context,
@@ -2609,7 +2609,7 @@ def banner_form(request):
         return redirect("banner_manager")
 
     # GET
-    return render(request, "banner_form.html")
+    return render(request, "manager/banner_form.html")
 
 def banner_edit(request, img_id):
     banner = get_object_or_404(HeroImg, img_id=img_id, delete_date__isnull=True)
@@ -2661,7 +2661,7 @@ def banner_edit(request, img_id):
         elif delete_flag == "1":
             # 이미지 삭제 후 새 이미지가 없으면 에러
             messages.error(request, "이미지를 삭제하셨습니다. 새 이미지를 첨부해주세요.")
-            return render(request, "banner_edit.html", {"banner": banner})
+            return render(request, "manager/banner_edit.html", {"banner": banner})
         # 새 파일도 없고 삭제 플래그도 없는 경우는 그대로 유지
 
         banner.save()
@@ -2757,7 +2757,7 @@ def manager_detail(request, article_id):
         else:
             files.append(info)
 
-    return render(request, "manager_detail.html/", {
+    return render(request, "manager/manager_detail.html", {
         "article": article,
         "board_type": board_type,
         "files": files,

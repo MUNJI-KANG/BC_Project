@@ -172,7 +172,7 @@ def index(request):
         'banners': banners,   # ← 이거 추가!
     }
 
-    return render(request, 'index.html', context)
+    return render(request, 'common/index.html', context)
 
 def login(request):
     if request.method == "POST":
@@ -187,13 +187,13 @@ def login(request):
         except Member.DoesNotExist:
             messages.error(request, "존재하지 않는 아이디입니다.")
             context = {"next": next_url} if next_url else {}
-            return render(request, "login.html", context)
+            return render(request, "common/login.html", context)
 
         # 비밀번호 체크
         if not check_password(password, user.password):
             messages.error(request, "비밀번호가 올바르지 않습니다.")
             context = {"next": next_url} if next_url else {}
-            return render(request, "login.html", context)
+            return render(request, "common/login.html", context)
 
         # 로그인 성공 → 세션에 저장
         request.session["user_id"] = user.user_id
@@ -231,7 +231,7 @@ def login(request):
     # GET 요청: next 파라미터를 템플릿에 전달
     next_url = request.GET.get("next", "")
     context = {"next": next_url} if next_url else {}
-    return render(request, "login.html", context)
+    return render(request, "common/login.html", context)
 
 def logout(request):
     """
@@ -490,31 +490,31 @@ def signup(request):
 
         if not PASSWORD_PATTERN.match(password or ""):
             messages.error(request, "비밀번호 형식이 올바르지 않습니다.")
-            return render(request, "signup.html", ctx)
+            return render(request, "common/signup.html", ctx)
 
         if password != password2:
             messages.error(request, "비밀번호가 일치하지 않습니다.")
-            return render(request, "signup.html", ctx)
+            return render(request, "common/signup.html", ctx)
 
         if not USERNAME_PATTERN.match(user_id or ""):
             messages.error(request, "아이디는 6자 이상, 영문+숫자 조합이어야 합니다.")
-            return render(request, "signup.html", ctx)
+            return render(request, "common/signup.html", ctx)
 
         if Member.objects.filter(user_id=user_id).exists():
             messages.error(request, "이미 존재하는 아이디입니다.")
-            return render(request, "signup.html", ctx)
+            return render(request, "common/signup.html", ctx)
 
         if Member.objects.filter(nickname=nickname).exists():
             messages.error(request, "이미 존재하는 닉네임입니다.")
-            return render(request, "signup.html", ctx)
+            return render(request, "common/signup.html", ctx)
 
         if not PHONE_PATTERN.match(phone or ""):
             messages.error(request, "전화번호는 010-0000-0000 형식으로 입력해주세요.")
-            return render(request, "signup.html", ctx)
+            return render(request, "common/signup.html", ctx)
 
         if Member.objects.filter(phone_num=phone).exists():
             messages.error(request, "이미 등록된 전화번호입니다.")
-            return render(request, "signup.html", ctx)
+            return render(request, "common/signup.html", ctx)
 
         gender_value = 0 if gender == "male" else 1
 
@@ -550,9 +550,9 @@ def signup(request):
             phone_num=phone,
         )
 
-        return render(request, 'signup_success.html')
+        return render(request, 'common/signup_success.html')
 
-    return render(request, "signup.html")
+    return render(request, "common/signup.html")
 
 def check_userid(request):
     user_id = request.GET.get('username')
@@ -583,7 +583,7 @@ def find_id(request):
 
         # 생일 검증
         if len(birthday) != 8 or not birthday.isdigit():
-            return render(request, "findID.html", {
+            return render(request, "common/findID.html", {
                 "error": "생년월일은 8자리 숫자로 입력해주세요. (예: 20020528)"
             })
 
@@ -591,7 +591,7 @@ def find_id(request):
         if (len(phone1) != 3 or not phone1.isdigit() or
             len(phone2) != 4 or not phone2.isdigit() or
             len(phone3) != 4 or not phone3.isdigit()):
-            return render(request, "findID.html", {
+            return render(request, "common/findID.html", {
                 "error": "전화번호는 숫자만 입력해야 하며 3-4-4 자리여야 합니다."
             })
 
@@ -599,11 +599,11 @@ def find_id(request):
 
         # TODO: DB에서 이름, 생년월일, phone_num 이 일치하는 정보 찾기
 
-        return render(request, 'findID.html', {
+        return render(request, 'common/findID.html', {
             "result_id": "ID"
         })
 
-    return render(request, 'findID.html')
+    return render(request, 'common/findID.html')
 
 def generate_random_pw(length=12):
     letters = string.ascii_letters        # ABCabc
@@ -634,7 +634,7 @@ def find_pw(request):
         elif len(birthday) == 10 and birthday.count("-") == 2:
             birthday_db = birthday
         else:
-            return render(request, "findPW.html", {
+            return render(request, "common/findPW.html", {
                 "error": "생년월일은 20020528 또는 2002-05-28 형식으로 입력해주세요."
             })
 
@@ -642,7 +642,7 @@ def find_pw(request):
         if (len(phone1) != 3 or not phone1.isdigit() or
             len(phone2) != 4 or not phone2.isdigit() or
             len(phone3) != 4 or not phone3.isdigit()):
-            return render(request, "findPW.html", {
+            return render(request, "common/findPW.html", {
                 "error": "전화번호는 3-4-4 숫자로 입력해주세요."
             })
 
@@ -658,7 +658,7 @@ def find_pw(request):
                 phone_num=phone_num,
             )
         except Member.DoesNotExist:
-            return render(request, "findPW.html", {
+            return render(request, "common/findPW.html", {
                 "error": "입력하신 정보와 일치하는 회원을 찾을 수 없습니다."
             })
 
@@ -667,8 +667,8 @@ def find_pw(request):
         user.password = make_password(new_password)
         user.save(update_fields=["password"])
 
-        return render(request, "findPW.html", {
+        return render(request, "common/findPW.html", {
             "result_pw": new_password
         })
 
-    return render(request, "findPW.html")
+    return render(request, "common/findPW.html")

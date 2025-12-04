@@ -49,7 +49,7 @@ def info(request):
             "addr3": user.addr3 if hasattr(user, "addr3") else "",
         }
 
-        return render(request, "info.html", context)
+        return render(request, "member/info.html", context)
     except Member.DoesNotExist:
         messages.error(request, "회원 정보를 찾을 수 없습니다.")
         return redirect('/login/')
@@ -215,7 +215,7 @@ def edit(request):
         "addr3": user.addr3 if hasattr(user, "addr3") else "",
     }
     
-    return render(request, 'info_edit.html', context)
+    return render(request, 'member/info_edit.html', context)
 def edit_password(request):
     # 로그인 체크
     res = check_login(request)
@@ -245,7 +245,7 @@ def edit_password(request):
                     }, status=400)
                 else:
                     messages.error(request, "현재 비밀번호가 일치하지 않습니다.")
-                    return render(request, 'info_edit_password.html')
+                    return render(request, 'member/info_edit_password.html')
             
             # 새 비밀번호와 확인 비밀번호 일치 확인
             if new_pw != new_pw2:
@@ -256,7 +256,7 @@ def edit_password(request):
                     }, status=400)
                 else:
                     messages.error(request, "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.")
-                    return render(request, 'info_edit_password.html')
+                    return render(request, 'member/info_edit_password.html')
             
             # 비밀번호 형식 검증 (signup과 동일한 패턴)
             PASSWORD_PATTERN = re.compile(
@@ -271,7 +271,7 @@ def edit_password(request):
                     }, status=400)
                 else:
                     messages.error(request, "비밀번호 형식이 올바르지 않습니다.")
-                    return render(request, 'info_edit_password.html')
+                    return render(request, 'member/info_edit_password.html')
             
             # 현재 비밀번호와 새 비밀번호가 같은지 확인
             if check_password(new_pw, user.password):
@@ -282,7 +282,7 @@ def edit_password(request):
                     }, status=400)
                 else:
                     messages.error(request, "새 비밀번호는 현재 비밀번호와 다르게 설정해주세요.")
-                    return render(request, 'info_edit_password.html')
+                    return render(request, 'member/info_edit_password.html')
             
             # 비밀번호 변경
             old_password_hash = user.password
@@ -331,10 +331,10 @@ def edit_password(request):
                 }, status=500)
             else:
                 messages.error(request, "비밀번호 변경 중 오류가 발생했습니다.")
-                return render(request, 'info_edit_password.html')
+                return render(request, 'member/info_edit_password.html')
     
     # GET 요청
-    return render(request, 'info_edit_password.html')
+    return render(request, 'member/info_edit_password.html')
 
 
 
@@ -414,7 +414,7 @@ def myreservation(request):
 
     block_range = range(block_start, block_end + 1)
 
-    return render(request, "myreservation.html", {
+    return render(request, "member/myreservation.html", {
         "page_obj": page_obj,
         "paginator": paginator,
         "per_page": per_page,
@@ -498,7 +498,7 @@ def myreservation_detail(request, reservation_num):
             "all_cancelled": all_cancelled,   # ← 상세페이지에서 버튼 숨기기 용도
         }
 
-        return render(request, "myreservation_detail.html", context)
+        return render(request, "member/myreservation_detail.html", context)
 
     except Reservation.DoesNotExist:
         messages.error(request, "예약을 찾을 수 없습니다.")
@@ -599,7 +599,7 @@ def myrecruitment(request):
         "block_end": block_end,
     }
     
-    return render(request, 'myrecruitment.html', context)
+    return render(request, 'member/myrecruitment.html', context)
 
 
 
@@ -653,7 +653,7 @@ def myarticle(request):
 
     block_range = range(block_start, block_end + 1)
 
-    return render(request, 'myarticle.html', {
+    return render(request, 'member/myarticle.html', {
         "page_obj": page_obj,
         "paginator": paginator,
         "per_page": per_page,
@@ -739,7 +739,7 @@ def myjoin(request):
         "block_end": block_end,
     }
     
-    return render(request, 'myjoin.html', context)
+    return render(request, 'member/myjoin.html', context)
 
 
 @csrf_exempt

@@ -129,7 +129,7 @@ def recruitment_list(request):
         "block_end": block_end,
     }
 
-    return render(request, "recruitment_list.html", context)
+    return render(request, "recruitment/recruitment_list.html", context)
 
 
 # recruitment/views.py
@@ -300,7 +300,7 @@ def write(request):
             "my_reservations": my_reservations,
             "my_reservation_slots": my_reservation_slots,
         }
-    return render(request, "recruitment_write.html", context)
+    return render(request, "recruitment/recruitment_write.html", context)
 
 
 
@@ -447,7 +447,7 @@ def update(request, pk):
         "my_reservation_slots": my_reservation_slots,
         "current_reservation_id": current_reservation_id,  # 🔥 템플릿에서 사용할 값
     }
-    return render(request, "recruitment_update.html", context)
+    return render(request, "recruitment/recruitment_update.html", context)
 
 
 # recruitment/views.py
@@ -588,7 +588,7 @@ def detail(request, pk):
         "my_join":my_join,
     }
 
-    return render(request, "recruitment_detail.html", context)
+    return render(request, "recruitment/recruitment_detail.html", context)
 
 
 
