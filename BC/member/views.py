@@ -589,13 +589,13 @@ def myarticle(request):
         user = Member.objects.get(user_id=login_id)
         
         # DB에서 본인이 작성한 자유게시판(post) 게시글 조회
-        from board.models import Article, Category
-        from board.utils import get_category_by_type
+        from board.models import Article
+        from board.utils import get_board_by_name
         
-        category = get_category_by_type('post')
-        articles = Article.objects.select_related('member_id', 'category_id').filter(
+        board = get_board_by_name('post')
+        articles = Article.objects.select_related('member_id', 'board_id').filter(
             member_id=user,
-            category_id=category,
+            board_id=board,
             delete_date__isnull=True
         ).order_by('-reg_date')
         
@@ -746,13 +746,13 @@ def delete_my_article(request):
         
         # 본인이 작성한 게시글인지 확인
         from board.models import Article
-        from board.utils import get_category_by_type
+        from board.utils import get_board_by_name
         
-        category = get_category_by_type('post')
+        board = get_board_by_name('post')
         article = Article.objects.get(
             article_id=article_id,
             member_id=user,
-            category_id=category
+            board_id=board
         )
         
         # 이미 삭제된 경우

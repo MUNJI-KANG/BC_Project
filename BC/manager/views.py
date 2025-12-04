@@ -11,7 +11,7 @@ import xmltodict
 import pandas as pd
 from django_pandas.io import read_frame
 from django.contrib import messages
-from board.utils import get_category_by_type, get_board_by_name
+from board.utils import get_board_by_name
 from django.conf import settings
 import uuid
 from django.utils.dateparse import parse_datetime
@@ -1450,12 +1450,11 @@ def recruitment_detail(request, id):
 
 
 def event_manager(request):
-    # DB에서 이벤트 조회 (category_type='event', 삭제된 것도 포함)
+    # DB에서 이벤트 조회 (board_name='event', 삭제된 것도 포함)
     try:
-        from board.utils import get_category_by_type
-        category = get_category_by_type('event')
-        queryset = Article.objects.select_related('member_id', 'category_id').filter(
-            category_id=category
+        board = get_board_by_name('event')
+        queryset = Article.objects.select_related('member_id', 'board_id').filter(
+            board_id=board
         ).order_by('-reg_date')
     except Exception:
         queryset = []
@@ -1507,12 +1506,11 @@ def event_manager(request):
 
 
 def board_manager(request):
-    # DB에서 공지사항 조회 (category_type='notice', 삭제된 것도 포함)
+    # DB에서 공지사항 조회 (board_name='notice', 삭제된 것도 포함)
     try:
-        from board.utils import get_category_by_type
-        category = get_category_by_type('notice')
-        queryset = Article.objects.select_related('member_id', 'category_id').filter(
-            category_id=category
+        board = get_board_by_name('notice')
+        queryset = Article.objects.select_related('member_id', 'board_id').filter(
+            board_id=board
         ).order_by('-reg_date')
     except Exception:
         queryset = []
@@ -1575,9 +1573,6 @@ def event_form(request):
         pin_top = request.POST.get('pin_top', '0')  # 상단 고정 체크박스
         
         try:
-            # category_type='event'로 조회
-            category = get_category_by_type('event')
-            
             # board_name='event'로 조회
             board = get_board_by_name('event')
             
@@ -1612,7 +1607,6 @@ def event_form(request):
                 contents=context,
                 member_id=member,
                 board_id=board,
-                category_id=category,
                 always_on=always_on,
                 start_date=start_datetime,
                 end_date=end_datetime,
@@ -1623,13 +1617,10 @@ def event_form(request):
             
             print(f"[DEBUG] 이벤트 저장 완료:")
             print(f"  - article_id: {article.article_id}")
-            print(f"  - category_id: {category.category_id} (type: {category.category_type})")
             print(f"  - board_id: {board.board_id} (name: {board.board_name})")
             
             messages.success(request, "이벤트가 등록되었습니다.")
             return redirect('/manager/event_manager/')
-        except Category.DoesNotExist:
-            messages.error(request, "이벤트 카테고리(category_type='event')를 찾을 수 없습니다. 초기 데이터를 생성해주세요.")
         except Board.DoesNotExist:
             messages.error(request, "이벤트 게시판(board_name='event')을 찾을 수 없습니다. 초기 데이터를 생성해주세요.")
         except Exception as e:
@@ -1650,10 +1641,10 @@ def event_edit(request, article_id):
 
     # 기존 이벤트 게시글 로드
     try:
-        category = get_category_by_type('event')
+        board = get_board_by_name('event')
         article_obj = Article.objects.get(
             article_id=article_id,
-            category_id=category
+            board_id=board
         )
     except Article.DoesNotExist:
         messages.error(request, "게시글을 찾을 수 없습니다.")
@@ -1748,10 +1739,9 @@ def event_edit(request, article_id):
 def post_manager(request):
     # DB에서 자유게시판(post) 조회 (삭제된 것도 포함)
     try:
-        from board.utils import get_category_by_type
-        category = get_category_by_type('post')
-        queryset = Article.objects.select_related('member_id', 'category_id').filter(
-            category_id=category
+        board = get_board_by_name('post')
+        queryset = Article.objects.select_related('member_id', 'board_id').filter(
+            board_id=board
         ).order_by('-reg_date')
     except Exception:
         queryset = []
@@ -1809,11 +1799,10 @@ def manager_post_detail(request, article_id):
         return redirect('/manager/')
     
     try:
-        from board.utils import get_category_by_type
-        category = get_category_by_type('post')
-        article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+        board = get_board_by_name('post')
+        article_obj = Article.objects.select_related('member_id', 'board_id').get(
             article_id=article_id,
-            category_id=category
+            board_id=board
         )
         
         # 댓글 조회
@@ -1892,11 +1881,10 @@ def manager_notice_detail(request, article_id):
         return redirect('/manager/')
     
     try:
-        from board.utils import get_category_by_type
-        category = get_category_by_type('notice')
-        article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+        board = get_board_by_name('notice')
+        article_obj = Article.objects.select_related('member_id', 'board_id').get(
             article_id=article_id,
-            category_id=category
+            board_id=board
         )
         
         # 댓글 조회
@@ -1975,11 +1963,10 @@ def manager_event_detail(request, article_id):
         return redirect('/manager/')
     
     try:
-        from board.utils import get_category_by_type
-        category = get_category_by_type('event')
-        article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+        board = get_board_by_name('event')
+        article_obj = Article.objects.select_related('member_id', 'board_id').get(
             article_id=article_id,
-            category_id=category
+            board_id=board
         )
         
         # 댓글 조회
@@ -2068,17 +2055,16 @@ def delete_articles(request):
         if not article_ids:
             return JsonResponse({"status": "error", "msg": "삭제할 항목 없음"})
         
-        # 카테고리 확인
-        from board.utils import get_category_by_type
+        # 게시판 확인
         try:
-            category = get_category_by_type(board_type)
+            board = get_board_by_name(board_type)
         except Exception:
             return JsonResponse({"status": "error", "msg": f"잘못된 게시판 타입: {board_type}"})
         
         # 게시글 조회 및 삭제 처리
         articles = Article.objects.filter(
             article_id__in=article_ids,
-            category_id=category
+            board_id=board
         )
         
         deleted_count = 0
@@ -2153,7 +2139,6 @@ def board_form(request):
         pin_top = request.POST.get('pin_top', '0')
 
         try:
-            category = get_category_by_type('notice')
             board = get_board_by_name('notice')
 
             member_id = request.session.get('manager_id')
@@ -2182,7 +2167,6 @@ def board_form(request):
                 contents=context,
                 member_id=member,
                 board_id=board,
-                category_id=category,
                 always_on=always_on,
                 start_date=start_datetime,
                 end_date=end_datetime,
@@ -2209,10 +2193,10 @@ def board_edit(request, article_id):
         return redirect('/manager/')
     
     try:
-        category = get_category_by_type('notice')
+        board = get_board_by_name('notice')
         article_obj = Article.objects.get(
             article_id=article_id,
-            category_id=category
+            board_id=board
         )
     except Article.DoesNotExist:
         messages.error(request, "게시글을 찾을 수 없습니다.")

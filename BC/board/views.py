@@ -10,23 +10,23 @@ import os
 import uuid
 from common.utils import check_login, handle_file_uploads, is_manager
 from board.models import Article, Board, Category
-from board.utils import get_category_by_type, get_board_by_name
+from board.utils import get_board_by_name
 from common.models import Comment, AddInfo
 from member.models import Member
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
 from common.utils import get_notice_pinned_posts, get_event_pinned_posts, get_post_dummy_list
 
 def notice(request):
-    # DB에서 공지사항 조회 (category_type='notice')
+    # DB에서 공지사항 조회 (board_name='notice')
     try:
         now = timezone.now()
-        category = get_category_by_type('notice')
+        board = get_board_by_name('notice')
         
-        # 카테고리 내 누적 번호 계산 (등록일 순서대로)
+        # 게시판 내 누적 번호 계산 (등록일 순서대로)
         all_articles_for_order = (
             Article.objects
             .filter(
-                category_id=category,
+                board_id=board,
                 delete_date__isnull=True
             )
             .order_by('reg_date')  # 등록일 오름차순 (가장 오래된 게시글이 1번)
@@ -39,9 +39,9 @@ def notice(request):
         
         articles = (
             Article.objects
-            .select_related('member_id', 'category_id')
+            .select_related('member_id', 'board_id')
             .filter(
-                category_id=category,
+                board_id=board,
                 delete_date__isnull=True
             )
             .filter(
@@ -147,16 +147,16 @@ def notice(request):
     return render(request, 'notice.html', context)
 
 def event(request):
-    # DB에서 이벤트 조회 (category_type='event')
+    # DB에서 이벤트 조회 (board_name='event')
     try:
         now = timezone.now()
-        category = get_category_by_type('event')
+        board = get_board_by_name('event')
         
-        # 카테고리 내 누적 번호 계산 (등록일 순서대로)
+        # 게시판 내 누적 번호 계산 (등록일 순서대로)
         all_articles_for_order = (
             Article.objects
             .filter(
-                category_id=category,
+                board_id=board,
                 delete_date__isnull=True
             )
             .order_by('reg_date')  # 등록일 오름차순 (가장 오래된 게시글이 1번)
@@ -169,9 +169,9 @@ def event(request):
         
         articles = (
             Article.objects
-            .select_related('member_id', 'category_id')
+            .select_related('member_id', 'board_id')
             .filter(
-                category_id=category,
+                board_id=board,
                 delete_date__isnull=True
             )
             .filter(
@@ -279,13 +279,13 @@ def event(request):
 def post(request):
     # DB에서 게시글 조회
     try:
-        category = get_category_by_type('post')
+        board = get_board_by_name('post')
         
-        # 카테고리 내 누적 번호 계산 (등록일 순서대로)
+        # 게시판 내 누적 번호 계산 (등록일 순서대로)
         all_articles_for_order = (
             Article.objects
             .filter(
-                category_id=category,
+                board_id=board,
                 delete_date__isnull=True
             )
             .order_by('reg_date')  # 등록일 오름차순 (가장 오래된 게시글이 1번)
@@ -298,9 +298,9 @@ def post(request):
         
         articles = (
             Article.objects
-            .select_related('member_id', 'category_id')
+            .select_related('member_id', 'board_id')
             .filter(
-                category_id=category,
+                board_id=board,
                 delete_date__isnull=True
             )
             .annotate(
@@ -311,8 +311,8 @@ def post(request):
             )
             .order_by('-reg_date')
         )
-    except (Category.DoesNotExist, Exception):
-        # 카테고리가 없으면 더미 데이터 사용
+    except (Board.DoesNotExist, Exception):
+        # 게시판이 없으면 더미 데이터 사용
         articles = []
         dummy_list = get_post_dummy_list()
         article_order_map = {}  # 빈 딕셔너리
@@ -462,7 +462,6 @@ def post_write(request):
                 return redirect('/login/')
         
         try:
-            category = get_category_by_type('post')
             board = get_board_by_name('post')
             
             title = request.POST.get('title')
@@ -477,7 +476,6 @@ def post_write(request):
                 contents=content,
                 member_id=member,
                 board_id=board,
-                category_id=category,
                 always_on=1
             )
             
@@ -490,7 +488,7 @@ def post_write(request):
                 return redirect('/manager/post_manager/')
             else:
                 return redirect('/board/post/')
-        except (Category.DoesNotExist, Board.DoesNotExist):
+        except Board.DoesNotExist:
             messages.error(request, "게시판을 찾을 수 없습니다.")
             if manager_id:
                 return redirect('/manager/post_manager/')
@@ -515,23 +513,23 @@ def notice_detail(request, article_id):
         return redirect_response
     
     try:
-        # category_type='notice'로 조회
-        category = get_category_by_type('notice')
-        print(f"[DEBUG] notice_detail: category={category.category_type} (ID: {category.category_id})")
+        # board_name='notice'로 조회
+        board = get_board_by_name('notice')
+        print(f"[DEBUG] notice_detail: board={board.board_name} (ID: {board.board_id})")
         
         # 관리자 여부 확인
         is_manager_user = is_manager(request)
         
         # DB에서 게시글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
         if is_manager_user:
-            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+            article_obj = Article.objects.select_related('member_id', 'board_id').get(
                 article_id=article_id,
-                category_id=category
+                board_id=board
             )
         else:
-            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+            article_obj = Article.objects.select_related('member_id', 'board_id').get(
                 article_id=article_id,
-                category_id=category,
+                board_id=board,
                 delete_date__isnull=True
             )
         print(f"[DEBUG] notice_detail: 게시글 조회 성공 - title={article_obj.title}")
@@ -614,15 +612,15 @@ def notice_detail(request, article_id):
         print(f"[DEBUG] contents 길이: {len(article_obj.contents) if article_obj.contents else 0}")
         
         return render(request, 'board_detail.html', context)
-    except Category.DoesNotExist:
+    except Board.DoesNotExist:
         import traceback
-        print(f"[ERROR] notice_detail: Category.DoesNotExist - article_id={article_id}")
+        print(f"[ERROR] notice_detail: Board.DoesNotExist - article_id={article_id}")
         print(traceback.format_exc())
-        messages.error(request, "공지사항 카테고리를 찾을 수 없습니다.")
+        messages.error(request, "공지사항 게시판을 찾을 수 없습니다.")
         return redirect('/board/notice/')
     except Article.DoesNotExist:
         import traceback
-        print(f"[ERROR] notice_detail: Article.DoesNotExist - article_id={article_id}, category_id={category.category_id if 'category' in locals() else 'N/A'}")
+        print(f"[ERROR] notice_detail: Article.DoesNotExist - article_id={article_id}, board_id={board.board_id if 'board' in locals() else 'N/A'}")
         print(traceback.format_exc())
         messages.error(request, f"게시글을 찾을 수 없습니다. (ID: {article_id})")
         return redirect('/board/notice/')
@@ -644,23 +642,23 @@ def event_detail(request, article_id):
         return redirect_response
     
     try:
-        # category_type='event'로 조회
-        category = get_category_by_type('event')
-        print(f"[DEBUG] event_detail: category={category.category_type} (ID: {category.category_id})")
+        # board_name='event'로 조회
+        board = get_board_by_name('event')
+        print(f"[DEBUG] event_detail: board={board.board_name} (ID: {board.board_id})")
         
         # 관리자 여부 확인
         is_manager_user = is_manager(request)
         
         # DB에서 게시글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
         if is_manager_user:
-            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+            article_obj = Article.objects.select_related('member_id', 'board_id').get(
                 article_id=article_id,
-                category_id=category
+                board_id=board
             )
         else:
-            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+            article_obj = Article.objects.select_related('member_id', 'board_id').get(
                 article_id=article_id,
-                category_id=category,
+                board_id=board,
                 delete_date__isnull=True
             )
         print(f"[DEBUG] event_detail: 게시글 조회 성공 - title={article_obj.title}")
@@ -740,15 +738,15 @@ def event_detail(request, article_id):
         }
         
         return render(request, 'board_detail.html', context)
-    except Category.DoesNotExist:
+    except Board.DoesNotExist:
         import traceback
-        print(f"[ERROR] event_detail: Category.DoesNotExist - article_id={article_id}")
+        print(f"[ERROR] event_detail: Board.DoesNotExist - article_id={article_id}")
         print(traceback.format_exc())
-        messages.error(request, "이벤트 카테고리를 찾을 수 없습니다.")
+        messages.error(request, "이벤트 게시판을 찾을 수 없습니다.")
         return redirect('/board/event/')
     except Article.DoesNotExist:
         import traceback
-        print(f"[ERROR] event_detail: Article.DoesNotExist - article_id={article_id}, category_id={category.category_id if 'category' in locals() else 'N/A'}")
+        print(f"[ERROR] event_detail: Article.DoesNotExist - article_id={article_id}, board_id={board.board_id if 'board' in locals() else 'N/A'}")
         print(traceback.format_exc())
         messages.error(request, f"게시글을 찾을 수 없습니다. (ID: {article_id})")
         return redirect('/board/event/')
@@ -767,22 +765,22 @@ def post_detail(request, article_id):
         return redirect_response
     
     try:
-        # category_type='post'로 조회
-        category = get_category_by_type('post')
+        # board_name='post'로 조회
+        board = get_board_by_name('post')
         
         # 관리자 여부 확인
         is_manager_user = is_manager(request)
         
         # DB에서 게시글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
         if is_manager_user:
-            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+            article_obj = Article.objects.select_related('member_id', 'board_id').get(
                 article_id=article_id,
-                category_id=category
+                board_id=board
             )
         else:
-            article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+            article_obj = Article.objects.select_related('member_id', 'board_id').get(
                 article_id=article_id,
-                category_id=category,
+                board_id=board,
                 delete_date__isnull=True
             )
         
@@ -861,8 +859,8 @@ def post_detail(request, article_id):
         }
         
         return render(request, 'board_detail.html', context)
-    except Category.DoesNotExist:
-        messages.error(request, "수다떨래 카테고리를 찾을 수 없습니다.")
+    except Board.DoesNotExist:
+        messages.error(request, "수다떨래 게시판을 찾을 수 없습니다.")
         return redirect('/board/post/')
     except Article.DoesNotExist:
         messages.error(request, "게시글을 찾을 수 없습니다.")
@@ -918,10 +916,10 @@ def create_comment(request, article_id, board_type):
         print(f"[DEBUG] create_comment: member={member.user_id}")
         
         # 게시글 확인
-        category = get_category_by_type(board_type)
+        board = get_board_by_name(board_type)
         article = Article.objects.get(
             article_id=article_id,
-            category_id=category,
+            board_id=board,
             delete_date__isnull=True
         )
         print(f"[DEBUG] create_comment: article={article.title}")
@@ -956,9 +954,9 @@ def create_comment(request, article_id, board_type):
         print(traceback.format_exc())
         messages.error(request, "게시글을 찾을 수 없습니다.")
         return redirect(f'/board/{board_type}/')
-    except Category.DoesNotExist:
+    except Board.DoesNotExist:
         import traceback
-        print(f"[ERROR] create_comment: Category.DoesNotExist - board_type={board_type}")
+        print(f"[ERROR] create_comment: Board.DoesNotExist - board_type={board_type}")
         print(traceback.format_exc())
         messages.error(request, "게시판을 찾을 수 없습니다.")
         return redirect(f'/board/{board_type}/')
