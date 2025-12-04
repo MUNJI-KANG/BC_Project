@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from .models import *
 from reservation.models import *
 from member.models import Member
-from common.models import Comment
+from common.models import *
 from facility.models import FacilityInfo
 from common.utils import is_manager
 
@@ -20,6 +20,9 @@ from django.db.models import Q, F, Count
 
 from collections import OrderedDict
 
+import os
+import uuid
+from django.conf import settings
 
 
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
@@ -126,7 +129,7 @@ def recruitment_list(request):
         "block_end": block_end,
     }
 
-    return render(request, "recruitment_list.html", context)
+    return render(request, "recruitment/recruitment_list.html", context)
 
 
 # recruitment/views.py
@@ -263,14 +266,41 @@ def write(request):
             reservation_id=reservation_obj,
         )
 
-        return redirect("recruitment:recruitment_detail", pk=recruit.pk)
+    files = request.FILES.getlist("files")
 
-    # 3) GET 요청이면 작성 폼 + 내 예약 목록 넘기기
-    context = {
-        "my_reservations": my_reservations,
-        "my_reservation_slots": my_reservation_slots,
-    }
-    return render(request, "recruitment_write.html", context)
+    for f in files:
+        original_name = f.name                      # 원본 파일명
+        ext = os.path.splitext(original_name)[1]    # 확장자 (.jpg, .pdf 등)
+        encoded_name = f"{uuid.uuid4().hex}{ext}"   # 서버에 저장할 랜덤 이름
+
+        # 실제 저장 경로(원하는 폴더로 바꿔도 됨)
+        save_dir = "upload/recruit"                 # MEDIA_ROOT 기준 하위 폴더
+        save_path = os.path.join(save_dir, encoded_name)
+        full_path = os.path.join(settings.MEDIA_ROOT, save_path)
+
+        # 디렉터리 없으면 생성
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+        # 파일 실제 저장
+        with open(full_path, "wb+") as dest:
+            for chunk in f.chunks():
+                dest.write(chunk)
+
+        # add_info 테이블에 메타데이터 저장
+        AddInfo.objects.create(
+            community_id = recruit,     # FK 는 인스턴스로 넘기는 게 정석
+            path         = save_path,   # 나중에 MEDIA_URL + path 로 접근
+            file_name    = original_name,
+            encoded_name = encoded_name,
+            # reg_date 는 model 에 auto_now_add=True 면 안 넣어도 됨
+        )
+
+        # 3) GET 요청이면 작성 폼 + 내 예약 목록 넘기기
+        context = {
+            "my_reservations": my_reservations,
+            "my_reservation_slots": my_reservation_slots,
+        }
+    return render(request, "recruitment/recruitment_write.html", context)
 
 
 
@@ -417,7 +447,7 @@ def update(request, pk):
         "my_reservation_slots": my_reservation_slots,
         "current_reservation_id": current_reservation_id,  # 🔥 템플릿에서 사용할 값
     }
-    return render(request, "recruitment_update.html", context)
+    return render(request, "recruitment/recruitment_update.html", context)
 
 
 # recruitment/views.py
@@ -436,9 +466,10 @@ def detail(request, pk):
     login_member = Member.objects.filter(user_id=user_id).first()
 
     # 관리자 여부
-    manager_id = request.session.get("manager_id")
-    is_manager = (manager_id == 1)
-
+    
+    is_manager_user = is_manager(request)
+    
+    
     # 모집글 조회 (삭제되지 않은 것만)
     try:
         recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
@@ -477,9 +508,18 @@ def detail(request, pk):
     # 작성자 여부
     is_owner = (login_member is not None and recruit.member_id == login_member)
 
+    # 로그인한 유저가 이 모집글에 참여했는지 체크
+    my_join = JoinStat.objects.filter(
+        community_id=recruit,
+        member_id=login_member
+    ).first()
+
+    is_applied = (my_join is not None)
+
+
     # 상세 참여 리스트 (작성자 / 관리자만)
     join_list = []
-    if is_owner or is_manager:
+    if is_owner or is_manager_user:
         join_list = (
             joins_qs
             .select_related("member_id")
@@ -535,7 +575,7 @@ def detail(request, pk):
     context = {
         "recruit": recruit,
         "is_owner": is_owner,
-        "is_manager": is_manager,
+        "is_manager": is_manager_user,
         "join_list": join_list,
         "approved_count": approved_count,
         "capacity": capacity,
@@ -544,9 +584,11 @@ def detail(request, pk):
         "waiting_rejected_count": waiting_count,
         # 👇 이걸로 detail 화면에서 예약 시간대 뿌리면 됨
         "reservation_slots": reservation_slots,
+        "is_applied":is_applied,
+        "my_join":my_join,
     }
 
-    return render(request, "recruitment_detail.html", context)
+    return render(request, "recruitment/recruitment_detail.html", context)
 
 
 

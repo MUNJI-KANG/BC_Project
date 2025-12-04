@@ -12,13 +12,17 @@ import json
 from member.models import Member
 from facility.models import FacilityInfo
 from reservation.models import Reservation, TimeSlot
+from common.utils import check_login
 
 
 def info(request):
+    # 로그인 체크
+    res = check_login(request)
+    if res:
+        return res
+
     login_id = request.session.get("user_id")
     
-    if not login_id:
-        return redirect(f'/login?next={reverse("member:info")}')
 
     try:
         # DB에서 최신 회원 정보 가져오기 (캐시 무시)
@@ -45,7 +49,7 @@ def info(request):
             "addr3": user.addr3 if hasattr(user, "addr3") else "",
         }
 
-        return render(request, "info.html", context)
+        return render(request, "member/info.html", context)
     except Member.DoesNotExist:
         messages.error(request, "회원 정보를 찾을 수 없습니다.")
         return redirect('/login/')
@@ -53,10 +57,13 @@ def info(request):
 PHONE_PATTERN = re.compile(r'^\d{3}-\d{4}-\d{4}$')
 
 def edit(request):
+
     # 로그인 체크
+    res = check_login(request)
+    if res:
+        return res
+    
     login_id = request.session.get("user_id")
-    if not login_id:
-        return redirect(f'/login?next={reverse("member:edit")}')
     
     if request.method == "POST":
         # AJAX 요청인지 확인
@@ -208,12 +215,15 @@ def edit(request):
         "addr3": user.addr3 if hasattr(user, "addr3") else "",
     }
     
-    return render(request, 'info_edit.html', context)
+    return render(request, 'member/info_edit.html', context)
 def edit_password(request):
     # 로그인 체크
+    res = check_login(request)
+    if res:
+        return res
+
     login_id = request.session.get("user_id")
-    if not login_id:
-        return redirect(f'/login?next={reverse("member:password")}')
+
     
     # AJAX 요청인지 확인
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -235,7 +245,7 @@ def edit_password(request):
                     }, status=400)
                 else:
                     messages.error(request, "현재 비밀번호가 일치하지 않습니다.")
-                    return render(request, 'info_edit_password.html')
+                    return render(request, 'member/info_edit_password.html')
             
             # 새 비밀번호와 확인 비밀번호 일치 확인
             if new_pw != new_pw2:
@@ -246,7 +256,7 @@ def edit_password(request):
                     }, status=400)
                 else:
                     messages.error(request, "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.")
-                    return render(request, 'info_edit_password.html')
+                    return render(request, 'member/info_edit_password.html')
             
             # 비밀번호 형식 검증 (signup과 동일한 패턴)
             PASSWORD_PATTERN = re.compile(
@@ -261,7 +271,7 @@ def edit_password(request):
                     }, status=400)
                 else:
                     messages.error(request, "비밀번호 형식이 올바르지 않습니다.")
-                    return render(request, 'info_edit_password.html')
+                    return render(request, 'member/info_edit_password.html')
             
             # 현재 비밀번호와 새 비밀번호가 같은지 확인
             if check_password(new_pw, user.password):
@@ -272,7 +282,7 @@ def edit_password(request):
                     }, status=400)
                 else:
                     messages.error(request, "새 비밀번호는 현재 비밀번호와 다르게 설정해주세요.")
-                    return render(request, 'info_edit_password.html')
+                    return render(request, 'member/info_edit_password.html')
             
             # 비밀번호 변경
             old_password_hash = user.password
@@ -321,10 +331,10 @@ def edit_password(request):
                 }, status=500)
             else:
                 messages.error(request, "비밀번호 변경 중 오류가 발생했습니다.")
-                return render(request, 'info_edit_password.html')
+                return render(request, 'member/info_edit_password.html')
     
     # GET 요청
-    return render(request, 'info_edit_password.html')
+    return render(request, 'member/info_edit_password.html')
 
 
 
@@ -333,9 +343,12 @@ def edit_password(request):
 
 # ---------- 마이 페이지 예약 ----------------------
 def myreservation(request):
+
+    res = check_login(request)
+    if res:
+        return res
+
     login_id = request.session.get("user_id")
-    if not login_id:
-        return redirect(f'/login?next={reverse("member:myreservation")}')
 
     try:
         user = Member.objects.get(user_id=login_id)
@@ -401,7 +414,7 @@ def myreservation(request):
 
     block_range = range(block_start, block_end + 1)
 
-    return render(request, "myreservation.html", {
+    return render(request, "member/myreservation.html", {
         "page_obj": page_obj,
         "paginator": paginator,
         "per_page": per_page,
@@ -413,6 +426,10 @@ def myreservation(request):
 
 @csrf_exempt
 def cancel_timeslot(request, reservation_num):
+    res = check_login(request)
+    if res:
+        return res
+    
     data = json.loads(request.body)
     slots = data.get("slots", [])
 
@@ -441,6 +458,9 @@ def cancel_timeslot(request, reservation_num):
 # 예약 상세페이지 
 
 def myreservation_detail(request, reservation_num):
+    res = check_login(request)
+    if res:
+        return res
     try:
         reservation = Reservation.objects.get(reservation_num=reservation_num)
 
@@ -478,7 +498,7 @@ def myreservation_detail(request, reservation_num):
             "all_cancelled": all_cancelled,   # ← 상세페이지에서 버튼 숨기기 용도
         }
 
-        return render(request, "myreservation_detail.html", context)
+        return render(request, "member/myreservation_detail.html", context)
 
     except Reservation.DoesNotExist:
         messages.error(request, "예약을 찾을 수 없습니다.")
@@ -487,6 +507,10 @@ def myreservation_detail(request, reservation_num):
 
 @csrf_exempt
 def reservation_cancel(request, reservation_num):
+    res = check_login(request)
+    if res:
+        return res
+    
     if request.method != "POST":
         return JsonResponse({"result": "error", "msg": "잘못된 요청"})
 
@@ -509,9 +533,11 @@ def reservation_cancel(request, reservation_num):
 
 def myrecruitment(request):
     # 로그인 체크
+    res = check_login(request)
+    if res:
+        return res
+
     login_id = request.session.get("user_id")
-    if not login_id:
-        return redirect(f'/login?next={reverse("member:myrecruitment")}')
     
     try:
         # 로그인한 사용자 정보 가져오기
@@ -573,16 +599,17 @@ def myrecruitment(request):
         "block_end": block_end,
     }
     
-    return render(request, 'myrecruitment.html', context)
+    return render(request, 'member/myrecruitment.html', context)
 
 
 
 
 def myarticle(request):
+    res = check_login(request)
+    if res:
+        return res
+
     login_id = request.session.get("user_id")
-    if not login_id:
-        return redirect(f'/login?next={reverse("member:myarticle")}')
-    
     try:
         user = Member.objects.get(user_id=login_id)
 
@@ -626,7 +653,7 @@ def myarticle(request):
 
     block_range = range(block_start, block_end + 1)
 
-    return render(request, 'myarticle.html', {
+    return render(request, 'member/myarticle.html', {
         "page_obj": page_obj,
         "paginator": paginator,
         "per_page": per_page,
@@ -645,9 +672,11 @@ def myarticle(request):
 
 def myjoin(request):
     # 로그인 체크
+    res = check_login(request)
+    if res:
+        return res
+
     login_id = request.session.get("user_id")
-    if not login_id:
-        return redirect(f'/login?next={reverse("member:myjoin")}')
     
     try:
         # 로그인한 사용자 정보 가져오기
@@ -710,7 +739,7 @@ def myjoin(request):
         "block_end": block_end,
     }
     
-    return render(request, 'myjoin.html', context)
+    return render(request, 'member/myjoin.html', context)
 
 
 @csrf_exempt
@@ -720,9 +749,11 @@ def delete_my_article(request):
         return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
     
     # 로그인 체크
+    res = check_login(request)
+    if res:
+        return res
+
     login_id = request.session.get("user_id")
-    if not login_id:
-        return JsonResponse({"status": "error", "msg": "로그인이 필요합니다."}, status=403)
     
     try:
         user = Member.objects.get(user_id=login_id)
@@ -771,9 +802,11 @@ def delete_my_community(request):
         return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
     
     # 로그인 체크
+    res = check_login(request)
+    if res:
+        return res
+
     login_id = request.session.get("user_id")
-    if not login_id:
-        return JsonResponse({"status": "error", "msg": "로그인이 필요합니다."}, status=403)
     
     try:
         user = Member.objects.get(user_id=login_id)

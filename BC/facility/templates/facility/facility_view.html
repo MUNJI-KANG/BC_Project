@@ -1,0 +1,257 @@
+{% extends 'common/base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'facility/css/facility_list.css' %}" />
+<link rel="stylesheet" href="{% static 'facility/css/facility_detail.css' %}" />
+{% endblock %}
+
+{% block script1 %}
+<!-- 카카오 지도 JS -->
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey={{ KAKAO_SCRIPT_KEY }}"></script>
+
+{% autoescape off %}
+<script>
+    var facility = {{ facility| safe }};
+
+</script>
+{% endautoescape %}
+{% endblock %}
+
+{% block title %}
+시설 상세보기 - 할래말래
+{% endblock %}
+
+{% block contents %}
+
+<!-- Hero 섹션 -->
+<div class="board-hero facility-hero">
+    <h2>시설안내</h2>
+</div>
+
+<div class="sub-container">
+    <div class="sub-content">
+        <section class="detail-top-wrapper">
+
+            <!-- 왼쪽 80% 이미지 -->
+            <section class="detail-image-wrap">
+                {% if facility.image_url %}
+                <img src="{{ facility.image_url }}" alt="{{ facility.name }}">
+                {% else %}
+                <img src="{% static 'common/img/no_image.png' %}" alt="사진 없음">
+                {% endif %}
+            </section>
+
+            <!-- 오른쪽 20% 정보 -->
+            <section class="detail-info-wrap">
+                <h3>{{ facility.name }}</h3>
+
+                <p>
+                {% if facility.files %}
+                <section class="detail-info-row">
+                    <b>첨부파일</b>
+                    <ul class="files-list">
+                        {% for file in facility.files %}
+                        <li class="file-item">
+                            <a href="{{ file.url }}" download class="file-link">
+                                <span class="file-name">{{ file.name }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+                {% endif %}
+                <section class="detail-info-row">
+                    <b>업종명 :</b> <span>{{ facility.fcob_nm }}</span>
+                </section>
+
+                <section class="detail-info-row">
+                    <b>주소 :</b> <span>{{ facility.address }}</span>
+                </section>
+
+                {% if facility.phone %}
+                <section class="detail-info-row">
+                    <b>전화번호 :</b> <span>{{ facility.phone }}</span>
+                </section>
+                {% endif %}
+
+                <section class="detail-info-row">
+                    <b>운영상태 :</b> <span>{{ facility.faci_stat_nm }}</span>
+                </section>
+
+                <section class="detail-info-row">
+                    <b>안전등급 :</b> <span>{{ facility.schk_tot_grd_nm }}</span>
+                </section>
+
+                <section class="detail-info-row">
+                    <b>예약가능 :</b>
+                    <span>
+                        {% if can_reserve %}
+                        가능
+                        {% else %}
+                        해당 시설에 문의해주세요
+                        {% endif %}
+                    </span>
+                </section>
+                </p>
+
+                <section class="detail-buttons">
+                    {% if can_reserve %}
+                    <a href="/reservation/{{ facility.id }}" class="btn-reserve" data-facility-id="{{ facility.id }}">
+                        예약하기
+                    </a>
+                    {% endif %}
+
+                    {% if can_recruit %}
+                    <a href="/recruitment/?search_type=facility&keyword={{ facility.name }}" class="btn-recruit">
+                        모집글가기
+                    </a>
+                    {% endif %}
+
+                    <a href="javascript:history.back();" class="back-btn">
+                        리스트로 돌아가기
+                    </a>
+
+                </section>
+            </section>
+
+        </section>
+        <!-- 지도 -->
+        <section class="map">
+            <div id="map" style="width:100%; height:400px; border-radius:10px;"></div>
+        </section>
+
+
+    </div>
+
+    <hr>
+
+    <!-- 댓글 섹션 -->
+    <section class="comment-section">
+        <h3 class="section-title">댓글 ({{ comments|length }})</h3>
+
+        <!-- 댓글 리스트 -->
+        <ul class="comment-list">
+            {% for comment in comments %}
+            <li class="comment-item {% if comment.is_deleted %}comment-deleted{% endif %}">
+                <div class="comment-meta">
+                    <span class="comment-writer {% if comment.is_admin %}admin-badge{% endif %}">
+                        {{ comment.author }}{% if comment.is_admin %} 👑{% endif %}
+                    </span>
+                    <span class="comment-date">
+                        {{ comment.reg_date|date:"Y-m-d H:i" }}
+                    </span>
+
+                    {% if is_manager and not comment.is_deleted %}
+                    <button type="button" class="comment-delete-btn" data-comment-id="{{ comment.comment_id }}">
+                        삭제
+                    </button>
+                    {% endif %}
+                </div>
+
+                <p class="comment-content">{{ comment.comment|linebreaksbr }}</p>
+            </li>
+            {% empty %}
+            <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
+            {% endfor %}
+        </ul>
+
+        <!-- 댓글 작성 폼 -->
+        <form method="post" action="{% url 'facility_comment' facility.id %}" class="comment-form">
+            {% csrf_token %}
+            <label for="comment" class="form-label">댓글 쓰기</label>
+            <textarea id="comment" name="content" class="form-textarea" rows="3" placeholder="댓글을 입력하세요"
+                required></textarea>
+            <div class="comment-btn-box">
+                <button type="submit" class="btn btn-submit">등록</button>
+            </div>
+        </form>
+    </section>
+</div>
+
+{% endblock %}
+
+{% block script3 %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        var container = document.getElementById("map");
+        var map = new kakao.maps.Map(container, {
+            center: new kakao.maps.LatLng(37.5665, 126.9780),
+            level: 7,
+            draggable: false,                    // 드래그 금지
+            scrollwheel: false,                  // 휠 확대/축소 금지
+            disableDoubleClickZoom: true,        // 더블클릭 확대 금지
+            keyboardShortcuts: false             // 키보드 이동 금지
+        });
+
+
+        var lat = parseFloat(facility.lat);
+        var lng = parseFloat(facility.lng);
+
+        // 좌표가 있는 경우만 지도 이동
+        if (!isNaN(lat) && !isNaN(lng)) {
+            var pos = new kakao.maps.LatLng(lat, lng);
+
+            var marker = new kakao.maps.Marker({
+                map: map,
+                position: pos
+            });
+
+            // 인포윈도우
+            var infowindow = new kakao.maps.InfoWindow({
+                content: `<div style="padding:5px;font-size:14px;">${facility.name}</div>`
+            });
+
+            infowindow.open(map, marker);
+
+            map.setCenter(pos);
+            map.setLevel(2);
+        } else {
+            console.warn("좌표 없음 → 기본 지도 위치로 표시됨.");
+        }
+
+        // 예약하기 버튼 클릭 시 로그인 체크
+        var btnReserve = document.querySelector('.btn-reserve');
+        if (btnReserve) {
+            btnReserve.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 로그인 상태 확인 (세션 체크)
+                // Django 템플릿에서 로그인 여부 확인
+                {% if not request.session.user_id %}
+                    // 비로그인 상태: Toast 표시 후 로그인 페이지로 이동
+                    showToast('로그인이 필요합니다.', 'error');
+                    setTimeout(function() {
+                        window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+                    }, 500);
+                {% else %}
+                    // 로그인 상태: 예약 페이지로 이동
+                    window.location.href = this.href;
+                {% endif %}
+            });
+        }
+
+        // 모집글가기 버튼 클릭 시 로그인 체크
+        var btnRecruit = document.querySelector('.btn-recruit');
+        if (btnRecruit) {
+            btnRecruit.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 로그인 상태 확인
+                {% if not request.session.user_id %}
+                    // 비로그인 상태: Toast 표시 후 로그인 페이지로 이동
+                    showToast('로그인이 필요합니다.', 'error');
+                    setTimeout(function() {
+                        window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+                    }, 500);
+                {% else %}
+                    // 로그인 상태: 모집글 페이지로 이동
+                    window.location.href = this.href;
+                {% endif %}
+            });
+        }
+
+    });
+</script>
+{% endblock %}

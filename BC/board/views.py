@@ -144,7 +144,7 @@ def notice(request):
         "pinned_posts": pinned_posts,
     }
     
-    return render(request, 'notice.html', context)
+    return render(request, 'board/notice.html', context)
 
 def event(request):
     # DB에서 이벤트 조회 (board_name='event')
@@ -274,7 +274,7 @@ def event(request):
         "pinned_posts": pinned_posts,
     }
     
-    return render(request, 'event.html', context)
+    return render(request, 'board/event.html', context)
 
 def post(request):
     # DB에서 게시글 조회
@@ -373,7 +373,7 @@ def post(request):
             "block_end": block_end,
         }
         
-        return render(request, 'post.html', context)
+        return render(request, 'board/post.html', context)
     
     # 더미 데이터 사용 (게시판이 없는 경우)
     article_order_map = {}  # 더미 데이터 사용 시에도 빈 딕셔너리
@@ -430,7 +430,7 @@ def post(request):
         "article_order_map": article_order_map,  # 누적 번호 매핑 (더미 데이터 시 빈 딕셔너리)
     }
     
-    return render(request, 'post.html', context)
+    return render(request, 'board/post.html', context)
 
 def post_write(request):
     # 로그인 체크
@@ -469,7 +469,7 @@ def post_write(request):
             
             if not title or not content:
                 messages.error(request, "제목과 내용을 입력해주세요.")
-                return render(request, 'post_write.html')
+                return render(request, 'board/post_write.html')
             
             article = Article.objects.create(
                 title=title,
@@ -499,9 +499,7 @@ def post_write(request):
             print(f"[ERROR] post_write 오류: {str(e)}")
             print(traceback.format_exc())
             messages.error(request, f"게시글 작성 중 오류가 발생했습니다: {str(e)}")
-            return render(request, 'post_write.html')
-    
-    return render(request, 'post_write.html')
+            return render(request, 'board/post_write.html')
 
 def notice_detail(request, article_id):
     print(f"[DEBUG] notice_detail 호출: article_id={article_id}")
@@ -611,7 +609,7 @@ def notice_detail(request, article_id):
         print(f"[DEBUG] notice_detail: article_id={article_id}, title={article_obj.title}")
         print(f"[DEBUG] contents 길이: {len(article_obj.contents) if article_obj.contents else 0}")
         
-        return render(request, 'board_detail.html', context)
+        return render(request, 'board/board_detail.html', context)
     except Board.DoesNotExist:
         import traceback
         print(f"[ERROR] notice_detail: Board.DoesNotExist - article_id={article_id}")
@@ -737,7 +735,7 @@ def event_detail(request, article_id):
             'is_deleted': is_deleted,
         }
         
-        return render(request, 'board_detail.html', context)
+        return render(request, 'board/board_detail.html', context)
     except Board.DoesNotExist:
         import traceback
         print(f"[ERROR] event_detail: Board.DoesNotExist - article_id={article_id}")
@@ -797,6 +795,7 @@ def post_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+            is_author = (comment_obj.member_id == article_obj.member_id)
             comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
             is_deleted = comment_obj.delete_date is not None
             # DB에 저장된 댓글 내용 그대로 사용 (이미 '관리자에 의해 삭제된 댓글입니다.'로 저장됨)
@@ -807,6 +806,7 @@ def post_detail(request, article_id):
                 'is_admin': comment_is_admin,
                 'reg_date': comment_obj.reg_date,
                 'is_deleted': is_deleted,
+                'is_author':is_author,
             })
         
         # 작성자 정보 안전하게 가져오기
@@ -858,7 +858,7 @@ def post_detail(request, article_id):
             'is_deleted': is_deleted,
         }
         
-        return render(request, 'board_detail.html', context)
+        return render(request, 'board/board_detail.html', context)
     except Board.DoesNotExist:
         messages.error(request, "수다떨래 게시판을 찾을 수 없습니다.")
         return redirect('/board/post/')
@@ -1017,4 +1017,4 @@ def delete_comment(request):
         return JsonResponse({'status': 'error', 'msg': f'삭제 중 오류가 발생했습니다: {str(e)}'}, status=500)
 
 def faq(request):
-    return render(request, 'faq.html')
+    return render(request, 'board/faq.html')

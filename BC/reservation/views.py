@@ -10,6 +10,7 @@ from facility.models import FacilityInfo
 from reservation.models import Sports, Reservation
 from member.models import Member
 from .models import TimeSlot
+from common.utils import check_login
 
 
 # TODO: DB 연결 이후 FacilityInfo 모델에서 시설 정보 조회
@@ -112,10 +113,15 @@ def reservation_list(request):
         "sport" : sport
     }
 
-    return render(request, "reservation_list.html", context)
+    return render(request, "reservation/reservation_list.html", context)
 
 
 def reservation_detail(request, facility_id):
+    # 로그인 체크 (서버 사이드에서 처리)
+    redirect_response = check_login(request)
+    if redirect_response:
+        return redirect_response
+    
     facility = get_object_or_404(FacilityInfo, facility_id=facility_id)
 
     # delete_yn = 0 인 시간만 예약 불가 처리
@@ -132,7 +138,7 @@ def reservation_detail(request, facility_id):
             "end": t["end_time"]
         })
 
-    return render(request, "reservation_detail.html", {
+    return render(request, "reservation/reservation_detail.html", {
         "facility": facility,
         "reservation_time_json": json.dumps(facility.reservation_time),
         "reserved_json": json.dumps(reserved_list)

@@ -1,0 +1,130 @@
+{% extends 'common/base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'member/css/mypage_base.css' %}">
+<link rel="stylesheet" href="{% static 'member/css/mypage.css' %}">
+
+<style>
+/* === 테이블 컬럼 재정의 ( !important 없이 자연스럽게 override ) === */
+.mypage-board-header {
+    display: grid;
+    grid-template-columns: 60px 200px 150px 160px 120px;
+}
+
+.mypage-board-row {
+    display: grid;
+    grid-template-columns: 60px 200px 150px 160px 120px;
+}
+
+/* 취소된 예약 흐리게 */
+.cancel-row {
+    opacity: 0.6;
+}
+
+/* 예약번호 컬럼 텍스트 */
+.col-resnum {
+    font-size: 14px;
+    color: #555;
+}
+
+.partial-text {
+    color: #f39c12;
+    font-weight: 700;
+}
+.active-text {
+    color: #2ecc71;
+    font-weight: 700;
+}
+.cancel-text {
+    color: #e74c3c;
+    font-weight: 700;
+}
+</style>
+{% endblock %}
+
+{% block contents %}
+
+<div class="register-container">
+  <div class="register-wrapper">
+
+    <div class="register-brand">
+      <h2>My Page</h2>
+      <ul class="register-brand-features">
+        <li><a href="{% url 'member:info' %}">내 정보</a></li>
+        <li><a href="{% url 'member:myreservation' %}" class="active">내 예약 내역</a></li>
+        <li><a href="{% url 'member:myrecruitment' %}">내 모집글</a></li>
+        <li><a href="{% url 'member:myarticle' %}">내 게시글</a></li>
+        <li><a href="{% url 'member:myjoin' %}">내 참여 내역</a></li>
+      </ul>
+    </div>
+
+<main class="main">
+    <h2>나의 시설예약</h2>
+
+<section class="mypage-board">
+
+  <div class="mypage-board-top">
+    <div class="mypage-board-top-left">
+      <select class="mypage-select" name="order">
+        <option value="recent">최신순</option>
+        <option value="title">시설명순</option>
+        <option value="views">예약일순</option>
+      </select>
+    </div>
+    <div class="mypage-board-top-right">
+      <select class="mypage-select" name="page_size">
+        <option value="15">15개</option>
+        <option value="30">30개</option>
+        <option value="50">50개</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 리스트 -->
+  <div class="mypage-board-list">
+
+    <div class="mypage-board-header">
+        <span>번호</span>
+        <span>시설명</span>
+        <span>예약일자</span>
+        <span>예약번호</span>
+        <span>상태</span>
+    </div>
+
+    {% for reservation in page_obj %}
+    <a href="{% url 'member:myreservation_detail' reservation.reservation_num %}"
+       class="mypage-board-row {% if reservation.is_cancelled %}cancel-row{% endif %}">
+
+        <span>{{ forloop.counter0|add:page_obj.start_index }}</span>
+
+        <span>{{ reservation.facility_name }}</span>
+
+        <span>{{ reservation.reservation_date }}</span>
+
+        <span class="col-resnum">{{ reservation.reservation_num }}</span>
+
+        <span class="col-status">
+            {% if reservation.status == "cancelled" %}
+                <span class="cancel-text">취소됨</span>
+            {% elif reservation.status == "partial" %}
+                <span class="partial-text">부분취소</span>
+            {% else %}
+                <span class="active-text">예약중</span>
+            {% endif %}
+        </span>
+
+    </a>
+
+    {% empty %}
+      <div class="mypage-board-empty">예약 내역이 없습니다.</div>
+    {% endfor %}
+
+  </div>
+
+</section>
+
+</main>
+</div>
+</div>
+
+{% endblock %}
