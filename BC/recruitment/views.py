@@ -328,7 +328,7 @@ def detail(request, pk):
             delete_date__isnull=True
         )
     except Community.DoesNotExist:
-        raise Http404("존재하지 않는 모집글입니다.")
+        raise Http404("관리자에 의해 삭제된 모집글입니다.")
 
     # 조회수 증가
     recruit.view_cnt += 1
