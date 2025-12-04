@@ -131,6 +131,128 @@ def recruitment_list(request):
 
 # recruitment/views.py
 
+# def write(request):
+#     # 0) 세션에 로그인 정보 있는지 확인
+#     user_id = request.session.get("user_id")
+
+#     if not user_id:
+#         messages.error(request, "로그인이 필요합니다.")
+#         return redirect("/login/")
+
+#     # 1) 세션의 user_id 로 Member 객체 가져오기
+#     try:
+#         member = Member.objects.get(user_id=user_id)
+#         # 🔹 이 회원의 예약 목록 (삭제되지 않은 것만)
+#         my_reservations = (
+#             Reservation.objects
+#             .filter(member=member, delete_date__isnull=True)
+#             .order_by("-reg_date")
+#         )
+        
+#         my_slots = (
+#             TimeSlot.objects
+#             .filter(
+#                 reservation_id__member=member,
+#                 reservation_id__delete_date__isnull=True,
+#                 delete_yn = 0,
+#             )
+#             .select_related("reservation_id", "facility_id")
+#             .order_by("reservation_id", "date", "start_time")
+#         )
+
+#         grouped_slots = OrderedDict()
+
+#         for slot in my_slots:
+#             rid = slot.reservation_id_id  # 또는 slot.reservation_id.pk
+
+#             if rid not in grouped_slots:
+#                 grouped_slots[rid] = {
+#                     "reservation": slot.reservation_id,
+#                     "facility": slot.facility_id,
+#                     "times": []
+#                 }
+
+#             grouped_slots[rid]["times"].append({
+#                 "t_id": slot.t_id,
+#                 "date": slot.date,
+#                 "start_time": slot.start_time,
+#                 "end_time": slot.end_time,
+#             })
+
+#         my_reservation_slots = list(grouped_slots.values())
+        
+#     except Member.DoesNotExist:
+#         request.session.flush()
+#         messages.error(request, "다시 로그인 해주세요.")
+#         return redirect("/login/")
+
+
+
+#     # 2) POST 처리
+#     if request.method == "POST":
+#         print("POST data:", request.POST)
+#         title = request.POST.get("title")
+#         region = request.POST.get("sido")
+#         region2 = request.POST.get("sigungu")
+#         sport_type = request.POST.get("sport")
+#         num_member = request.POST.get("personnel")
+#         contents = request.POST.get("content")
+#         chat_url = request.POST.get("openchat_url") or None
+
+#         reservation_id = request.POST.get("reservation_choice")
+#         if reservation_id:
+
+#             time_slot = TimeSlot.objects.select_related("facility_id").get(
+#                 reservation_id_id=reservation_id,  # 컬럼이 reservation_id_id 이니까 이렇게
+#                 delete_yn=0,                       # 필요하면 조건 추가
+#             )
+#             facility = time_slot.facility_id  # FK 필드 이름에 맞게 (예: facility, facility_id)
+
+#             region = facility.sido        # facility_info.sido
+#             region2 = facility.sigugun    # facility_info.sigungu
+            
+#         # 시설(예약) 선택 값
+#         reservation_id = request.POST.get("reservation_choice")
+
+#         facility = "미정"  # 기본값
+#         if reservation_id:
+#             slot = (
+#                 TimeSlot.objects
+#                 .select_related("facility_id", "reservation_id")
+#                 .filter(
+#                     reservation_id_id=reservation_id,
+#                     reservation_id__delete_date__isnull=True,
+#                 )
+#                 .first()
+#             )
+#             if slot:
+#                 facility = slot.facility_id.faci_nm
+
+
+
+
+#         recruit = Community.objects.create(
+#             title=title,
+#             region=region,
+#             region2=region2,
+#             sport_type=sport_type,
+#             num_member=num_member,
+#             facility=facility,
+#             contents=contents,
+#             chat_url=chat_url,
+#             member_id=member,
+#         )
+
+#         return redirect("recruitment:recruitment_detail", pk=recruit.pk)
+
+#     # 3) GET 요청이면 작성 폼 + 내 예약 목록 넘기기
+#     context = {
+#         "my_reservations": my_reservations,
+#         # "my_timeslots": my_timeslots,
+#         "my_reservation_slots": my_reservation_slots,
+#     }
+#     return render(request, "recruitment_write.html", context)
+
 def write(request):
     # 0) 세션에 로그인 정보 있는지 확인
     user_id = request.session.get("user_id")
@@ -142,51 +264,66 @@ def write(request):
     # 1) 세션의 user_id 로 Member 객체 가져오기
     try:
         member = Member.objects.get(user_id=user_id)
-        # 🔹 이 회원의 예약 목록 (삭제되지 않은 것만)
-        my_reservations = (
-            Reservation.objects
-            .filter(member=member, delete_date__isnull=True)
-            .order_by("-reg_date")
-        )
-        
-        my_slots = (
-            TimeSlot.objects
-            .filter(
-                reservation_id__member=member,
-                reservation_id__delete_date__isnull=True,
-                delete_yn = 0,
-            )
-            .select_related("reservation_id", "facility_id")
-            .order_by("reservation_id", "date", "start_time")
-        )
-
-        grouped_slots = OrderedDict()
-
-        for slot in my_slots:
-            rid = slot.reservation_id_id  # 또는 slot.reservation_id.pk
-
-            if rid not in grouped_slots:
-                grouped_slots[rid] = {
-                    "reservation": slot.reservation_id,
-                    "facility": slot.facility_id,
-                    "times": []
-                }
-
-            grouped_slots[rid]["times"].append({
-                "t_id": slot.t_id,
-                "date": slot.date,
-                "start_time": slot.start_time,
-                "end_time": slot.end_time,
-            })
-
-        my_reservation_slots = list(grouped_slots.values())
-        
     except Member.DoesNotExist:
         request.session.flush()
         messages.error(request, "다시 로그인 해주세요.")
         return redirect("/login/")
 
+    # ✅ 이 회원이 이미 모집글에 사용한 reservation_id 목록
+    used_reservation_ids = (
+        Community.objects
+        .filter(
+            member_id=member,
+            delete_date__isnull=True,
+        )
+        .exclude(reservation_id__isnull=True)
+        .values_list("reservation_id", flat=True)
+    )
 
+    # 🔹 이 회원의 "아직 모집글에 쓰지 않은" 예약 목록
+    my_reservations = (
+        Reservation.objects
+        .filter(
+            member=member,
+            delete_date__isnull=True,
+        )
+        .exclude(pk__in=used_reservation_ids)
+        .order_by("-reg_date")
+    )
+
+    # 🔹 그 예약들에 속한 타임슬롯 (delete_yn = 0) + 이미 사용한 reservation 제외
+    my_slots = (
+        TimeSlot.objects
+        .filter(
+            reservation_id__member=member,
+            reservation_id__delete_date__isnull=True,
+            delete_yn=0,
+        )
+        .exclude(reservation_id_id__in=used_reservation_ids)  # 🔥 이미 쓴 예약 제외
+        .select_related("reservation_id", "facility_id")
+        .order_by("reservation_id", "date", "start_time")
+    )
+
+    # 예약 단위로 그룹핑
+    grouped_slots = OrderedDict()
+    for slot in my_slots:
+        rid = slot.reservation_id_id  # 또는 slot.reservation_id.pk
+
+        if rid not in grouped_slots:
+            grouped_slots[rid] = {
+                "reservation": slot.reservation_id,
+                "facility": slot.facility_id,
+                "times": []
+            }
+
+        grouped_slots[rid]["times"].append({
+            "t_id": slot.t_id,
+            "date": slot.date,
+            "start_time": slot.start_time,
+            "end_time": slot.end_time,
+        })
+
+    my_reservation_slots = list(grouped_slots.values())
 
     # 2) POST 처리
     if request.method == "POST":
@@ -199,37 +336,40 @@ def write(request):
         contents = request.POST.get("content")
         chat_url = request.POST.get("openchat_url") or None
 
-        reservation_id = request.POST.get("reservation_choice")
-        if reservation_id:
+        reservation_id = (request.POST.get("reservation_choice") or "").strip()
 
-            time_slot = TimeSlot.objects.select_related("facility_id").get(
-                reservation_id_id=reservation_id,  # 컬럼이 reservation_id_id 이니까 이렇게
-                delete_yn=0,                       # 필요하면 조건 추가
+        facility_name = "미정"
+        reservation_obj = None
+
+        if reservation_id:
+            # 선택된 예약 객체
+            reservation_obj = (
+                Reservation.objects
+                .filter(
+                    pk=reservation_id,
+                    member=member,
+                    delete_date__isnull=True,
+                )
+                .first()
             )
-            facility = time_slot.facility_id  # FK 필드 이름에 맞게 (예: facility, facility_id)
 
-            region = facility.sido        # facility_info.sido
-            region2 = facility.sigugun    # facility_info.sigungu
-            
-        # 시설(예약) 선택 값
-        reservation_id = request.POST.get("reservation_choice")
-
-        facility = "미정"  # 기본값
-        if reservation_id:
+            # 선택된 예약 기준으로 시설/지역 세팅
             slot = (
                 TimeSlot.objects
                 .select_related("facility_id", "reservation_id")
                 .filter(
                     reservation_id_id=reservation_id,
+                    reservation_id__member=member,
                     reservation_id__delete_date__isnull=True,
+                    delete_yn=0,
                 )
                 .first()
             )
             if slot:
-                facility = slot.facility_id.faci_nm
-
-
-
+                facility = slot.facility_id
+                facility_name = facility.faci_nm
+                region = facility.sido
+                region2 = facility.sigugun
 
         recruit = Community.objects.create(
             title=title,
@@ -237,10 +377,12 @@ def write(request):
             region2=region2,
             sport_type=sport_type,
             num_member=num_member,
-            facility=facility,
+            facility=facility_name,
             contents=contents,
             chat_url=chat_url,
             member_id=member,
+            # 🔥 여기: Community 모델의 FK 이름이 "reservation_id"
+            reservation_id=reservation_obj,
         )
 
         return redirect("recruitment:recruitment_detail", pk=recruit.pk)
@@ -248,10 +390,10 @@ def write(request):
     # 3) GET 요청이면 작성 폼 + 내 예약 목록 넘기기
     context = {
         "my_reservations": my_reservations,
-        # "my_timeslots": my_timeslots,
         "my_reservation_slots": my_reservation_slots,
     }
     return render(request, "recruitment_write.html", context)
+
 
 
 
@@ -271,7 +413,7 @@ def write(request):
 #         messages.error(request, "다시 로그인 해주세요.")
 #         return redirect("/login/")
 
-#     # 2) 수정할 모집글 가져오기  🔻 여기만 수정
+#     # 2) 수정할 모집글 가져오기
 #     try:
 #         community = Community.objects.get(
 #             pk=pk,
@@ -286,12 +428,92 @@ def write(request):
 #         messages.error(request, "본인이 작성한 글만 수정할 수 있습니다.")
 #         return redirect("recruitment:recruitment_detail", pk=pk)
 
+#     # ✅ 이 모집글의 지역(sido, sigungu)에 맞는 "내 예약/슬롯"만 가져오기
+#     #    - community.region  : 시/도
+#     #    - community.region2 : 구/군
+#     # write() 함수 로직 + 지역 필터 추가
+
+#     # 이 회원의 예약된 타임슬롯 (해당 지역만)
+#     my_slots = (
+#         TimeSlot.objects
+#         .filter(
+#             reservation_id__member=member,               # 내 예약
+#             reservation_id__delete_date__isnull=True,    # 예약 soft delete 제외
+#             delete_yn=0,                                 # 타임슬롯 논리삭제 제외
+#             facility_id__sido=community.region,          # 시/도 일치
+#             facility_id__sigugun=community.region2,      # 구/군 일치
+#         )
+#         .select_related("reservation_id", "facility_id")
+#         .order_by("reservation_id", "date", "start_time")
+#     )
+
+#     # 이 슬롯들에 해당하는 예약만 추려서 예약 목록 구성
+#     reservation_ids = {slot.reservation_id_id for slot in my_slots}
+
+#     my_reservations = (
+#         Reservation.objects
+#         .filter(
+#             member=member,
+#             delete_date__isnull=True,
+#             pk__in=reservation_ids,   # 위에서 모은 예약들만
+#         )
+#         .order_by("-reg_date")
+#     )
+
+#     # write()와 동일한 grouped 구조 만들기
+#     grouped_slots = OrderedDict()
+
+#     for slot in my_slots:
+#         rid = slot.reservation_id_id  # 또는 slot.reservation_id.pk
+
+#         if rid not in grouped_slots:
+#             grouped_slots[rid] = {
+#                 "reservation": slot.reservation_id,
+#                 "facility": slot.facility_id,
+#                 "times": []
+#             }
+
+#         grouped_slots[rid]["times"].append({
+#             "t_id": slot.t_id,
+#             "date": slot.date,
+#             "start_time": slot.start_time,
+#             "end_time": slot.end_time,
+#         })
+
+#     my_reservation_slots = list(grouped_slots.values())
+
 #     # 4) POST: 실제 수정 처리
 #     if request.method == "POST":
 #         contents = request.POST.get("content")
 #         community.contents = contents
-
 #         community.update_date = timezone.now()
+        
+        
+#         # ✅ 예약 선택값으로 facility(faci_nm) 갱신
+#         reservation_id = (request.POST.get("reservation_choice") or "").strip()
+#         # 기본은 기존 값 유지
+#         facility_name = community.facility
+
+#         if reservation_id:
+#             slot = (
+#                 TimeSlot.objects
+#                 .select_related("facility_id", "reservation_id")
+#                 .filter(
+#                     reservation_id_id=reservation_id,
+#                     reservation_id__member=member,
+#                     reservation_id__delete_date__isnull=True,
+#                     delete_yn=0,
+#                     facility_id__sido=community.region,
+#                     facility_id__sigugun=community.region2,
+#                 )
+#                 .first()
+#             )
+#             if slot:
+#                 # TimeSlot -> FacilityInfo -> faci_nm
+#                 facility_name = slot.facility_id.faci_nm
+
+#         community.facility = facility_name
+
 #         community.save()
 
 #         return redirect("recruitment:recruitment_detail", pk=community.pk)
@@ -300,9 +522,10 @@ def write(request):
 #     context = {
 #         "community": community,
 #         "recruit": community,
+#         "my_reservations": my_reservations,              # ✅ 지역 필터된 예약
+#         "my_reservation_slots": my_reservation_slots,    # ✅ 지역 필터된 슬롯 묶음
 #     }
 #     return render(request, "recruitment_update.html", context)
-
 
 
 def update(request, pk):
@@ -324,7 +547,7 @@ def update(request, pk):
     try:
         community = Community.objects.get(
             pk=pk,
-            delete_date__isnull=True,  # 삭제된 글은 아예 못 열게
+            delete_date__isnull=True,
         )
     except Community.DoesNotExist:
         messages.error(request, "삭제되었거나 존재하지 않는 모집글입니다.")
@@ -335,26 +558,24 @@ def update(request, pk):
         messages.error(request, "본인이 작성한 글만 수정할 수 있습니다.")
         return redirect("recruitment:recruitment_detail", pk=pk)
 
-    # ✅ 이 모집글의 지역(sido, sigungu)에 맞는 "내 예약/슬롯"만 가져오기
-    #    - community.region  : 시/도
-    #    - community.region2 : 구/군
-    # write() 함수 로직 + 지역 필터 추가
+    # 🔹 이 글에 지금 연결돼 있는 예약 PK (없으면 None)
+    current_reservation_id = community.reservation_id_id
 
-    # 이 회원의 예약된 타임슬롯 (해당 지역만)
+    # ✅ 이 모집글의 지역(sido, sigungu)에 맞는 "내 예약/슬롯"만 가져오기
     my_slots = (
         TimeSlot.objects
         .filter(
-            reservation_id__member=member,               # 내 예약
-            reservation_id__delete_date__isnull=True,    # 예약 soft delete 제외
-            delete_yn=0,                                 # 타임슬롯 논리삭제 제외
-            facility_id__sido=community.region,          # 시/도 일치
-            facility_id__sigugun=community.region2,      # 구/군 일치
+            reservation_id__member=member,
+            reservation_id__delete_date__isnull=True,
+            delete_yn=0,
+            facility_id__sido=community.region,
+            facility_id__sigugun=community.region2,
         )
         .select_related("reservation_id", "facility_id")
         .order_by("reservation_id", "date", "start_time")
     )
 
-    # 이 슬롯들에 해당하는 예약만 추려서 예약 목록 구성
+    # 이 슬롯들에 해당하는 예약만 추리기
     reservation_ids = {slot.reservation_id_id for slot in my_slots}
 
     my_reservations = (
@@ -362,16 +583,15 @@ def update(request, pk):
         .filter(
             member=member,
             delete_date__isnull=True,
-            pk__in=reservation_ids,   # 위에서 모은 예약들만
+            pk__in=reservation_ids,
         )
         .order_by("-reg_date")
     )
 
     # write()와 동일한 grouped 구조 만들기
     grouped_slots = OrderedDict()
-
     for slot in my_slots:
-        rid = slot.reservation_id_id  # 또는 slot.reservation_id.pk
+        rid = slot.reservation_id_id
 
         if rid not in grouped_slots:
             grouped_slots[rid] = {
@@ -394,10 +614,10 @@ def update(request, pk):
         contents = request.POST.get("content")
         community.contents = contents
         community.update_date = timezone.now()
-        
-        
-        # ✅ 예약 선택값으로 facility(faci_nm) 갱신
+
+        # ✅ 예약 선택값
         reservation_id = (request.POST.get("reservation_choice") or "").strip()
+
         # 기본은 기존 값 유지
         facility_name = community.facility
 
@@ -410,17 +630,19 @@ def update(request, pk):
                     reservation_id__member=member,
                     reservation_id__delete_date__isnull=True,
                     delete_yn=0,
-                    facility_id__sido=community.region,
-                    facility_id__sigugun=community.region2,
                 )
                 .first()
             )
             if slot:
-                # TimeSlot -> FacilityInfo -> faci_nm
-                facility_name = slot.facility_id.faci_nm
+                facility = slot.facility_id
+                facility_name = facility.faci_nm
+                # 지역도 그 예약 기준으로 맞추고 싶으면
+                community.region = facility.sido
+                community.region2 = facility.sigugun
+                # 🔥 예약도 변경
+                community.reservation_id = slot.reservation_id
 
         community.facility = facility_name
-
         community.save()
 
         return redirect("recruitment:recruitment_detail", pk=community.pk)
@@ -429,13 +651,23 @@ def update(request, pk):
     context = {
         "community": community,
         "recruit": community,
-        "my_reservations": my_reservations,              # ✅ 지역 필터된 예약
-        "my_reservation_slots": my_reservation_slots,    # ✅ 지역 필터된 슬롯 묶음
+        "my_reservations": my_reservations,
+        "my_reservation_slots": my_reservation_slots,
+        "current_reservation_id": current_reservation_id,  # 🔥 템플릿에서 사용할 값
     }
     return render(request, "recruitment_update.html", context)
 
 
+
+
+
+
+
+
+
+
 # recruitment/views.py
+
 
 
 
@@ -450,16 +682,14 @@ def detail(request, pk):
     login_member = Member.objects.filter(user_id=user_id).first()
 
     # 관리자 여부
-    is_manager_user = is_manager(request)
+    manager_id = request.session.get("manager_id")
+    is_manager = (manager_id == 1)
 
-    # 모집글 조회
+    # 모집글 조회 (삭제되지 않은 것만)
     try:
-        recruit = Community.objects.get(
-            pk=pk,
-            delete_date__isnull=True
-        )
+        recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
     except Community.DoesNotExist:
-        raise Http404("관리자에 의해 삭제된 모집글입니다.")
+        raise Http404("존재하지 않는 모집글입니다.")
 
     # 조회수 증가
     recruit.view_cnt += 1
@@ -467,38 +697,33 @@ def detail(request, pk):
 
     # 참여자 목록
     joins_qs = JoinStat.objects.filter(community_id=recruit)
-    waiting_count= joins_qs.count()
-    # 승인된 인원만 count
+    waiting_count = joins_qs.count()
     approved_count = joins_qs.filter(join_status=1).count()
     capacity = recruit.num_member or 0
 
     # -------------------------
-    # 🔥 자동 마감 처리 로직 (핵심)
+    # 자동 마감 처리
     # -------------------------
     end_status, created = EndStatus.objects.get_or_create(
         community=recruit,
         defaults={
             "end_set_date": timezone.now().date(),
             "end_stat": 0,
-        }
+        },
     )
 
-    # 승인된 인원이 정원 이상이면 자동 마감
     if approved_count >= capacity and capacity > 0:
-        if end_status.end_stat != 1:  
+        if end_status.end_stat != 1:
             end_status.end_stat = 1
             end_status.end_date = timezone.now().date()
             end_status.save()
 
-    # -------------------------
-    # 최종 마감 여부
-    # -------------------------
     is_closed = (end_status.end_stat == 1)
 
-    # 소유자 여부
-    is_owner = (login_member and recruit.member_id == login_member)
+    # 작성자 여부
+    is_owner = (login_member is not None and recruit.member_id == login_member)
 
-    # 상세 참여 리스트 (owner/관리자만)
+    # 상세 참여 리스트 (작성자 / 관리자만)
     join_list = []
     if is_owner or is_manager:
         join_list = (
@@ -507,28 +732,67 @@ def detail(request, pk):
             .order_by("join_status", "member_id__user_id")
         )
 
-    comments = Comment.objects.filter(
-        community_id=recruit,
-        delete_date__isnull=True
-    ).order_by("reg_date")
+    # 댓글
+    comments = (
+        Comment.objects
+        .filter(community_id=recruit, delete_date__isnull=True)
+        .order_by("reg_date")
+    )
 
+    # -----------------------------------
+    # ✅ 이 모집글의 reservation_id 기준 타임슬롯
+    #    - Community.reservation_id 가 있을 때만
+    #    - TimeSlot.delete_yn = 0, 예약 soft delete 제외
+    # -----------------------------------
+    reservation_slots = []
 
+    reservation_obj = recruit.reservation_id  # FK 객체 또는 None
+    if reservation_obj is not None:
+        slots_qs = (
+            TimeSlot.objects
+            .filter(
+                reservation_id=reservation_obj,
+                delete_yn=0,
+                reservation_id__delete_date__isnull=True,
+            )
+            .select_related("reservation_id", "facility_id")
+            .order_by("date", "start_time")
+        )
+
+        if slots_qs:
+            facility = slots_qs[0].facility_id  # 그 예약의 시설 (모든 슬롯이 동일 시설일 거라고 가정)
+            grouped = {
+                "reservation": reservation_obj,
+                "facility": facility,
+                "times": [],
+            }
+
+            for slot in slots_qs:
+                grouped["times"].append({
+                    "t_id": slot.t_id,
+                    "date": slot.date,
+                    "start_time": slot.start_time,
+                    "end_time": slot.end_time,
+                })
+
+            # detail 템플릿에서 쓰기 쉽게 리스트 형태로 전달
+            reservation_slots = [grouped]
 
     context = {
         "recruit": recruit,
         "is_owner": is_owner,
-        "is_manager": is_manager_user,
+        "is_manager": is_manager,
         "join_list": join_list,
         "approved_count": approved_count,
         "capacity": capacity,
         "is_closed": is_closed,
         "comments": comments,
-        "waiting_rejected_count":waiting_count,
+        "waiting_rejected_count": waiting_count,
+        # 👇 이걸로 detail 화면에서 예약 시간대 뿌리면 됨
+        "reservation_slots": reservation_slots,
     }
 
     return render(request, "recruitment_detail.html", context)
-
-
 
 
 

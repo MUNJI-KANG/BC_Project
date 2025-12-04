@@ -57,10 +57,33 @@
                 {% endif %}
             </span>
 
-            {% if recruit.facility != "미정" %}
-                <span class="detail-badge"># 시설 : {{ recruit.facility }}</span>
-            {% endif %}
+
+
+
+
+            {% if reservation_slots %}
+            <span class="detail-badge"># 시설 : {{ reservation_slots.0.facility.faci_nm }}</span>
+            <!-- <div>{{ reservation_slots.0.facility.faci_nm }}</div> -->
+            {% for grp in reservation_slots %}
+                <span class="detail-badge">
+
+                    <div class="detail-reservation">
+                        
+                        <div>
+                            <div>{{ grp.times.0.date }}
+                            {% for t in grp.times %} {{ t.start_time }} ~ {{ t.end_time }} {% endfor %}</div>
+                        </div>
+                    </div>
+                </span>
+            {% endfor %}
+            
+            {% else %}
+            <span class="detail-badge">예약된 시설이 없습니다.</span>
+            {% endif %}            
+
         </div>
+        
+       
 
 
 
@@ -131,11 +154,11 @@
                     </span>
                 {% endif %}
             {% endif %}
-
+            {% if is_owner %}
             <!-- 글 수정 / 삭제 (지금처럼 둘 다에게 권한 줄지, 작성자만 줄지는 필요하면 따로 조건 나눠도 됨) -->
             <a href="{% url 'recruitment:recruitment_update' recruit.community_id %}"
                class="detail-btn btn-edit">수정하기</a>
-        
+            {% endif %}
         {% else %}
             {% if is_deleted %}
                 <span class="detail-btn btn-join btn-join-closed">
