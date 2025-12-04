@@ -103,7 +103,7 @@
                 <ul>
                     {% for article in page_obj %}
                         <li class="facility-item">
-                            <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
+                            <span class="facility-order">{% if article.cumulative_number %}{{ article.cumulative_number }}{% else %}{{ forloop.counter0|add:page_obj.start_index }}{% endif %}</span>
                             <a href="/board/notice/{{ article.article_id }}/" class="facility-title">{{ article.title }} ({{ article.comment_count }})</a>
 
                             <span class="facility-author {% if article.member_id.member_id == 1 %}admin-badge{% endif %}">

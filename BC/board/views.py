@@ -22,6 +22,21 @@ def notice(request):
         now = timezone.now()
         category = get_category_by_type('notice')
         
+        # 카테고리 내 누적 번호 계산 (등록일 순서대로)
+        all_articles_for_order = (
+            Article.objects
+            .filter(
+                category_id=category,
+                delete_date__isnull=True
+            )
+            .order_by('reg_date')  # 등록일 오름차순 (가장 오래된 게시글이 1번)
+        )
+        
+        # 각 게시글에 누적 번호 부여
+        article_order_map = {}
+        for idx, article in enumerate(all_articles_for_order, start=1):
+            article_order_map[article.article_id] = idx
+        
         articles = (
             Article.objects
             .select_related('member_id', 'category_id')
@@ -78,6 +93,10 @@ def notice(request):
         paginator = Paginator(articles, per_page)
         page_obj = paginator.get_page(page)
         
+        # 각 게시글에 누적 번호 속성 추가
+        for article in page_obj:
+            article.cumulative_number = article_order_map.get(article.article_id, 0)
+        
         # 상단 고정 게시글 변환
         pinned_posts = []
         for article in pinned_articles:
@@ -98,6 +117,7 @@ def notice(request):
         articles = Article.objects.none()
         paginator = Paginator(articles, 15)
         page_obj = paginator.get_page(1)
+        article_order_map = {}  # 빈 딕셔너리
     
     # 페이지 기준 블록
     block_size = 5
@@ -131,6 +151,21 @@ def event(request):
     try:
         now = timezone.now()
         category = get_category_by_type('event')
+        
+        # 카테고리 내 누적 번호 계산 (등록일 순서대로)
+        all_articles_for_order = (
+            Article.objects
+            .filter(
+                category_id=category,
+                delete_date__isnull=True
+            )
+            .order_by('reg_date')  # 등록일 오름차순 (가장 오래된 게시글이 1번)
+        )
+        
+        # 각 게시글에 누적 번호 부여
+        article_order_map = {}
+        for idx, article in enumerate(all_articles_for_order, start=1):
+            article_order_map[article.article_id] = idx
         
         articles = (
             Article.objects
@@ -188,6 +223,10 @@ def event(request):
         paginator = Paginator(articles, per_page)
         page_obj = paginator.get_page(page)
         
+        # 각 게시글에 누적 번호 속성 추가
+        for article in page_obj:
+            article.cumulative_number = article_order_map.get(article.article_id, 0)
+        
         # 상단 고정 게시글 변환
         pinned_posts = []
         for article in pinned_articles:
@@ -208,6 +247,7 @@ def event(request):
         articles = Article.objects.none()
         paginator = Paginator(articles, 15)
         page_obj = paginator.get_page(1)
+        article_order_map = {}  # 빈 딕셔너리
     
     # 페이지 블록 계산
     block_size = 5
@@ -240,6 +280,22 @@ def post(request):
     # DB에서 게시글 조회
     try:
         category = get_category_by_type('post')
+        
+        # 카테고리 내 누적 번호 계산 (등록일 순서대로)
+        all_articles_for_order = (
+            Article.objects
+            .filter(
+                category_id=category,
+                delete_date__isnull=True
+            )
+            .order_by('reg_date')  # 등록일 오름차순 (가장 오래된 게시글이 1번)
+        )
+        
+        # 각 게시글에 누적 번호 부여
+        article_order_map = {}
+        for idx, article in enumerate(all_articles_for_order, start=1):
+            article_order_map[article.article_id] = idx
+        
         articles = (
             Article.objects
             .select_related('member_id', 'category_id')
@@ -259,6 +315,7 @@ def post(request):
         # 카테고리가 없으면 더미 데이터 사용
         articles = []
         dummy_list = get_post_dummy_list()
+        article_order_map = {}  # 빈 딕셔너리
     else:
         # 검색 기능
         keyword = request.GET.get("keyword", "")
@@ -290,6 +347,10 @@ def post(request):
         paginator = Paginator(articles, per_page)
         page_obj = paginator.get_page(page)
         
+        # 각 게시글에 누적 번호 속성 추가
+        for article in page_obj:
+            article.cumulative_number = article_order_map.get(article.article_id, 0)
+        
         # 페이지 기준 블록
         block_size = 5
         current_block = (page - 1) // block_size
@@ -315,6 +376,7 @@ def post(request):
         return render(request, 'post.html', context)
     
     # 더미 데이터 사용 (게시판이 없는 경우)
+    article_order_map = {}  # 더미 데이터 사용 시에도 빈 딕셔너리
     dummy_list = get_post_dummy_list()
     
     # 검색 기능
@@ -365,6 +427,7 @@ def post(request):
         "block_range": block_range,
         "block_start": block_start,
         "block_end": block_end,
+        "article_order_map": article_order_map,  # 누적 번호 매핑 (더미 데이터 시 빈 딕셔너리)
     }
     
     return render(request, 'post.html', context)
