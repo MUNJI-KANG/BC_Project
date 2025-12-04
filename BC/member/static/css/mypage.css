@@ -72,7 +72,7 @@
 /* myrecruitment 페이지 (날짜 없음) */
 .mypage-recruitment .mypage-board-header,
 .mypage-recruitment .mypage-board-row {
-    grid-template-columns: 60px 1fr 100px;  /* 번호 / 제목 / 조회수 */
+    grid-template-columns: 60px 1fr 120px 100px;  /* 번호 / 제목 / 날짜 / 조회수 */
 }
 
 /* 행 래퍼 (게시글 링크 + 삭제 버튼) */
@@ -331,6 +331,58 @@
     pointer-events: none;
 }
 
+.mypage-board-row.no-link {
+    display: grid;
+    grid-template-columns: 60px 1fr 120px 100px;  /* 번호 | 제목 | 날짜 | 조회수 */
+    align-items: center;
+    gap: 8px;
+    padding: 10px 4px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+}
+
+/* hover 시에도 링크처럼 underline 안 생기게 */
+.mypage-board-row.no-link:hover .col-title {
+    text-decoration: none;
+}
+
+/* 삭제된 글 제목 색상 약하게 */
+.deleted-title {
+    color: #999;
+}
+
+/* 삭제된 행 hover 효과는 약하게 유지 */
+.deleted-row:hover {
+    background: #f9fbff;
+    cursor: default;  /* 클릭 불가 느낌 */
+}
+
+/* overflow 처리 (제목 너무 길 때 ...) */
+.deleted-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 공통 column grid */
+.mypage-board-header,
+.mypage-board-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 120px 100px; /* 번호 | 제목 | 날짜 | 조회수 */
+    align-items: center;
+    gap: 8px;
+}
+
+/* 삭제 제목 회색 */
+.deleted-title {
+    color: #999;
+}
+
+/* 날짜 컬럼 */
+.col-date {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
 
 /* ===========================
    모바일 최적화
