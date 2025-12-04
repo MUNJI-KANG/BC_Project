@@ -593,10 +593,9 @@ def myarticle(request):
         from board.utils import get_category_by_type
         
         category = get_category_by_type('post')
-        articles = Article.objects.select_related('member_id', 'category_id').filter(
+        articles = Article.objects.filter(
             member_id=user,
-            category_id=category,
-            delete_date__isnull=True
+            category_id=category
         ).order_by('-reg_date')
         
     except Member.DoesNotExist:

@@ -80,47 +80,47 @@ mypage base
         <option value="50">50개</option>
       </select>
     </div>
-    </div>
+  </div>
 
   <!-- 목록 영역 -->
   <div class="mypage-board-list">
-    <!-- 헤더 -->
-    <div class="mypage-board-header">
-      <span class="col-number">번호</span>
-      <span class="col-title">제목</span>
-      <span class="col-views">조회수</span>
-    </div>
-    {% for post in page_obj %}
-      <!-- 한 줄 전체가 클릭되는 행 -->
-      {% if post.delete_date %}
-      <div class="mypage-board-row-wrapper">
-        <!-- <a href="" class="mypage-board-row"> -->
-          <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
-          <span class="col-title">관리자에 의해 삭제된 글입니다.</span>
-          <!-- 날짜 다시 살리기 -->
-          <!-- <span class="col-date">{{ post.reg_date|date:"Y-m-d" }}</span> -->
-          <!-- 조회수 필드명 수정 -->
-          <span class="col-views">조회수 {{ post.view_cnt }}</span>
-        <!-- </a> -->
+
+      <!-- 헤더 -->
+      <div class="mypage-board-header">
+          <span class="col-number">번호</span>
+          <span class="col-title">제목</span>
+          <span class="col-date">날짜</span>
+          <span class="col-views">조회수</span>
       </div>
-      {% else %}
-      <!-- 한 줄 전체가 클릭되는 행 -->
-      <div class="mypage-board-row-wrapper">
-        <a href="/recruitment/detail/{{ post.community_id }}/" class="mypage-board-row">
-          <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
-          <span class="col-title">{{ post.title }}</span>
-          <!-- 날짜 다시 살리기 -->
-          <!-- <span class="col-date">{{ post.reg_date|date:"Y-m-d" }}</span> -->
-          <!-- 조회수 필드명 수정 -->
-          <span class="col-views">조회수 {{ post.view_cnt }}</span>
-        </a>
-      </div>
-      {% endif %}
-    {% empty %}
-      <div class="mypage-board-empty">
-        작성한 모집글이 없습니다.
-      </div>
-    {% endfor %}
+
+      {% for post in page_obj %}
+          {% if post.delete_date %}
+          <!-- 삭제된 글 -->
+              <div class="mypage-board-row-wrapper deleted-row">
+                  <div class="mypage-board-row no-link">
+                      <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
+                      <span class="col-title deleted-title">관리자에 의해 삭제된 글입니다.</span>
+                      <span class="col-date">{{ post.delete_date|date:"Y-m-d" }}</span>
+                      <span class="col-views">조회수 {{ post.view_cnt }}</span>
+                  </div>
+              </div>
+          {% else %}
+              <!-- 정상 글 -->
+              <div class="mypage-board-row-wrapper">
+                  <a href="/recruitment/detail/{{ post.community_id }}/" class="mypage-board-row">
+                      <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
+                      <span class="col-title">{{ post.title }}</span>
+                      <span class="col-date">{{ post.reg_date|date:"Y-m-d" }}</span>
+                      <span class="col-views">조회수 {{ post.view_cnt }}</span>
+                  </a>
+              </div>
+          {% endif %}
+      {% empty %}
+          <div class="mypage-board-empty">
+              작성한 모집글이 없습니다.
+          </div>
+      {% endfor %}
+
   </div>
 
 
