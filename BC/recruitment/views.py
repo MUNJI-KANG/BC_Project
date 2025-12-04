@@ -288,11 +288,11 @@ def write(request):
             # reg_date 는 model 에 auto_now_add=True 면 안 넣어도 됨
         )
 
-        # 3) GET 요청이면 작성 폼 + 내 예약 목록 넘기기
-        context = {
-            "my_reservations": my_reservations,
-            "my_reservation_slots": my_reservation_slots,
-        }
+    # 3) GET 요청이면 작성 폼 + 내 예약 목록 넘기기
+    context = {
+        "my_reservations": my_reservations,
+        "my_reservation_slots": my_reservation_slots,
+    }
     return render(request, "recruitment/recruitment_write.html", context)
 
 

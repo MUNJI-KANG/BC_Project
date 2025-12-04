@@ -124,7 +124,21 @@
                            name="chat_url"
                            value="{% if recruit.char_url %}{{ recruit.chat_url }}{% endif %}">
                 </div>
+                
+                
+                <!-- 첨부파일 -->
+                <div class="form-group full-row">
+                <label class="form-label">첨부파일</label>
+                <div class="file-upload-wrapper">
+                    <input type="file" name="files" id="fileInput" class="file-input" multiple>
+                    <label for="fileInput" class="file-upload-btn">
+                    <span>📎 파일 선택</span>
+                    </label>
+                    <div class="file-list" id="fileList"></div>
+                </div>
+                </div>
 
+                
                 <!-- 7. 버튼 -->
                 <div class="btn-row">
                     <button type="button" class="btn btn-submit">작성</button>
