@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block script1 %}
-<script src="{% static 'js/recruitment_detail.js' %}"></script>
+
 {% endblock %}
 
 {% block contents %}
@@ -43,11 +43,11 @@
         
         
         <div class="detail-meta">
-            <span class="detail-badge"># {{ recruit.region }} {{ recruit.region2 }}</span>
-            <span class="detail-badge"># {{ recruit.sport_type }}</span>
+            <span class="detail-badge"># 지역 : {{ recruit.region }} {{ recruit.region2 }}</span>
+            <span class="detail-badge"># 운동 : {{ recruit.sport_type }}</span>
 
             <span class="detail-badge {% if is_closed_or_full %}detail-badge-closed{% endif %}">
-                # {{ recruit.num_member }}명
+                # 모집 인원 : {{ recruit.num_member }}명
                 {% if is_closed_or_full %}
                     · 모집 마감
                 {% else %}
@@ -58,7 +58,7 @@
             </span>
 
             {% if recruit.facility != "미정" %}
-                <span class="detail-badge"># {{ recruit.facility }}</span>
+                <span class="detail-badge"># 시설 : {{ recruit.facility }}</span>
             {% endif %}
         </div>
 
