@@ -60,7 +60,7 @@
         <p>할래말래에 오신 것을 환영합니다</p>
       </div>
       {% if messages %}
-        <div class="message-area">
+        <div class="message-area" style="display:none;">
           {% for message in messages %}
             <div class="alert alert-{{ message.tags }}">{{ message }}</div>
           {% endfor %}

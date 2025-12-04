@@ -10,6 +10,7 @@ from facility.models import FacilityInfo
 from reservation.models import Sports, Reservation
 from member.models import Member
 from .models import TimeSlot
+from common.utils import check_login
 
 
 # TODO: DB 연결 이후 FacilityInfo 모델에서 시설 정보 조회
@@ -116,6 +117,11 @@ def reservation_list(request):
 
 
 def reservation_detail(request, facility_id):
+    # 로그인 체크 (서버 사이드에서 처리)
+    redirect_response = check_login(request)
+    if redirect_response:
+        return redirect_response
+    
     facility = get_object_or_404(FacilityInfo, facility_id=facility_id)
 
     # delete_yn = 0 인 시간만 예약 불가 처리
