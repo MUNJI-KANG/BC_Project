@@ -797,6 +797,7 @@ def post_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+            is_author = (comment_obj.member_id == article_obj.member_id)
             comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
             is_deleted = comment_obj.delete_date is not None
             # DB에 저장된 댓글 내용 그대로 사용 (이미 '관리자에 의해 삭제된 댓글입니다.'로 저장됨)
@@ -807,6 +808,7 @@ def post_detail(request, article_id):
                 'is_admin': comment_is_admin,
                 'reg_date': comment_obj.reg_date,
                 'is_deleted': is_deleted,
+                'is_author':is_author,
             })
         
         # 작성자 정보 안전하게 가져오기

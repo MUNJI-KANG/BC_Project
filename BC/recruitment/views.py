@@ -436,9 +436,10 @@ def detail(request, pk):
     login_member = Member.objects.filter(user_id=user_id).first()
 
     # 관리자 여부
-    manager_id = request.session.get("manager_id")
-    is_manager = (manager_id == 1)
-
+    
+    is_manager_user = is_manager(request)
+    
+    
     # 모집글 조회 (삭제되지 않은 것만)
     try:
         recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
@@ -477,9 +478,18 @@ def detail(request, pk):
     # 작성자 여부
     is_owner = (login_member is not None and recruit.member_id == login_member)
 
+    # 로그인한 유저가 이 모집글에 참여했는지 체크
+    my_join = JoinStat.objects.filter(
+        community_id=recruit,
+        member_id=login_member
+    ).first()
+
+    is_applied = (my_join is not None)
+
+
     # 상세 참여 리스트 (작성자 / 관리자만)
     join_list = []
-    if is_owner or is_manager:
+    if is_owner or is_manager_user:
         join_list = (
             joins_qs
             .select_related("member_id")
@@ -535,7 +545,7 @@ def detail(request, pk):
     context = {
         "recruit": recruit,
         "is_owner": is_owner,
-        "is_manager": is_manager,
+        "is_manager": is_manager_user,
         "join_list": join_list,
         "approved_count": approved_count,
         "capacity": capacity,
@@ -544,6 +554,8 @@ def detail(request, pk):
         "waiting_rejected_count": waiting_count,
         # 👇 이걸로 detail 화면에서 예약 시간대 뿌리면 됨
         "reservation_slots": reservation_slots,
+        "is_applied":is_applied,
+        "my_join":my_join,
     }
 
     return render(request, "recruitment_detail.html", context)

@@ -260,6 +260,23 @@
     display: inline-block;
 }
 
+.author-badge,
+.author-badge {
+    color: #555; /* 글자: 진한 회색 */
+    font-weight: 700;
+
+    /* 부드러운 회색 톤 그라데이션 */
+    background: linear-gradient(135deg, #f2f2f2 0%, #e6e6e6 100%);
+
+    padding: 2px 8px;
+    border-radius: 4px;
+
+    /* 연한 회색 테두리 */
+    border: 1px solid #ccc;
+
+    display: inline-block;
+}
+
 /* 날짜는 오른쪽 끝 */
 .comment-date {
     color: #6b7280;

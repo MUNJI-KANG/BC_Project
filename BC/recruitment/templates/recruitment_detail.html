@@ -134,47 +134,74 @@
 
 
     
-    <!-- 버튼(들) -->
-    <div class="detail-btn-box">
-        {% if is_owner or is_manager %}
-            {# ✅ 모집 마감 버튼 (작성자 + 관리자) #}
-            {% if not is_deleted %}
-                {% if not is_closed %}
-                    <form method="post"
-                        action="{% url 'recruitment:recruitment_close' recruit.community_id %}"
-                        class="detail-inline-form"
-                        onsubmit="return confirm('정말 모집을 마감하시겠습니까?');">
-                        {% csrf_token %}
-                        <button type="submit" class="detail-btn btn-close">
-                            모집 마감
-                        </button>
-                    </form>
-                {% else %}
-                    <span class="detail-btn btn-closed-label">
-                        모집 마감됨
-                    </span>
-                {% endif %}
-            {% endif %}
-            {% if is_owner %}
-            <!-- 글 수정 / 삭제 (지금처럼 둘 다에게 권한 줄지, 작성자만 줄지는 필요하면 따로 조건 나눠도 됨) -->
-            <a href="{% url 'recruitment:recruitment_update' recruit.community_id %}"
-               class="detail-btn btn-edit">수정하기</a>
-            {% endif %}
-        {% else %}
-            {% if is_closed_or_full %}
-                <span class="detail-btn btn-join btn-join-closed">
-                    모집 마감
-                </span>
+<!-- 버튼(들) -->
+<div class="detail-btn-box">
+    {% if is_owner or is_manager %}
+        {# ✅ 모집 마감 버튼 (작성자 + 관리자) #}
+        {% if not is_deleted %}
+            {% if not is_closed %}
+                <form method="post"
+                      action="{% url 'recruitment:recruitment_close' recruit.community_id %}"
+                      class="detail-inline-form"
+                      onsubmit="return confirm('정말 모집을 마감하시겠습니까?');">
+                    {% csrf_token %}
+                    <button type="submit" class="detail-btn btn-close">
+                        모집 마감
+                    </button>
+                </form>
             {% else %}
-                <a href="{% url 'recruitment:recruitment_join' recruit.community_id %}"
-                   class="detail-btn btn-join">
-                    참여하기
-                </a>
+                <span class="detail-btn btn-closed-label">
+                    모집 마감됨
+                </span>
             {% endif %}
         {% endif %}
 
-        <a href="{% url 'recruitment:recruitment_list' %}" class="detail-btn btn-list">목록으로</a>
-    </div>
+        {% if is_owner %}
+            <!-- 글 수정 -->
+            <a href="{% url 'recruitment:recruitment_update' recruit.community_id %}"
+               class="detail-btn btn-edit">수정하기</a>
+        {% elif is_manager %}
+            <!-- 관리자 삭제 -->
+            <form method="post"
+                  action="{% url 'recruitment:recruitment_delete' recruit.community_id %}"
+                  onsubmit="return confirm('정말 글을 삭제하시겠습니까?');">
+                {% csrf_token %}
+                <button type="submit" class="detail-btn btn-edit" id="btnCloseRecruit">
+                    삭제하기
+                </button>
+            </form>
+        {% endif %}
+
+    {% else %}
+        {# 🔽 일반 사용자 영역 #}
+        {% if is_closed_or_full %}
+            <span class="detail-btn btn-join btn-join-closed">
+                모집 마감
+            </span>
+
+        {% elif is_applied %}
+            {# 이미 참여 신청한 경우 - 상태별로 텍스트 분기 가능 #}
+            {% if my_join.join_status == 1 %}
+                <span class="detail-btn btn-join btn-join-disabled">
+                    승인됨
+                </span>
+            {% else %}
+                <span class="detail-btn btn-join btn-wait-tag"">
+                    대기중
+                </span>
+            {% endif %}
+
+        {% else %}
+            {# 아직 신청 안 한 경우만 참여하기 버튼 노출 #}
+            <a href="{% url 'recruitment:recruitment_join' recruit.community_id %}"
+               class="detail-btn btn-join">
+                참여하기
+            </a>
+        {% endif %}
+    {% endif %}
+
+    <a href="{% url 'recruitment:recruitment_list' %}" class="detail-btn btn-list">목록으로</a>
+</div>
 
 
 
@@ -197,7 +224,7 @@
 
     <!-- 참여 여부 -->
     <!-- 버튼들 밑에, 댓글 섹션 위에 추가 -->
-    {% if is_owner %}
+    {% if is_owner or is_manager %}
     <section class="join-section">
         <h3 class="section-title">참여 신청 ({{ join_list|length }})</h3>
 
@@ -254,12 +281,6 @@
 
 
 
-
-
-
-
-
-
     <hr class="detail-hr">
 
 
@@ -274,7 +295,9 @@
                 {% for comment in comments %}
                 <li class="comment-item">
                     <div class="comment-meta">
-                        <span class="comment-writer">{{ comment.member_id.nickname }}{% if is_owner %}😁😁😁😁😁😁{% endif %}</span>
+                        <span class="comment-writer {% if comment.member_id.manager_yn %}admin-badge {% elif comment.member_id == recruit.member_id %} author-badge{% endif %}">
+                            {{ comment.member_id.nickname }}{% if comment.member_id.manager_yn %}👑{% elif comment.member_id == recruit.member_id %}(작성자){% endif %}
+                        </span>
                         <span class="comment-date">{{ comment.reg_date|date:"Y-m-d H:i" }}</span>
                         <!-- TODO: 수정/삭제 버튼 (본인만 표시) -->
                     </div>

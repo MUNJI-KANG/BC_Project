@@ -137,8 +137,8 @@
                 {% for comment in comments %}
                 <li class="comment-item {% if comment.is_deleted %}comment-deleted{% endif %}">
                     <div class="comment-meta">
-                        <span class="comment-writer {% if comment.is_admin %}admin-badge{% endif %}">
-                            {{ comment.author }}{% if comment.is_admin %} 👑{% endif %}
+                        <span class="comment-writer {% if comment.is_admin %}admin-badge{% elif comment.is_author %}author-badge{% endif %}">
+                            {{ comment.author }}{% if comment.is_admin %} 👑{% elif comment.is_author %} (작성자) {% endif %}
                         </span>
                         <span class="comment-date">
                             {{ comment.reg_date|date:"Y-m-d H:i" }}
