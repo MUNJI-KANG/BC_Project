@@ -118,9 +118,9 @@ def reservation_list(request):
 
 def reservation_detail(request, facility_id):
     # 로그인 체크 (서버 사이드에서 처리)
-    redirect_response = check_login(request)
-    if redirect_response:
-        return redirect_response
+    res = check_login(request)
+    if res:
+        return res
     
     facility = get_object_or_404(FacilityInfo, facility_id=facility_id)
 
@@ -146,6 +146,11 @@ def reservation_detail(request, facility_id):
 
 @csrf_exempt
 def reservation_save(request):
+        # 로그인 체크
+    res = check_login(request)
+    if res:
+        return res
+    
     if request.method != "POST":
         return JsonResponse({"result": "error", "msg": "잘못된 요청"})
 
