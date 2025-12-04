@@ -20,6 +20,7 @@ class Member(models.Model):
     reg_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     delete_date = models.DateTimeField(null=True, blank=True)
+    manager_yn = models.IntegerField(default=0)
 
     class Meta:
         db_table = "member"
