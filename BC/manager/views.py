@@ -1686,12 +1686,30 @@ def event_edit(request, article_id):
             article_obj.end_date = end_datetime
             article_obj.save()
 
-            # 새 파일 업로드
+            # --------------------------------------------
+            #  기존 파일 삭제 기능
+            # --------------------------------------------
+            delete_ids = request.POST.getlist("delete_files")  # hidden input 들
+
+            if delete_ids:
+                files_to_delete = AddInfo.objects.filter(add_info_id__in=delete_ids)
+
+                for f in files_to_delete:
+                    # 실제 파일 삭제
+                    if f.path:
+                        file_path = os.path.join(settings.MEDIA_ROOT, f.path)
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
+
+                # DB 레코드 삭제
+                files_to_delete.delete()
+
+            # --------------------------------------------
+            #  새로운 파일들 업로드
+            # --------------------------------------------
             handle_file_uploads(request, article_obj)
 
             messages.success(request, "이벤트가 수정되었습니다.")
-
-            # 수정 후 관리자 상세 페이지로 이동
             return redirect(f'/manager/detail/{article_id}/')
 
         except Exception as e:
@@ -1707,7 +1725,7 @@ def event_edit(request, article_id):
     for add_info in add_info_objs:
         file_ext = os.path.splitext(add_info.file_name)[1].lower()
         existing_files.append({
-            'id': add_info.add_info_id,
+            'id': add_info.add_info_id,  # template 의 data-file-id="{{ file.id }}"
             'name': add_info.file_name,
             'url': f"{settings.MEDIA_URL}{add_info.path}",
             'is_image': file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
@@ -1726,7 +1744,6 @@ def event_edit(request, article_id):
     }
 
     return render(request, 'event_form.html', context)
-
 
 def post_manager(request):
     # DB에서 자유게시판(post) 조회 (삭제된 것도 포함)
@@ -2227,20 +2244,37 @@ def board_edit(request, article_id):
             article_obj.start_date = start_datetime
             article_obj.end_date = end_datetime
             article_obj.save()
+            # --------------------------------------------
+            #  기존 파일 삭제 기능
+            # --------------------------------------------
+            delete_ids = request.POST.getlist("delete_files")  # hidden input 들
 
-            # 파일 업로드 처리
+            if delete_ids:
+                files_to_delete = AddInfo.objects.filter(add_info_id__in=delete_ids)
+
+                for f in files_to_delete:
+                    # 실제 파일 삭제
+                    if f.path:
+                        file_path = os.path.join(settings.MEDIA_ROOT, f.path)
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
+
+                # DB 레코드 삭제
+                files_to_delete.delete()
+
+            # --------------------------------------------
+            #  새로운 파일들 업로드
+            # --------------------------------------------
             handle_file_uploads(request, article_obj)
 
-            messages.success(request, "공지사항이 수정되었습니다.")
-            
-            # 수정 후 관리자 상세페이지로 이동
-            return redirect(f'/manager/detail/{article_obj.article_id}/')
+            messages.success(request, "이벤트가 수정되었습니다.")
+            return redirect(f'/manager/detail/{article_id}/')
 
         except Exception as e:
             import traceback
-            print(f"[ERROR] 공지사항 수정 오류: {str(e)}")
+            print(f"[ERROR] 이벤트 수정 오류: {str(e)}")
             print(traceback.format_exc())
-            messages.error(request, f"공지사항 수정 중 오류가 발생했습니다: {str(e)}")
+            messages.error(request, f"이벤트 수정 중 오류가 발생했습니다: {str(e)}")
 
     # GET: 기존 정보 불러오기
     add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -2494,3 +2528,7 @@ def manager_detail(request, article_id):
         "files": files,
         "images": images,
     })
+
+
+# 첨부파일 삭제 
+
