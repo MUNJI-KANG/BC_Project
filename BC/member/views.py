@@ -579,63 +579,54 @@ def myrecruitment(request):
 
 
 def myarticle(request):
-    # 로그인 체크
     login_id = request.session.get("user_id")
     if not login_id:
         return redirect(f'/login?next={reverse("member:myarticle")}')
     
     try:
-        # 로그인한 사용자 정보 가져오기
         user = Member.objects.get(user_id=login_id)
-        
-        # DB에서 본인이 작성한 자유게시판(post) 게시글 조회
+
         from board.models import Article
         from board.utils import get_board_by_name
         
         board = get_board_by_name('post')
-        articles = Article.objects.select_related('member_id', 'board_id').filter(
+
+        # 삭제된 게시글 포함 전체 조회
+        articles = Article.objects.filter(
             member_id=user,
-            board_id=board,
-            delete_date__isnull=True
-        ).order_by('-reg_date')
-        
+            board_id=board
+        )
+
     except Member.DoesNotExist:
         messages.error(request, "회원 정보를 찾을 수 없습니다.")
         return redirect('/login/')
-    except Exception as e:
+    except Exception:
         import traceback
-        print(f"[ERROR] 내 게시글 조회 오류: {str(e)}")
         print(traceback.format_exc())
         articles = Article.objects.none()
-    
-    # 정렬 기능
+
     sort = request.GET.get("sort", "recent")
     if sort == "title":
         articles = articles.order_by('title')
     elif sort == "views":
         articles = articles.order_by('-view_cnt')
-    else:  # recent
+    else:
         articles = articles.order_by('-reg_date')
-    
-    # 페이지네이션
+
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
-    
+
     paginator = Paginator(articles, per_page)
     page_obj = paginator.get_page(page)
-    
-    # 페이지 블록 계산
+
     block_size = 5
     current_block = (page - 1) // block_size
     block_start = current_block * block_size + 1
-    block_end = block_start + block_size - 1
-    
-    if block_end > paginator.num_pages:
-        block_end = paginator.num_pages
-    
+    block_end = min(block_start + block_size - 1, paginator.num_pages)
+
     block_range = range(block_start, block_end + 1)
-    
-    context = {
+
+    return render(request, 'myarticle.html', {
         "page_obj": page_obj,
         "paginator": paginator,
         "per_page": per_page,
@@ -644,10 +635,7 @@ def myarticle(request):
         "block_range": block_range,
         "block_start": block_start,
         "block_end": block_end,
-    }
-    
-    return render(request, 'myarticle.html', context)
-
+    })
 
 
 

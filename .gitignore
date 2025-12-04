@@ -9,3 +9,5 @@ jupyter_kclass.bat
 db.sqlite3
 /staticfiles/
 media/
+
+myProject.ppk
