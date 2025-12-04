@@ -201,8 +201,8 @@ def login(request):
         request.session["nickname"] = user.nickname
         request.session["is_kakao_user"] = False  # 일반 로그인
 
-        # 관리자 체크 (member_id == 1인 경우)
-        if user.member_id == 1:
+        # 관리자 체크 (manager_yn == 1인 경우)
+        if user.manager_yn == 1:
             request.session["manager_id"] = user.member_id
             request.session["manager_name"] = user.name
             # 로그인 유지 선택 시 세션 만료 시간 변경
@@ -447,7 +447,7 @@ def kakao_callback(request):
             return redirect('/login/')
         
         # 6. 관리자 체크 및 리다이렉트
-        if user.member_id == 1:
+        if user.manager_yn == 1:
             request.session['manager_id'] = user.member_id
             request.session['manager_name'] = user.name
             next_url = request.session.pop('kakao_next', None) or '/manager/dashboard/'

@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import os
 import uuid
-from common.utils import check_login, handle_file_uploads
+from common.utils import check_login, handle_file_uploads, is_manager
 from board.models import Article, Board, Category
 from board.utils import get_category_by_type, get_board_by_name
 from common.models import Comment, AddInfo
@@ -105,7 +105,7 @@ def notice(request):
                 'comment_count': article.comment_count,
                 'title': article.title,
                 'author': article.member_id.nickname if article.member_id else '',
-                'is_admin': article.member_id.member_id == 1 if article.member_id else False,
+                'is_admin': article.member_id.manager_yn == 1 if article.member_id else False,
                 'date': article.reg_date.strftime('%Y-%m-%d'),
                 'views': article.view_cnt,
             })
@@ -235,7 +235,7 @@ def event(request):
                 'comment_count': article.comment_count,
                 'title': article.title,
                 'author': article.member_id.nickname if article.member_id else '',
-                'is_admin': article.member_id.member_id == 1 if article.member_id else False,
+                'is_admin': article.member_id.manager_yn == 1 if article.member_id else False,
                 'date': article.reg_date.strftime('%Y-%m-%d'),
                 'views': article.view_cnt,
             })
@@ -520,11 +520,10 @@ def notice_detail(request, article_id):
         print(f"[DEBUG] notice_detail: category={category.category_type} (ID: {category.category_id})")
         
         # 관리자 여부 확인
-        manager_id = request.session.get('manager_id')
-        is_manager = manager_id == 1 if manager_id else False
+        is_manager_user = is_manager(request)
         
         # DB에서 게시글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
-        if is_manager:
+        if is_manager_user:
             article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
                 article_id=article_id,
                 category_id=category
@@ -550,7 +549,7 @@ def notice_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
-            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
+            comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
             is_deleted = comment_obj.delete_date is not None
             # DB에 저장된 댓글 내용 그대로 사용 (이미 '관리자에 의해 삭제된 댓글입니다.'로 저장됨)
             comments.append({
@@ -564,7 +563,7 @@ def notice_detail(request, article_id):
         
         # 작성자 정보 안전하게 가져오기
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
-        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
+        is_admin = article_obj.member_id.manager_yn == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -607,7 +606,7 @@ def notice_detail(request, article_id):
             'article': article,
             'comments': comments,
             'board_type': 'notice',
-            'is_manager': is_manager,
+            'is_manager': is_manager_user,
             'is_deleted': is_deleted,
         }
         
@@ -650,11 +649,10 @@ def event_detail(request, article_id):
         print(f"[DEBUG] event_detail: category={category.category_type} (ID: {category.category_id})")
         
         # 관리자 여부 확인
-        manager_id = request.session.get('manager_id')
-        is_manager = manager_id == 1 if manager_id else False
+        is_manager_user = is_manager(request)
         
         # DB에서 게시글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
-        if is_manager:
+        if is_manager_user:
             article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
                 article_id=article_id,
                 category_id=category
@@ -680,7 +678,7 @@ def event_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
-            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
+            comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
             is_deleted = comment_obj.delete_date is not None
             # DB에 저장된 댓글 내용 그대로 사용 (이미 '관리자에 의해 삭제된 댓글입니다.'로 저장됨)
             comments.append({
@@ -694,7 +692,7 @@ def event_detail(request, article_id):
         
         # 작성자 정보 안전하게 가져오기
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
-        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
+        is_admin = article_obj.member_id.manager_yn == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -737,7 +735,7 @@ def event_detail(request, article_id):
             'article': article,
             'comments': comments,
             'board_type': 'event',
-            'is_manager': is_manager,
+            'is_manager': is_manager_user,
             'is_deleted': is_deleted,
         }
         
@@ -773,11 +771,10 @@ def post_detail(request, article_id):
         category = get_category_by_type('post')
         
         # 관리자 여부 확인
-        manager_id = request.session.get('manager_id')
-        is_manager = manager_id == 1 if manager_id else False
+        is_manager_user = is_manager(request)
         
         # DB에서 게시글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
-        if is_manager:
+        if is_manager_user:
             article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
                 article_id=article_id,
                 category_id=category
@@ -802,7 +799,7 @@ def post_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
-            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
+            comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
             is_deleted = comment_obj.delete_date is not None
             # DB에 저장된 댓글 내용 그대로 사용 (이미 '관리자에 의해 삭제된 댓글입니다.'로 저장됨)
             comments.append({
@@ -816,7 +813,7 @@ def post_detail(request, article_id):
         
         # 작성자 정보 안전하게 가져오기
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
-        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
+        is_admin = article_obj.member_id.manager_yn == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -859,7 +856,7 @@ def post_detail(request, article_id):
             'article': article,
             'comments': comments,
             'board_type': 'post',
-            'is_manager': is_manager,
+            'is_manager': is_manager_user,
             'is_deleted': is_deleted,
         }
         
@@ -983,8 +980,7 @@ def delete_comment(request):
         return JsonResponse({'status': 'error', 'msg': '잘못된 요청입니다.'}, status=400)
     
     # 관리자 권한 확인
-    manager_id = request.session.get('manager_id')
-    if not manager_id or manager_id != 1:
+    if not is_manager(request):
         return JsonResponse({'status': 'error', 'msg': '관리자 권한이 필요합니다.'}, status=403)
     
     try:

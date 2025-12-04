@@ -8,6 +8,7 @@ from reservation.models import *
 from member.models import Member
 from common.models import Comment
 from facility.models import FacilityInfo
+from common.utils import is_manager
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
@@ -449,8 +450,7 @@ def detail(request, pk):
     login_member = Member.objects.filter(user_id=user_id).first()
 
     # 관리자 여부
-    manager_id = request.session.get('manager_id')
-    is_manager = (manager_id == 1)
+    is_manager_user = is_manager(request)
 
     # 모집글 조회
     try:
@@ -517,7 +517,7 @@ def detail(request, pk):
     context = {
         "recruit": recruit,
         "is_owner": is_owner,
-        "is_manager": is_manager,
+        "is_manager": is_manager_user,
         "join_list": join_list,
         "approved_count": approved_count,
         "capacity": capacity,
@@ -550,7 +550,7 @@ def delete(request, pk):
         raise Http404("존재하지 않는 글입니다.")
 
     # 3) 작성자 본인 확인 (URL로 악의적 접근 방지)
-    if member.user_id !='admin':
+    if member.manager_yn != 1:
         messages.error(request, "관리자만 글을 삭제할 수 있습니다.")
         return redirect("recruitment:recruitment_detail", pk=pk)
 
@@ -736,11 +736,10 @@ def close_recruitment(request, pk):
 
     # 작성자 / 관리자 확인
     login_member = Member.objects.filter(user_id=user_id).first()
-    manager_id = request.session.get("manager_id")
-    is_manager = manager_id == 1 if manager_id else False
+    is_manager_user = is_manager(request)
     is_owner = (login_member is not None and recruit.member_id == login_member)
 
-    if not (is_owner or is_manager):
+    if not (is_owner or is_manager_user):
         messages.error(request, "모집을 마감할 권한이 없습니다.")
         return redirect("recruitment:recruitment_detail", pk=pk)
 

@@ -15,7 +15,7 @@ from board.utils import get_category_by_type, get_board_by_name
 from django.conf import settings
 import uuid
 from django.utils.dateparse import parse_datetime
-from common.utils import handle_file_uploads, save_encoded_image, upload_multiple_files, delete_selected_files
+from common.utils import handle_file_uploads, save_encoded_image, upload_multiple_files, delete_selected_files, is_manager
 from django.http import FileResponse, Http404
 
 # models import 
@@ -43,7 +43,7 @@ from reservation.models import Sports
 def manager(request):
     """
     관리자 로그인 페이지
-    member_id == 1인 계정만 관리자로 인정
+    manager_yn == 1인 계정만 관리자로 인정
     """
     if request.method == "POST":
         admin_id = request.POST.get("admin_id", "").strip()
@@ -67,8 +67,8 @@ def manager(request):
                     'error': '존재하지 않는 아이디입니다.'
                 })
             
-            # 관리자 권한 확인 (member_id == 1만 관리자)
-            if admin_user.member_id != 1:
+            # 관리자 권한 확인 (manager_yn == 1만 관리자)
+            if admin_user.manager_yn != 1:
                 return render(request, 'login_manager.html', {
                     'error': '관리자 권한이 없습니다.'
                 })
@@ -398,7 +398,7 @@ def facility_detail(request, id):
             "comment_id": c.comment_id,
             "comment": c.comment,
             "author": c.member_id.nickname if hasattr(c.member_id, 'nickname') else "알 수 없음",
-            "is_admin": (c.member_id.member_id == 1 if c.member_id else False),
+            "is_admin": (c.member_id.manager_yn == 1 if c.member_id else False),
             "reg_date": c.reg_date,
             "is_deleted": c.delete_date is not None,
         })
@@ -1495,9 +1495,15 @@ def event_form(request):
             board = get_board_by_name('event')
             
             # 관리자 계정
-            member_id = request.session.get('manager_id', 1)
+            member_id = request.session.get('manager_id')
+            if not member_id:
+                messages.error(request, "관리자 권한이 필요합니다.")
+                return render(request, 'event_form.html')
             try:
                 member = Member.objects.get(member_id=member_id)
+                if member.manager_yn != 1:
+                    messages.error(request, "관리자 권한이 필요합니다.")
+                    return render(request, 'event_form.html')
             except Member.DoesNotExist:
                 member = Member.objects.first()
                 if not member:
@@ -1551,7 +1557,7 @@ def event_edit(request, article_id):
     """이벤트 게시글 수정"""
 
     # 관리자 체크
-    if not request.session.get('manager_id'):
+    if not is_manager(request):
         messages.error(request, "관리자 권한이 필요합니다.")
         return redirect('/manager/')
 
@@ -1694,7 +1700,7 @@ def post_manager(request):
 def manager_post_detail(request, article_id):
     """관리자 전용 자유게시판 상세 페이지"""
     # 관리자 체크
-    if not request.session.get('manager_id'):
+    if not is_manager(request):
         messages.error(request, "관리자 권한이 필요합니다.")
         return redirect('/manager/')
     
@@ -1715,7 +1721,7 @@ def manager_post_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
-            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
+            comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
@@ -1726,7 +1732,7 @@ def manager_post_detail(request, article_id):
         
         # 작성자 정보
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
-        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
+        is_admin = article_obj.member_id.manager_yn == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -1777,7 +1783,7 @@ def manager_post_detail(request, article_id):
 def manager_notice_detail(request, article_id):
     """관리자 전용 공지사항 상세 페이지"""
     # 관리자 체크
-    if not request.session.get('manager_id'):
+    if not is_manager(request):
         messages.error(request, "관리자 권한이 필요합니다.")
         return redirect('/manager/')
     
@@ -1798,7 +1804,7 @@ def manager_notice_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
-            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
+            comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
@@ -1809,7 +1815,7 @@ def manager_notice_detail(request, article_id):
         
         # 작성자 정보
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
-        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
+        is_admin = article_obj.member_id.manager_yn == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -1860,7 +1866,7 @@ def manager_notice_detail(request, article_id):
 def manager_event_detail(request, article_id):
     """관리자 전용 이벤트 상세 페이지"""
     # 관리자 체크
-    if not request.session.get('manager_id'):
+    if not is_manager(request):
         messages.error(request, "관리자 권한이 필요합니다.")
         return redirect('/manager/')
     
@@ -1881,7 +1887,7 @@ def manager_event_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
-            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
+            comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
@@ -1892,7 +1898,7 @@ def manager_event_detail(request, article_id):
         
         # 작성자 정보
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
-        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
+        is_admin = article_obj.member_id.manager_yn == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -2046,8 +2052,18 @@ def board_form(request):
             category = get_category_by_type('notice')
             board = get_board_by_name('notice')
 
-            member_id = request.session.get('manager_id', 1)
-            member = Member.objects.get(member_id=member_id)
+            member_id = request.session.get('manager_id')
+            if not member_id:
+                messages.error(request, "관리자 권한이 필요합니다.")
+                return render(request, 'board_form.html', {'is_edit': False})
+            try:
+                member = Member.objects.get(member_id=member_id)
+                if member.manager_yn != 1:
+                    messages.error(request, "관리자 권한이 필요합니다.")
+                    return render(request, 'board_form.html', {'is_edit': False})
+            except Member.DoesNotExist:
+                messages.error(request, "회원 정보를 찾을 수 없습니다.")
+                return render(request, 'board_form.html', {'is_edit': False})
 
             always_on = 0 if notice_type == 'always' else 1
             if pin_top == '1':
@@ -2084,7 +2100,7 @@ def board_edit(request, article_id):
     """공지사항 게시글 수정"""
 
     # 관리자 체크
-    if not request.session.get('manager_id'):
+    if not is_manager(request):
         messages.error(request, "관리자 권한이 필요합니다.")
         return redirect('/manager/')
     

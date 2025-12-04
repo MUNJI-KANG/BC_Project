@@ -141,12 +141,44 @@ def reset_all_caches():
 # -----------------------------------------------------
 from django.shortcuts import redirect
 
+def is_manager(request):
+    """현재 로그인한 사용자가 관리자인지 확인 (manager_yn == 1)
+    
+    Args:
+        request: Django request 객체
+    
+    Returns:
+        bool: 관리자이면 True, 아니면 False
+    """
+    manager_id = request.session.get('manager_id')
+    if not manager_id:
+        return False
+    try:
+        from member.models import Member
+        member = Member.objects.get(member_id=manager_id)
+        return member.manager_yn == 1
+    except Member.DoesNotExist:
+        return False
+
+def is_admin(member):
+    """Member 객체가 관리자인지 확인 (manager_yn == 1)
+    
+    Args:
+        member: Member 모델 인스턴스 또는 None
+    
+    Returns:
+        bool: 관리자이면 True, 아니면 False
+    """
+    if not member:
+        return False
+    return member.manager_yn == 1
+
 def check_login(request):
     """로그인 체크 및 리다이렉트
-    관리자(manager_id)는 모든 로그인 검증에서 통과
+    관리자(manager_yn == 1)는 모든 로그인 검증에서 통과
     """
     # 관리자 체크: 관리자는 로그인 검증 통과
-    if request.session.get('manager_id'):
+    if is_manager(request):
         return None
     
     # 일반 사용자 로그인 체크

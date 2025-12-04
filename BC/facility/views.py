@@ -512,7 +512,7 @@ def facility_detail(request, fk):
                 "comment_id": c.comment_id,
                 "comment": c.comment,
                 "author": c.member_id.nickname if hasattr(c.member_id, 'nickname') else "알 수 없음",
-                "is_admin": (c.member_id.member_id == 1 if c.member_id else False),
+                "is_admin": (c.member_id.manager_yn == 1 if c.member_id else False),
                 "reg_date": c.reg_date,
                 "is_deleted": c.delete_date is not None,
             })
