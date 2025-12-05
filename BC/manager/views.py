@@ -436,14 +436,20 @@ def facility_detail(request, id):
     ).order_by("reg_date")
 
     comments = []
-    for c in comment_objs:
+    for comment_obj in comment_objs:
+        comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+        comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
+        is_deleted = comment_obj.delete_date is not None
+        comment = "관리자에 의해 삭제된 댓글입니다." if comment_obj.delete_date else comment_obj.comment
+        
         comments.append({
-            "comment_id": c.comment_id,
-            "comment": c.comment,
-            "author": c.member_id.nickname if hasattr(c.member_id, 'nickname') else "알 수 없음",
-            "is_admin": (c.member_id.manager_yn == 1 if c.member_id else False),
-            "reg_date": c.reg_date,
-            "is_deleted": c.delete_date is not None,
+            'comment_id': comment_obj.comment_id,
+            'comment': comment,
+            'author': comment_author,
+            'is_admin': comment_is_admin,
+            'reg_date': comment_obj.reg_date,
+            'is_deleted': is_deleted,
+            
         })
 
     # 첨부파일
