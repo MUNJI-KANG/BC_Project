@@ -25,5 +25,10 @@ urlpatterns = [
     path("detail/<int:pk>/close/", views.close_recruitment, name="recruitment_close"),
 
     path("ajax/facility-region/", views.get_facility_region, name="facility_region"),
+    path(
+        "detail/<int:pk>/comment/<int:comment_id>/delete/",
+        views.delete_comment,
+        name="delete_comment",
+    ),
 
 ]

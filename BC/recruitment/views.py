@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
 from django.utils import timezone
 from django.core.paginator import Paginator
+from django.views.decorators.csrf import csrf_exempt
+
 
 from .models import *
 from reservation.models import *
@@ -141,7 +143,7 @@ def write(request):
     except Member.DoesNotExist:
         request.session.flush()
         messages.error(request, "다시 로그인 해주세요.")
-        return redirect("/login/")
+        return redirect("common:login")
 
     # ✅ 이 회원이 이미 모집글에 사용한 reservation_id 목록
     used_reservation_ids = (
@@ -300,181 +302,6 @@ def write(request):
 
 
 
-# def update(request, pk):
-#     # 0) 세션 로그인 확인
-    
-#     res = check_login(request)
-#     if res:
-#         return res
-    
-#     user_id = request.session.get("user_id")
-
-#     # 1) 세션의 user_id 로 Member 가져오기
-#     try:
-#         member = Member.objects.get(user_id=user_id)
-#     except Member.DoesNotExist:
-#         request.session.flush()
-#         messages.error(request, "다시 로그인 해주세요.")
-#         return redirect("/login/")
-
-#     # 2) 수정할 모집글 가져오기
-#     try:
-#         community = Community.objects.get(
-#             pk=pk,
-#             delete_date__isnull=True,
-#         )
-#     except Community.DoesNotExist:
-#         messages.error(request, "삭제되었거나 존재하지 않는 모집글입니다.")
-#         return redirect("recruitment:recruitment_list")
-
-#     # 3) 작성자 본인인지 체크
-#     if community.member_id != member:
-#         messages.error(request, "본인이 작성한 글만 수정할 수 있습니다.")
-#         return redirect("recruitment:recruitment_detail", pk=pk)
-
-#     # 🔹 이 글에 지금 연결돼 있는 예약 PK (없으면 None)
-#     current_reservation_id = community.reservation_id_id
-
-
-#     used_reservation_ids = (
-#         Community.objects
-#             .filter(
-#                 member_id=member,
-#                 delete_date__isnull=True,
-#             )
-#             .exclude(reservation_id__isnull=True)
-#             .exclude(reservation_id=current_reservation_id)   # 🔥 여기 중요!!
-#             .values_list("reservation_id", flat=True)
-#     )
-
-
-#     # 🔹 현재 지역에 맞는 나의 타임슬롯 중
-#     #    delete_yn=0 + 이미 사용된 reservation_id는 제외
-#     my_slots = (
-#         TimeSlot.objects
-#             .filter(
-#                 reservation_id__member=member,
-#                 reservation_id__delete_date__isnull=True,
-#                 delete_yn=0,
-#                 facility_id__sido=community.region,
-#                 facility_id__sigugun=community.region2,
-#             )
-#             .exclude(reservation_id_id__in=used_reservation_ids)  # 🔥 여기서 걸러짐
-#             .select_related("reservation_id", "facility_id")
-#             .order_by("reservation_id", "date", "start_time")
-#     )
-#     # 🔹 예약 목록도 동일 로직 적용
-#     reservation_ids = {slot.reservation_id_id for slot in my_slots}
-
-#     my_reservations = (
-#         Reservation.objects
-#             .filter(
-#                 member=member,
-#                 delete_date__isnull=True,
-#                 pk__in=reservation_ids,
-#             )
-#             .order_by("-reg_date")
-#     )
-
-#     # write()와 동일한 grouped 구조 만들기
-#     grouped_slots = OrderedDict()
-#     for slot in my_slots:
-#         rid = slot.reservation_id_id
-
-#         if rid not in grouped_slots:
-#             grouped_slots[rid] = {
-#                 "reservation": slot.reservation_id,
-#                 "facility": slot.facility_id,
-#                 "times": []
-#             }
-
-#         grouped_slots[rid]["times"].append({
-#             "t_id": slot.t_id,
-#             "date": slot.date,
-#             "start_time": slot.start_time,
-#             "end_time": slot.end_time,
-#         })
-
-#     my_reservation_slots = list(grouped_slots.values())
-
-#     # 4) POST: 실제 수정 처리
-#     if request.method == "POST":
-#         contents = request.POST.get("content")
-#         community.contents = contents
-#         community.update_date = timezone.now()
-
-#         # ✅ 예약 선택값
-#         reservation_id = (request.POST.get("reservation_choice") or "").strip()
-
-#         # 기본은 기존 값 유지
-#         facility_name = community.facility
-
-#         if reservation_id:
-#             slot = (
-#                 TimeSlot.objects
-#                 .select_related("facility_id", "reservation_id")
-#                 .filter(
-#                     reservation_id_id=reservation_id,
-#                     reservation_id__member=member,
-#                     reservation_id__delete_date__isnull=True,
-#                     delete_yn=0,
-#                 )
-#                 .first()
-#             )
-#             if slot:
-#                 facility = slot.facility_id
-#                 facility_name = facility.faci_nm
-#                 # 지역도 그 예약 기준으로 맞추고 싶으면
-#                 community.region = facility.sido
-#                 community.region2 = facility.sigugun
-#                 # 🔥 예약도 변경
-#                 community.reservation_id = slot.reservation_id
-
-
-#         files = request.FILES.getlist("files")
-
-#         for f in files:
-#             original_name = f.name                      # 원본 파일명
-#             ext = os.path.splitext(original_name)[1]    # 확장자 (.jpg, .pdf 등)
-#             encoded_name = f"{uuid.uuid4().hex}{ext}"   # 서버에 저장할 랜덤 이름
-
-#             # 실제 저장 경로(원하는 폴더로 바꿔도 됨)
-#             save_dir = "upload/recruit"                 # MEDIA_ROOT 기준 하위 폴더
-#             save_path = os.path.join(save_dir, encoded_name)
-#             full_path = os.path.join(settings.MEDIA_ROOT, save_path)
-
-#             # 디렉터리 없으면 생성
-#             os.makedirs(os.path.dirname(full_path), exist_ok=True)
-
-#             # 파일 실제 저장
-#             with open(full_path, "wb+") as dest:
-#                 for chunk in f.chunks():
-#                     dest.write(chunk)
-
-#             # add_info 테이블에 메타데이터 저장
-#             AddInfo.objects.update(
-#                 community_id = community,     # FK 는 인스턴스로 넘기는 게 정석
-#                 path         = save_path,   # 나중에 MEDIA_URL + path 로 접근
-#                 file_name    = original_name,
-#                 encoded_name = encoded_name,
-#                 # reg_date 는 model 에 auto_now_add=True 면 안 넣어도 됨
-#             )
-
-#         community.facility = facility_name
-#         community.save()
-
-#         return redirect("recruitment:recruitment_detail", pk=community.pk)
-
-#     # 5) GET: 수정 폼 화면
-#     context = {
-#         "community": community,
-#         "recruit": community,
-#         "my_reservations": my_reservations,
-#         "my_reservation_slots": my_reservation_slots,
-#         "current_reservation_id": current_reservation_id,  # 🔥 템플릿에서 사용할 값
-#     }
-#     return render(request, "recruitment/recruitment_update.html", context)
-
 
 
 def update(request, pk):
@@ -501,7 +328,7 @@ def update(request, pk):
     except Member.DoesNotExist:
         request.session.flush()
         messages.error(request, "다시 로그인 해주세요.")
-        return redirect("/login/")
+        return redirect("common:login")
 
     # 2) 수정할 모집글 가져오기 (soft delete 된 글 제외)
     try:
@@ -711,10 +538,6 @@ def update(request, pk):
 
 
 
-# recruitment/views.py
-
-
-
 
 
 def detail(request, pk):
@@ -792,7 +615,7 @@ def detail(request, pk):
     # 댓글
     comments = (
         Comment.objects
-        .filter(community_id=recruit, delete_date__isnull=True)
+        .filter(community_id=recruit)
         .order_by("reg_date")
     )
 
@@ -873,7 +696,7 @@ def delete(request, pk):
     except Member.DoesNotExist:
         request.session.flush()
         messages.error(request, "다시 로그인 해주세요.")
-        return redirect("/login/")
+        return redirect("/login")
 
     # 2) 삭제 대상 글 조회
     try:
@@ -916,7 +739,7 @@ def join(request, pk):
     except Member.DoesNotExist:
         request.session.flush()
         messages.error(request, "다시 로그인 해주세요.")
-        return redirect("/login/")
+        return redirect("/login")
 
     # 2) 모집 글 가져오기
     try:
@@ -974,7 +797,7 @@ def update_join_status(request, pk, join_id):
     except Member.DoesNotExist:
         request.session.flush()
         messages.error(request, "다시 로그인 해주세요.")
-        return redirect("/member/login/")
+        return redirect("/login")
 
     # 2) 모집글
     try:
@@ -1033,7 +856,7 @@ def add_comment(request, pk):
     except Member.DoesNotExist:
         request.session.flush()
         messages.error(request, "다시 로그인 해주세요.")
-        return redirect("/login/")
+        return redirect("/login")
 
     # 2) 대상 모집글
     community = get_object_or_404(
@@ -1059,6 +882,49 @@ def add_comment(request, pk):
     return redirect("recruitment:recruitment_detail", pk=pk)
 
 
+# 파일 업로드 처리 함수는 common/utils.py로 이동됨
+
+
+
+@require_POST
+def delete_comment(request, pk, comment_id):
+    """
+    모집글 상세에서 댓글 삭제 (soft delete 후 상세 페이지로 redirect)
+    - 관리자만 삭제 가능 (현재 is_manager 기준)
+    - pk: 모집글 community_id
+    - comment_id: 댓글 PK
+    """
+
+    # 로그인 / 세션 체크
+    res = check_login(request)
+    if res:
+        return res
+
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "댓글을 삭제할 권한이 없습니다.")
+        return redirect("recruitment:recruitment_detail", pk=pk)
+
+    # 해당 모집글의 댓글만 대상으로
+    comment = get_object_or_404(
+        Comment,
+        comment_id=comment_id,
+        community_id_id=pk,   # FK 이름이 community_id 라고 가정
+    )
+
+    # 이미 soft delete 된 경우
+    if comment.delete_date:
+        messages.info(request, "이미 삭제된 댓글입니다.")
+        return redirect("recruitment:recruitment_detail", pk=pk)
+
+    # soft delete
+    comment.delete_date = timezone.now()
+    # 보여주기 싫으면 주석 유지, 문구 보이게 하고 싶으면 주석 해제
+    # comment.comment = "관리자에 의해 삭제된 댓글입니다."
+    comment.save()
+
+    messages.success(request, "댓글을 삭제했습니다.")
+    return redirect("recruitment:recruitment_detail", pk=pk)
 
 
 
