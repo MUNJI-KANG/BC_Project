@@ -30,7 +30,7 @@ from facility.models import FacilityInfo
 
 
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+
 
 # 제거예정
 from django.views.decorators.csrf import csrf_exempt
@@ -87,9 +87,6 @@ def manager(request):
             
                 request.session['manager_id'] = admin_user.member_id
                 request.session['manager_name'] = admin_user.name
-                request.session["user_id"] = admin_user.user_id
-                request.session["user_name"] = admin_user.name
-                request.session["nickname"] = admin_user.nickname
 
                 return redirect('/manager/dashboard/')
             
@@ -177,6 +174,7 @@ def facility(request):
             "name": item.faci_nm,
             "address": item.faci_road_addr,
             "row_no": start_index + idx + 1,
+            "faci_stat_nm" : item.faci_stat_nm
         }
         for idx, item in enumerate(page_obj.object_list)
     ]
@@ -364,7 +362,8 @@ def facility_list(request):
             "row_no": start_index + idx + 1,
             "facilityCd": item.facility_id,
             "today_count": today_reservations,
-            "total_count": total_reservations
+            "total_count": total_reservations,
+            "rsPosible" : item.rs_posible
         })
 
     context = {

@@ -107,7 +107,10 @@ document.addEventListener("DOMContentLoaded", function () {
             <tr>
                 <td>${item.row_no}</td>
                 <td><input type="checkbox" value="${item.id}"></td>
-                <td><a href="/manager/facility/${item.facilityCd}/">${item.name}</a></td>
+                <td><a href="/manager/facility/${item.facilityCd}/"> ${item.name}</a> ${item.rsPosible == 1 
+                ? '<span class="status-active">활성</span>' 
+                : '<span class="status-inactive">비활성</span>'
+            }</td>
                 <td>${item.address}</td>
                 <td>
                     <a href="/manager/reservations/?facility_id=${item.facilityCd}&type=today" 

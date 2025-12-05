@@ -17,7 +17,7 @@
             {% if facilityInfo.photo %}
             <img src="{{ facilityInfo.photo.url }}" alt="{{ facilityInfo.faci_nm }}">
             {% else %}
-            <img src="{% static 'common/img/no_image.png' %}" alt="사진 없음">
+            <img src="/media/uploads/facility/photo/default.png" alt="사진 없음">
             {% endif %}
         </section>
 
@@ -55,7 +55,7 @@
                 <b>안전등급 :</b> <span>{{ facility.schk_tot_grd_nm }}</span>
             </section>
 
-            <section class="detail-info-row timetable">
+            <section class="detail-info-row timetable {% if facilityInfo.rs_posible == 0 %} hidden {% endif %}">
                 <b>시간표 :</b>
 
                 <div class="timetable-list">

@@ -20,8 +20,10 @@ def reservation_list(request):
     # 종목불러오기
     sports = Sports.objects.all()
     # 시설불러오기
-    facilities = FacilityInfo.objects.all()
-
+    
+    #facilities = FacilityInfo.objects.all()
+    facilities = FacilityInfo.objects.filter(rs_posible=1)
+    
     sido = request.GET.get('sido')
     sigungu = request.GET.get('sigungu')
     keyword = request.GET.get('keyword')

@@ -124,7 +124,10 @@ document.addEventListener("DOMContentLoaded", function () {
             <tr>
                 <td>${item.row_no}</td>
                 <td><input type="checkbox" class="facility-check" value="${item.id}"></td>
-                <td>${item.name}</td>
+                <td>
+                ${item.name}
+                <span class="${item.faci_stat_nm == '정상운영' ? 'status-active' : 'status-inactive'}">${item.faci_stat_nm} </span>
+                </td>
                 <td>${item.address}</td>
             </tr>
         `).join("");
