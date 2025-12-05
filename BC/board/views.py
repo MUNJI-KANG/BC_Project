@@ -500,6 +500,7 @@ def post_write(request):
             print(traceback.format_exc())
             messages.error(request, f"게시글 작성 중 오류가 발생했습니다: {str(e)}")
             return render(request, 'board/post_write.html')
+    return render(request, 'board/post_write.html')
 
 def notice_detail(request, article_id):
     print(f"[DEBUG] notice_detail 호출: article_id={article_id}")
