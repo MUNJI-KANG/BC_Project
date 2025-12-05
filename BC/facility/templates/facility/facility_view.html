@@ -157,7 +157,7 @@
         </ul>
 
         <!-- 댓글 작성 폼 -->
-        <form method="post" action="{% url 'facility_comment' facility.id %}" class="comment-form">
+        <form method="post" action="{% url 'facility:facility_comment' facility.id %}" class="comment-form">
             {% csrf_token %}
             <label for="comment" class="form-label">댓글 쓰기</label>
             <textarea id="comment" name="content" class="form-textarea" rows="3" placeholder="댓글을 입력하세요"

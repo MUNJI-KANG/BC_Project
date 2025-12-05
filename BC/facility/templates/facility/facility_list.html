@@ -32,7 +32,7 @@
     <div class="sub-content">
         <!-- 검색 영역 -->
         <section class="search-section">
-            <form id="facilitySearchForm" action="{% url 'list' %}" method="GET">
+            <form id="facilitySearchForm" action="{% url 'facility:list' %}" method="GET">
                 <input type="hidden" id="hiddenSido" value="{{ cpNm }}"/>
                 <input type="hidden" id="hiddenSigungu" value="{{ cpbNm }}"/>
                 <!-- 시/도 + 구/군 -->
