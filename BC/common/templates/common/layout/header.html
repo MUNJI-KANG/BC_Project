@@ -2,7 +2,7 @@
 
 <header class="header">
   <div class="header__left">
-    <a href="/" class="header__logo">
+    <a href="{% url 'common:index' %}" class="header__logo">
       <img src="{% static 'common/img/logo.png' %}" alt="할래말래 로고" />
     </a>
   </div>
@@ -11,78 +11,101 @@
 
     <!-- 모바일 메뉴: 로그인 섹션 -->
     <div class="mobile-menu-login">
-      <!-- 로그인 상태 -->
       <div class="mobile-user-menu">
       {% if request.session.manager_id %}
         <!-- 관리자 -->
-        <a href="/manager/dashboard/" class="mobile-user-link">{{ request.session.nickname }}님 (관리자)</a>
-        <a href="/logout" class="mobile-user-link">로그아웃</a>
+        <a href="{% url 'manager:dashboard' %}" class="mobile-user-link">
+          {{ request.session.nickname }}님 (관리자)
+        </a>
+        <a href="{% url 'common:logout' %}" class="mobile-user-link">로그아웃</a>
+
       {% elif request.session.user_id %}
         <!-- 일반 사용자 -->
-        <a href="/member/info" class="mobile-user-link">{{ request.session.nickname }}님</a>
-        <a href="/logout" class="mobile-user-link">로그아웃</a>
+        <a href="{% url 'member:info' %}" class="mobile-user-link">
+          {{ request.session.nickname }}님
+        </a>
+        <a href="{% url 'common:logout' %}" class="mobile-user-link">로그아웃</a>
+
       {% else %}
         <!-- 비로그인 -->
-        <a href="/login" class="mobile-login-link">로그인 / 회원가입</a>
+        <a href="{% url 'common:login' %}" class="mobile-login-link">
+          로그인 / 회원가입
+        </a>
       {% endif %}
       </div>
     </div>
 
     <div class="mobile-menu-divider"></div>
 
-    <!-- 모바일 메뉴: 네비 -->
+    <!-- 모바일 메뉴 / PC 메뉴 공통 네비 -->
     <ul class="header__nav-list">
+
       <li class="header__nav-item">
         <a
-          href="/facility"
-          class="header__nav-link{% if '/facility' in request.path and not '/manager/' in request.path %} header__nav-link--active{% endif %}"
+          href="{% url 'facility:list' %}"
+          class="header__nav-link{% if '/facility' in request.path %} header__nav-link--active{% endif %}"
         >
           시설 안내
         </a>
       </li>
+
       <li class="header__nav-item">
         <a
-          href="/recruitment"
-          class="header__nav-link{% if '/recruitment' in request.path and not '/manager/' in request.path %} header__nav-link--active{% endif %}"
+          href="{% url 'recruitment:recruitment_list' %}"
+          class="header__nav-link{% if '/recruitment' in request.path %} header__nav-link--active{% endif %}"
         >
           모집할래
         </a>
       </li>
+
       <li class="header__nav-item">
         <a
-          href="/reservation"
-          class="header__nav-link{% if '/reservation' in request.path and not '/manager/' in request.path %} header__nav-link--active{% endif %}"
+          href="{% url 'reservation:reservation_list' %}"
+          class="header__nav-link{% if '/reservation' in request.path %} header__nav-link--active{% endif %}"
         >
           예약할래
         </a>
       </li>
+
       <li class="header__nav-item has-submenu">
         <a
-          href="/board/notice"
-          class="header__nav-link{% if '/board/' in request.path and not '/manager/' in request.path %} header__nav-link--active{% endif %}"
+          href="{% url 'board:notice' %}"
+          class="header__nav-link{% if '/board/' in request.path %} header__nav-link--active{% endif %}"
         >
           정보알래
         </a>
+
         <ul class="header__submenu">
           <li>
-            <a href="/board/notice"
+            <a href="{% url 'board:notice' %}"
                class="{% if '/board/notice' in request.path %}header__submenu-link--active{% endif %}"
-            >공지할래</a>
+            >
+              공지할래
+            </a>
           </li>
+
           <li>
-            <a href="/board/event"
+            <a href="{% url 'board:event' %}"
                class="{% if '/board/event' in request.path %}header__submenu-link--active{% endif %}"
-            >이벤트볼래</a>
+            >
+              이벤트볼래
+            </a>
           </li>
+
           <li>
-            <a href="/board/post"
+            <a href="{% url 'board:post' %}"
                class="{% if '/board/post' in request.path %}header__submenu-link--active{% endif %}"
-            >수다떨래</a>
+            >
+              수다떨래
+            </a>
           </li>
+
           <li>
-            <a href="/board/faq"
+            <a href="{% url 'board:faq' %}"
                class="{% if '/board/faq' in request.path %}header__submenu-link--active{% endif %}"
-            >FAQ</a>
+            >
+              FAQ
+            </a>
           </li>
         </ul>
       </li>
@@ -90,26 +113,22 @@
 
   </nav>
 
-  <!-- PC: 로그인 / 로그아웃 전환 영역 -->
+  <!-- PC 로그인 / 로그아웃 -->
   {% if request.session.user_id %}
     {% if request.session.manager_id %}
-      <!-- 관리자 -->
-      <a href="/manager/dashboard/" class="header__login-btn">
+      <a href="{% url 'manager:dashboard' %}" class="header__login-btn">
         {{ request.session.nickname }}님 (관리자)
       </a>
     {% else %}
-      <!-- 일반 사용자 -->
-      <a href="/member/info/" class="header__login-btn">
+      <a href="{% url 'member:info' %}" class="header__login-btn">
         {{ request.session.nickname }}님
       </a>
     {% endif %}
 
-    <a href="/logout/" class="header__login-btn">
-      로그아웃
-    </a>
+    <a href="{% url 'common:logout' %}" class="header__login-btn">로그아웃</a>
 
   {% else %}
-    <a href="/login/" class="header__login-btn">
+    <a href="{% url 'common:login' %}" class="header__login-btn">
       로그인 / 회원가입
     </a>
   {% endif %}

@@ -676,3 +676,6 @@ def find_pw(request):
         })
 
     return render(request, "common/findPW.html")
+
+def terms (request):
+    return render(request, "common/terms.html")

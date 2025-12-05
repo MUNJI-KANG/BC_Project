@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+app_name = 'common'
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -10,6 +11,7 @@ urlpatterns = [
     path('signup/', views.signup, name='signup'),
     path('findID/', views.find_id, name='findID'),
     path('findPW/', views.find_pw, name='findPW'),
+    path('terms/', views.terms, name = 'terms'),
 
     # 회원가입 검증
     path('check/userid/', views.check_userid, name='check_userid'),

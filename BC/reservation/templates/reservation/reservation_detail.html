@@ -63,7 +63,7 @@
 
         <div class="reservation-buttons">
             <button class="btn-reserve" id="reserve-button">예약하기</button>
-            <a href="{% url 'reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
+            <a href="{% url 'reservation:reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
         </div>
         <!-- 기존 예약 UI 전체 끝 -->
 
@@ -72,7 +72,7 @@
             예약이 불가능한 시설입니다.
         </div>
         <div class="reservation-buttons">
-            <a href="{% url 'reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
+            <a href="{% url 'reservation:reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
         </div>
     {% endif %}
 

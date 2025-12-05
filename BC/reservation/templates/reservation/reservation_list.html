@@ -25,7 +25,7 @@
 <div class="sub-container page-reservation reveal">
 
   <div class="sub-content">
-    <form method="GET" id="searchForm" action="{% url 'reservation_list' %}">
+    <form method="GET" id="searchForm" action="{% url 'reservation:reservation_list' %}">
       <!-- 검색 섹션 -->
       <section class="search-section">
         <!-- 종목 선택 -->
@@ -111,7 +111,7 @@
               {{ item.sigungu }}
             </span>
             <span class="facility-title">
-              <a href="{% url 'reservation_detail' item.id %}">{{ item.name }}</a>
+              <a href="{% url 'reservation:reservation_detail' item.id %}">{{ item.name }}</a>
             </span>
             <!-- <span class="facility-views">{{ item.viewCnt }}</span> -->
             </span>

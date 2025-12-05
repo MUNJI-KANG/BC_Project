@@ -78,11 +78,11 @@
       </form>
 
       <div class="findID-links">
-          <a href="/findPW" class="form-link">PW 찾기</a>
+          <a href="{% url 'common:findPW'%}" class="form-link">PW 찾기</a>
           <span class="form-link-divider"></span>
-          <a href="/login" class="form-link">로그인</a>
+          <a href="{% url 'commone:login' %}" class="form-link">로그인</a>
           <span class="form-link-divider"></span>
-          <a href="/signup" class="form-link">회원가입</a>
+          <a href="{% url 'common:terms' %}" class="form-link">회원가입</a>
       </div>
 
       </div>
@@ -97,7 +97,7 @@
     
     {% if result_id %}
         alert("회원님의 아이디는 '{{ result_id|escapejs }}' 입니다.");
-        window.location.href = "/login";
+        window.location.href = "{% url 'common:login' %}";
     {% endif %}
   </script>
 {% endblock %}
