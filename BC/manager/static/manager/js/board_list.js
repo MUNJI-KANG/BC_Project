@@ -1,78 +1,3 @@
-{% extends 'manager_base.html' %}
-{% load static %}
-
-{% block title %}{{ boardName }} 관리{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/article_list.css' %}">
-{% endblock %}
-
-{% block content %}
-<div class="article-box">
-
-    <h1 class="box-header">{{ boardName }}</h1>
-
-    <!-- 리스트 JSON 전달 -->
-    <script id="boardData" type="application/json">
-        {{ article_list|safe }}
-    </script>
-
-    <select id="perPageSelect" class="filter-select">
-        <option value="15">15개</option>
-        <option value="30">30개</option>
-        <option value="50">50개</option>
-        <option value="100">100개</option>
-    </select>
-
-    <table class="article-table">
-        <thead class="article-table-header">
-            <tr>
-                <th style="width: 50px;">번호</th>
-                <th style="width: 50px;">✔</th>
-                <th>제목</th>
-                <th style="width: 120px;">작성자 ID</th>
-                <th style="width: 180px;">삭제 일자</th>
-            </tr>
-        </thead>
-        <tbody id="boardList"></tbody>
-    </table>
-
-    <!-- 페이징 -->
-    <div class="pagination">
-        {% if page_obj.has_previous %}
-            <a class="page-btn arrow"
-                href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">◀ 이전</a>
-        {% else %}
-            <span class="page-btn arrow disabled">◀ 이전</span>
-        {% endif %}
-
-        {% for num in block_range %}
-            {% if num == page_obj.number %}
-                <span class="page-btn active">{{ num }}</span>
-            {% else %}
-                <a class="page-btn" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a>
-            {% endif %}
-        {% endfor %}
-
-        {% if page_obj.has_next %}
-            <a class="page-btn arrow"
-                href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">다음 ▶</a>
-        {% else %}
-            <span class="page-btn arrow disabled">다음 ▶</span>
-        {% endif %}
-    </div>
-
-    <a href="{% url 'board_write' boardId %}">
-        <button class="register-btn">작성하기</button>
-    </a>
-
-    <button class="delete-btn">삭제</button>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="{% static 'js/paging.js' %}"></script>
-<script>
 document.addEventListener("DOMContentLoaded", function () {
 
     /* 올바른 boardName 가져오기 */
@@ -99,12 +24,13 @@ document.addEventListener("DOMContentLoaded", function () {
         box.innerHTML = data.map(item => `
             <tr ${item.delete_date ? 'style="opacity:0.6;background:#f5f5f5;"' : ''}>
                 <td>${item.row_no}</td>
-                <td>${item.delete_date ? '' : `<input type="checkbox" value="${item.id}">`}</td>
+                <td>${item.delete_date ? '' : `<input type="checkbox" value="${item.id}">`}</td>                
                 <td><a href="/manager/board_detail/${item.id}/">${item.title}</a></td>
                 <td>${item.author}</td>
                 <td>${item.delete_date || '-'}</td>
             </tr>
         `).join("");
+         // <td><input type="checkbox" value="${item.id}"></td>
     }
 
     renderBoardList(list);
@@ -143,7 +69,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrftoken
             },
-            body: JSON.stringify({ ids: ids })
+            body: JSON.stringify({ ids: ids, board_type: 'post' })
+            
         })
         .then(r => r.json())
         .then(data => {
@@ -157,5 +84,3 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
-</script>
-{% endblock %}

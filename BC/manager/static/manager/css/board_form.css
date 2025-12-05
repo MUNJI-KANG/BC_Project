@@ -139,6 +139,9 @@
     overflow: hidden;
 }
 
+.hidden{
+    display: none;
+}
 .file-upload-btn {
     display: inline-block;
     padding: 12px 24px;

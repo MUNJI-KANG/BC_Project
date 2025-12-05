@@ -8,7 +8,7 @@ urlpatterns = [
     # 공공시설추가페이지
     path('facility_add/', views.facility, name='facility_add'),
     
-    path('sport_type/', views.sport_type, name='sport_type'),
+    # path('sport_type/', views.sport_type, name='sport_type'),
     
     # 종목 관리
     path("add_sport/", views.add_sport, name="add_sport"),
@@ -67,9 +67,9 @@ urlpatterns = [
     #path('event/<int:article_id>/', views.manager_event_detail, name='manager_event_detail'),
 
     # 삭제 API
-    # path('api/articles/delete/', views.delete_articles, name='delete_articles'),
+    path('api/articles/delete/', views.delete_articles, name='delete_articles'),
     path('api/communities/delete/', views.delete_communities, name='delete_communities'),
     
     # 예약 취소 API
-    path('api/reservations/cancel-timeslot/<str:reservation_num>/', views.manager_cancel_timeslot, name='manager_cancel_timeslot'),
+    # path('api/reservations/cancel-timeslot/<str:reservation_num>/', views.manager_cancel_timeslot, name='manager_cancel_timeslot'),
 ]

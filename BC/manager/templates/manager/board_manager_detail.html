@@ -1,10 +1,10 @@
-{% extends 'manager_base.html' %}
+{% extends 'manager/manager_base.html' %}
 {% load static %}
 
 {% block title %}관리자 - {{ article.title }} 상세보기{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/manager_detail.css' %}">
+<link rel="stylesheet" href="{% static 'manager/css/manager_detail.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -16,9 +16,9 @@
         <h2 class="detail-title">{{ article.title }}</h2>
 
         <div class="detail-meta">
-            <span>작성자: {{ article.author }}</span>
-            <span>작성일: {{ article.date }}</span>
-            <span>조회수: {{ article.views }}</span>
+            <span>작성자: {{ author }}</span>
+            <span>작성일: {{ article.reg_date|date:"Y-m-d" }}</span>
+            <span>조회수: {{ article.view_cnt }}</span>
         </div>
 
         <div class="detail-content">

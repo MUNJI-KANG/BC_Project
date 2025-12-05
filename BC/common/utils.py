@@ -311,7 +311,7 @@ def handle_file_uploads(request, article):
     uploaded_files = []
     
     # 허용된 파일 확장자
-    ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.pdf']
+    ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.pdf', '.txt', '.hwp', '.docx']
     MAX_FILE_SIZE = 2 * 1024 * 1024  # 2MB
     
     print(f"[DEBUG] handle_file_uploads 호출: article_id={article.article_id}")

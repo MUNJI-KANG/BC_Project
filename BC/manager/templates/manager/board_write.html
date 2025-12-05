@@ -1,7 +1,13 @@
 {% extends 'manager/manager_base.html' %}
 {% load static %}
 
-{% block title %}{% if is_edit %}관리자 - 공지 글 수정{% else %}관리자 - 공지 글 작성{% endif %}{% endblock %}
+{% block title %}
+    {% if is_edit %}
+        관리자 - {{ boardName }} 글 수정
+    {% else %}
+        관리자 - {{ boardName }} 글 작성
+    {% endif %}
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'manager/css/board_form.css' %}">
@@ -9,16 +15,26 @@
 
 {% block content %}
 <div class="page-title-section">
-    <h2 class="page-title">{% if is_edit %}공지 글 수정{% else %}공지 글 작성{% endif %}</h2>
+    <h2 class="page-title">
+        {% if is_edit %}
+            {{ boardName }} 글 수정
+        {% else %}
+            {{ boardName }} 글 작성
+        {% endif %}
+    </h2>
 </div>
 
 <div class="sub-container">
     <div class="sub-content">
 
         <div class="form-wrapper">
-            <form method="post"
-                  action="{% if is_edit %}/manager/board_edit/{{ article.article_id }}/{% else %}/manager/board_form/{% endif %}"
-                  enctype="multipart/form-data">
+           <form method="post"
+                action="{% if is_edit %}
+                            {% url 'board_edit' article.board_id_id article.article_id %}
+                        {% else %}
+                            {% url 'board_write' boardId %}
+                        {% endif %}"
+                enctype="multipart/form-data">
 
                 {% csrf_token %}
 
@@ -46,7 +62,6 @@
                                     {{ file.name }}
                                 </a>
 
-                                <!-- 삭제 버튼 -->
                                 <button type="button"
                                         class="delete-existing-btn"
                                         data-file-id="{{ file.id }}"
@@ -73,7 +88,8 @@
                     <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요">{% if is_edit %}{{ article.contents }}{% endif %}</textarea>
                 </div>
 
-                <!-- 상단 고정 설정 -->
+                {% if boardId == 2 %}
+                <!-- 상단 고정 -->
                 <div class="form-group full-row">
                     <label class="form-label">상단 고정</label>
                     <div class="notice-type">
@@ -84,27 +100,34 @@
                     </div>
                 </div>
 
-                <!-- 공지 방식 -->
-                <div class="form-group full-row">
+                <!-- 공지 기간 타입 -->
+                <div class="form-group full-row notice-section
+                    {% if not is_edit or article.always_on == 1 %}hidden{% endif %}">
                     <label class="form-label">공지 기간</label>
                     <div class="notice-type">
-                        <label><input type="radio" name="notice_type" value="always"
-                                      {% if is_edit and not article.start_date %}checked{% elif not is_edit %}checked{% endif %}>
-                            상시 공지</label>
-                        <label><input type="radio" name="notice_type" value="period"
-                                      {% if is_edit and article.start_date %}checked{% endif %}>
-                            기간 공지</label>
+                        <label>
+                            <input type="radio" name="notice_type" value="always"
+                                   {% if is_edit and not start_date %}checked{% elif not is_edit %}checked{% endif %}>
+                            상시 공지
+                        </label>
+
+                        <label>
+                            <input type="radio" name="notice_type" value="period"
+                                   {% if is_edit and start_date %}checked{% endif %}>
+                            기간 공지
+                        </label>
                     </div>
                 </div>
-
-                <!-- 기간 설정 -->
-                <div id="date-section" class="{% if not is_edit or not article.start_date %}hidden{% endif %}">
+                <!-- 날짜 선택 -->
+                <div id="date-section"
+                     class="{% if not is_edit or not article.start_date %}hidden{% endif %}">
                     <div class="form-row">
                         <div class="form-group small">
                             <label class="form-label">시작 날짜</label>
                             <input type="datetime-local" name="start_date" class="form-input"
                                    value="{% if is_edit %}{{ start_date }}{% endif %}">
                         </div>
+
                         <div class="form-group small">
                             <label class="form-label">종료 날짜</label>
                             <input type="datetime-local" name="end_date" class="form-input"
@@ -112,6 +135,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
 
                 <!-- 버튼 -->
                 <div class="btn-row">
@@ -129,109 +153,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-
-    /* ===== 기존 파일 삭제 기능 ===== */
-    document.querySelectorAll(".delete-existing-btn").forEach(btn => {
-        btn.addEventListener("click", function () {
-            const fileId = this.dataset.fileId;
-
-            this.parentElement.remove();
-
-            const hidden = document.createElement("input");
-            hidden.type = "hidden";
-            hidden.name = "delete_files";
-            hidden.value = fileId;
-
-            document.querySelector("form").appendChild(hidden);
-        });
-    });
-
-
-    /* ===== 새로 추가된 파일 관리 (여러개 + 삭제) ===== */
-    const fileInput = document.getElementById('fileInput');
-    const fileList = document.getElementById('fileList');
-    let selectedFiles = [];
-
-    fileInput.addEventListener('change', function () {
-        Array.from(fileInput.files).forEach(file => {
-            selectedFiles.push(file);
-        });
-        fileInput.value = "";
-        renderFileList();
-    });
-
-    function renderFileList() {
-        fileList.innerHTML = "";
-
-        selectedFiles.forEach((file, index) => {
-            const item = document.createElement('div');
-            item.className = 'file-item';
-            item.style = "display:flex; align-items:center; gap:8px; padding:4px 0;";
-
-            item.innerHTML = `
-                <span>${file.name}</span>
-                <button type="button" class="delete-btn" data-index="${index}"
-                    style="background:#ff4d4d; color:white; border:none; padding:2px 6px; cursor:pointer; border-radius:3px;">
-                    X
-                </button>
-            `;
-            fileList.appendChild(item);
-        });
-
-        document.querySelectorAll(".delete-btn").forEach(btn => {
-            btn.addEventListener("click", function () {
-                const idx = this.dataset.index;
-                selectedFiles.splice(idx, 1);
-                renderFileList();
-            });
-        });
-    }
-
-    const form = document.querySelector('form');
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const formData = new FormData(form);
-
-        selectedFiles.forEach(file => {
-            formData.append("file", file);
-        });
-
-        fetch(form.action, {
-            method: "POST",
-            body: formData
-        })
-        .then(res => {
-            if (res.redirected) window.location.href = res.url;
-        });
-    });
-
-
-    /* ===== 상시공지/기간공지 토글 ===== */
-    const dateSection = document.getElementById('date-section');
-    const radios = document.querySelectorAll('input[name="notice_type"]');
-
-    radios.forEach(radio => {
-        radio.addEventListener('change', function () {
-            if (this.value === 'period') {
-                dateSection.classList.remove('hidden');
-            } else {
-                dateSection.classList.add('hidden');
-            }
-        });
-    });
-
-    // 초기 상태 반영
-    const checked = document.querySelector('input[name="notice_type"]:checked');
-    if (checked && checked.value === 'period') {
-        dateSection.classList.remove('hidden');
-    } else {
-        dateSection.classList.add('hidden');
-    }
-
-});
-
-</script>
+<script src="{% static 'manager/js/board_write.js' %}"></script>
 {% endblock %}
