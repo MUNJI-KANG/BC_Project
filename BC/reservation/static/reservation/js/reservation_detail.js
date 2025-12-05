@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 if (data.result === "ok") {
                     alert("예약이 완료되었습니다!");
-                    window.location.href = `/reservation/${facilityId}`;
+                    window.location.href = `/member/myreservation`;
                 } else {
                     alert(data.msg);
                 }

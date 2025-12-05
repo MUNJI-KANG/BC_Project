@@ -171,32 +171,71 @@
   gap: 12px;
 }
 
+/* 기본 버튼: 하얀색 → hover 시 파란색 */
 .mypage-btn-box button {
   padding: 10px 22px;
   border-radius: 999px;
   border: 1px solid var(--color-deep-blue);
-  background: var(--color-deep-blue);
-  color: #fff;
+  background: #ffffff;
+  color: var(--color-deep-blue);
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-base);
 }
 
 .mypage-btn-box button:hover {
-  background: var(--color-deep-blue-hover);
-  border-color: var(--color-deep-blue-hover);
+  background: var(--color-deep-blue);
+  color: #ffffff;
+  border-color: var(--color-deep-blue);
 }
 
-/* 보조 버튼 */
+/* 보조 버튼 (.btn-password) → 동일 규칙 적용 */
 .btn-password {
-  background: #fff;
+  background: #ffffff;
   color: var(--color-deep-blue);
+  border: 1px solid var(--color-deep-blue);
 }
 
 .btn-password:hover {
-  background: var(--color-deep-blue-hover);
-  color: #fff;
+  background: var(--color-deep-blue);
+  color: #ffffff;
 }
+
+/* 회원 탈퇴 버튼은 기존 경고 스타일 유지 */
+.btn-withdraw {
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid #ff4d4f;
+  background-color: #ff4d4f;
+  color: #ffffff;
+  transition: var(--transition-base);
+}
+
+.btn-withdraw:hover {
+  background-color: #d9363e;
+  border-color: #d9363e;
+}
+
+/* 비밀번호 변경 버튼 */
+.password-btn-box button {
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--color-deep-blue);
+  background: #ffffff;
+  color: var(--color-deep-blue);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.password-btn-box button:hover {
+  background: var(--color-deep-blue);
+  color: #ffffff;
+  border-color: var(--color-deep-blue);
+}
+
 
 
 /* 비밀번호 수정 컨테이너 */
