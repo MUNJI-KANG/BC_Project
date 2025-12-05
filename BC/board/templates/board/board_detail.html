@@ -76,7 +76,7 @@
 
         <!-- 버튼 영역 (여기에 수정 버튼 추가됨) -->
         <div class="article-actions">
-            <a href="/board/{{ board_type }}/" class="btn btn-list">목록으로</a>
+           <a href="{% url 'board:'|add:board_type %}" class="btn btn-list">목록으로</a>
 
             {% if is_manager and not is_deleted %}
                 {% if board_type == 'notice' %}
