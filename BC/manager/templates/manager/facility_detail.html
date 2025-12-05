@@ -22,7 +22,17 @@
         </section>
 
         <section class="detail-info-wrap">
-            <h3>{{ facilityInfo.faci_nm }}</h3>
+
+            <!-- <h3>{{ facilityInfo.faci_nm }}</h3>{% if facilityInfo.rs_posible == 1 %}<span class="status-active">활성</span>{% else %} <span class="status-inactive">비활성</span>{% endif %} -->
+            <div class="title-row">
+                <h3>{{ facilityInfo.faci_nm }}</h3>
+                {% if facilityInfo.rs_posible == 1 %}
+                <span class="status-active">활성</span>
+                {% else %}
+                <span class="status-inactive">비활성</span>
+                {% endif %}
+            </div>
+
 
             <section class="detail-info-row">
                 <b>업종명 :</b> <span>{{ facility.fcob_nm }}</span>
@@ -55,6 +65,22 @@
                 <b>안전등급 :</b> <span>{{ facility.schk_tot_grd_nm }}</span>
             </section>
 
+            {% if downloadable_files %}
+            <section class="file-section">
+                <b>첨부파일</b>
+
+                <ul class="file-list">
+                {% for f in downloadable_files %}
+                    <li class="file-item">
+                        <a href="{% url 'manager:download' f.add_info_id %}">
+                            📄 {{ f.file_name }}
+                        </a>
+                    </li>
+                {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
             <section class="detail-info-row timetable {% if facilityInfo.rs_posible == 0 %} hidden {% endif %}">
                 <b>시간표 :</b>
 
@@ -67,7 +93,7 @@
                         <span class="time">{{ r.open }} ~ {{ r.close }}</span>
                         <span class="interval">({{ r.interval }}분)</span>
                         {% else %}
-                        <span class="time disabled">운영 없음</span>
+                        <span class="time disabled">운영 안함</span>
                         {% endif %}
                     </div>
                     {% endfor %}

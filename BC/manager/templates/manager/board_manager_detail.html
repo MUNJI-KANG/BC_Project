@@ -26,14 +26,19 @@
         </div>
 
         {% if files %}
-        <div class="detail-files">
-            <h3>첨부파일</h3>
-            <ul>
-                {% for file in files %}
-                <li><a href="{{ file.url }}" download>{{ file.name }}</a></li>
+            <section class="file-section">
+                <b>첨부파일</b>
+
+                <ul class="file-list">
+                {% for f in files %}
+                    <li class="file-item">
+                        <a href="{% url 'manager:download' f.add_info_id %}">
+                            📄 {{ f.file_name }}
+                        </a>
+                    </li>
                 {% endfor %}
-            </ul>
-        </div>
+                </ul>
+            </section>
         {% endif %}
 
         {% if images %}

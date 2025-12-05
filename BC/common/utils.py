@@ -408,9 +408,21 @@ def save_encoded_image(request, instance, field_name="photo", sub_dir="uploads/f
 
     allowed_ext = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
     ext = os.path.splitext(upload.name)[1].lower()
+    MAX_FILE_SIZE = 2 * 1024 * 1024  # 2MB
 
+    # -------------------------
+    # 확장자 체크
+    # -------------------------
     if ext not in allowed_ext:
-        raise ValueError("이미지 파일만 업로드 가능합니다.")
+        messages.error(request, f"이미지 파일만 업로드 가능합니다: {upload.name}")
+        return
+
+    # -------------------------
+    # 용량 체크
+    # -------------------------
+    if upload.size > MAX_FILE_SIZE:
+        messages.error(request, f"대표 이미지 용량이 너무 큽니다 (최대 2MB): {upload.name}")
+        return
 
     # -------------------------
     # 기존 파일 삭제
@@ -418,11 +430,11 @@ def save_encoded_image(request, instance, field_name="photo", sub_dir="uploads/f
     if delete_old:
         old_path = None
 
-        # 기존 photo(파일 저장된 경로)
         old_file = getattr(instance, field_name, None)
         if old_file:
             old_path = old_file.path
-        # AddInfo에 기존 대표이미지도 삭제
+
+        # AddInfo에 저장된 기존 대표 이미지 삭제
         old_addinfo = AddInfo.objects.filter(facility_id=instance, file_name="대표이미지").first()
 
         if old_addinfo:
@@ -447,11 +459,11 @@ def save_encoded_image(request, instance, field_name="photo", sub_dir="uploads/f
         for chunk in upload.chunks():
             dest.write(chunk)
 
-    # 모델 field에 저장
+    # 모델 필드 업데이트
     setattr(instance, field_name, f"{sub_dir}/{new_name}")
     instance.save()
 
-    # AddInfo에도 저장
+    # AddInfo 기록 생성
     AddInfo.objects.create(
         file_name="대표이미지",
         encoded_name=new_name,
@@ -466,7 +478,6 @@ def save_encoded_image(request, instance, field_name="photo", sub_dir="uploads/f
 def upload_multiple_files(request, instance, file_field="attachment_files", sub_dir="uploads/facility"):
     """
     여러 개의 첨부파일을 업로드하고 AddInfo 테이블에 저장한다.
-
     - instance: FacilityInfo 인스턴스 (facility_id FK로 연결)
     - file_field: <input type="file" name="attachment_files" multiple> 의 name
     - sub_dir: MEDIA_ROOT 기준 저장 경로 (예: uploads/facility)
@@ -479,15 +490,23 @@ def upload_multiple_files(request, instance, file_field="attachment_files", sub_
     save_dir = os.path.join(settings.MEDIA_ROOT, sub_dir)
     os.makedirs(save_dir, exist_ok=True)
 
-    allowed_exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.pdf']
+    allowed_exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.pdf', '.txt', '.hwp', '.docx']
+    MAX_FILE_SIZE = 2 * 1024 * 1024  # 2MB 제한
 
     for f in files:
         ext = os.path.splitext(f.name)[1].lower()
+
+        # 확장자 체크
         if ext not in allowed_exts:
-            # 필요하면 메시지 처리
+            messages.error(request, f"허용되지 않은 파일 형식입니다: {f.name}")
             continue
 
-        # UUID 기반 인코딩 파일명
+        # 용량 체크
+        if f.size > MAX_FILE_SIZE:
+            messages.error(request, f"파일 크기 초과(2MB): {f.name}")
+            continue
+
+        # UUID 파일명 생성
         new_name = f"{uuid.uuid4()}{ext}"
         save_path = os.path.join(save_dir, new_name)
 
@@ -496,14 +515,13 @@ def upload_multiple_files(request, instance, file_field="attachment_files", sub_
             for chunk in f.chunks():
                 dest.write(chunk)
 
-        # AddInfo 레코드 생성
+        # AddInfo DB 저장
         AddInfo.objects.create(
-            file_name=f.name,              # 원본 파일명
-            encoded_name=new_name,         # UUID 인코딩된 파일명
-            path=f"{sub_dir}/{new_name}",  # MEDIA_URL 기준 상대 경로
-            facility_id=instance           # FK: FacilityInfo
+            file_name=f.name,
+            encoded_name=new_name,
+            path=f"{sub_dir}/{new_name}",
+            facility_id=instance
         )
-
 
 # -----------------------------------------------------
 # Facility 첨부파일 삭제 (체크된 것만)

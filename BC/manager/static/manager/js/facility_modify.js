@@ -160,12 +160,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             reader.onload = function (e) {
 
-                // placeholder 숨기기
-                if (previewPlaceholder) {
-                    previewPlaceholder.style.display = "none";
-                }
+                if (previewPlaceholder) previewPlaceholder.style.display = "none";
 
-                // 이미지 태그 보이기 + 미리보기 적용
                 previewImage.style.display = "block";
                 previewImage.src = e.target.result;
             };
@@ -173,25 +169,100 @@ document.addEventListener("DOMContentLoaded", function () {
             reader.readAsDataURL(file);
         });
     }
-    const deleteChecks = document.querySelectorAll(".delete-check");
 
-    deleteChecks.forEach(chk => {
-        chk.addEventListener("change", function () {
-            const row = this.closest(".attached-item");
-            const name = row.querySelector(".file-name");
 
-            if (this.checked) {
-                // 삭제 예정 → UI에서 취소선 표시
-                name.style.textDecoration = "line-through";
-                name.style.color = "#999";
-            } else {
-                // 체크 해제 → 원상복구
-                name.style.textDecoration = "none";
-                name.style.color = "#000";
-            }
+    /* --------------------------------------------------------
+     * 8. 기존 첨부파일 삭제 처리 (X 버튼)
+     * -------------------------------------------------------- */
+    document.querySelectorAll(".delete-existing-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const fileId = this.dataset.id;
+
+            // UI에서 제거
+            this.closest(".attached-item").remove();
+
+            // hidden input 추가
+            const hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = "delete_file";
+            hidden.value = fileId;
+
+            document.querySelector("form").appendChild(hidden);
         });
     });
 
+
+    /* --------------------------------------------------------
+     * 9. 새 파일 업로드 (board 방식 동일)
+     * -------------------------------------------------------- */
+    const newFileInput = document.getElementById("newFileInput");
+    const newFileList = document.getElementById("newFileList");
+    let selectedFiles = [];
+
+    newFileInput.addEventListener("change", function () {
+        Array.from(newFileInput.files).forEach(file => {
+            selectedFiles.push(file);
+        });
+        newFileInput.value = "";
+        renderNewFiles();
+    });
+
+    function renderNewFiles() {
+        newFileList.innerHTML = "";
+
+        selectedFiles.forEach((file, idx) => {
+            const div = document.createElement("div");
+            div.classList.add("file-item");
+            div.style = "display:flex; align-items:center; gap:8px; padding:4px 0;";
+
+            div.innerHTML = `
+                <span>${file.name}</span>
+                <button type="button" data-index="${idx}" 
+                    class="delete-new-btn"
+                    style="background:#ff4d4d; color:white; border:none; padding:2px 6px; cursor:pointer; border-radius:3px;">
+                    X
+                </button>
+            `;
+            newFileList.appendChild(div);
+        });
+
+        document.querySelectorAll(".delete-new-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+                const idx = this.dataset.index;
+                selectedFiles.splice(idx, 1);
+                renderNewFiles();
+            });
+        });
+    }
+
+
+    /* --------------------------------------------------------
+     * 10. 폼 submit → FormData 구성 + fetch
+     * -------------------------------------------------------- */
+    const form = document.getElementById("modifyForm");
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+
+        selectedFiles.forEach(file => {
+            formData.append("attachment_files", file);
+        });
+
+        fetch(form.action, {
+            method: "POST",
+            body: formData
+        })
+        .then(res => {
+            if (res.redirected) window.location.href = res.url;
+        });
+    });
+
+
+    /* --------------------------------------------------------
+     * 11. 예약 활성화 toggle
+     * -------------------------------------------------------- */
     const rsCheck = document.getElementById("rsPosible");
     const timeBox = document.getElementById("timeSettingBox");
     const reservationHidden = document.getElementById("reservationTimeInput");
@@ -201,11 +272,12 @@ document.addEventListener("DOMContentLoaded", function () {
             timeBox.classList.remove("time-disabled");
         } else {
             timeBox.classList.add("time-disabled");
-            reservationHidden.value = "{}";  // 시간 초기화 (POST 시 DB 초기화)
+            reservationHidden.value = "{}";
         }
     }
 
-    toggleTimeBox(); // 최초 로딩 시 상태 적용
+    toggleTimeBox();
 
     rsCheck.addEventListener("change", toggleTimeBox);
+
 });

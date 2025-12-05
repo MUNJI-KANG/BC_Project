@@ -213,7 +213,52 @@
     font-size: 14px;
     color: var(--color-text-secondary);
 }
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* 제목과 배지 간 간격 */
+}
+
+.status-active {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1dbf36;  /* 초록색 */
+    background: #e8fbe8;
+    padding: 2px 6px;
+    border-radius: 12px;
+    margin-right: 6px;
+}
+
+.status-inactive {
+    font-size: 12px;
+    font-weight: 700;
+    color: #e53935;  /* 빨강 */
+    background: #fdeaea;
+    padding: 2px 6px;
+    border-radius: 12px;
+    margin-right: 6px;
+}
+
 
 .hidden{
     display: none;
+}
+
+.file-list {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 6px;
+}
+
+.file-item {
+    margin-bottom: 6px;
+}
+
+.file-item a {
+    color: #2b5eff;
+    text-decoration: none;
+}
+
+.file-item a:hover {
+    text-decoration: underline;
 }

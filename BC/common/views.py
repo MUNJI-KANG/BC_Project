@@ -208,7 +208,7 @@ def login(request):
         # 관리자 체크 (manager_yn == 1인 경우)
         if user.manager_yn == 1:
             request.session["manager_id"] = user.member_id
-            request.session["manager_name"] = user.name
+            #request.session["manager_name"] = user.name
             # 로그인 유지 선택 시 세션 만료 시간 변경
             if remember:
                 request.session.set_expiry(60 * 60)  # 1시간 유지

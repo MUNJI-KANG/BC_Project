@@ -80,16 +80,17 @@
         <div class="file-box">
             <h2 class="section-title">첨부파일</h2>
 
+            <!-- 기존 파일 목록 -->
             {% if files %}
             <ul class="attached-list">
                 {% for f in files %}
                 <li class="attached-item" data-id="{{ f.add_info_id }}">
                     <span class="file-name">{{ f.file_name }}</span>
 
-                    <label>
-                        <input type="checkbox" name="delete_file" value="{{ f.add_info_id }}" class="delete-check">
-                        삭제
-                    </label>
+                    <button type="button" class="delete-existing-btn" data-id="{{ f.add_info_id }}"
+                            style="background:#ff4d4d; color:white; border:none; padding:2px 6px; cursor:pointer; border-radius:3px;">
+                        X
+                    </button>
                 </li>
                 {% endfor %}
             </ul>
@@ -97,9 +98,13 @@
             <p>첨부된 파일이 없습니다.</p>
             {% endif %}
 
-            <input type="file" name="attachment_files" multiple class="attachment-input">
+            <!-- 새 파일 업로드 UI -->
+            <div class="file-upload-wrapper">
+                <input type="file" id="newFileInput" class="attachment-input" multiple>
+                <label for="newFileInput" class="file-upload-btn">📎 파일 선택</label>
+                <div class="file-list" id="newFileList"></div>
+            </div>
         </div>
-
 
         <!-- ================================
              예약 가능 여부
