@@ -44,7 +44,7 @@ def get_board_by_name(board_name):
     """
     board_name = board_name.lower().strip()  # 소문자로 통일, 공백 제거
     
-    valid_names = ['recruitment', 'notice', 'event', 'post']
+    valid_names = ['recruitment', 'notice', 'event', 'post', 'faq']
     if board_name not in valid_names:
         raise ValidationError(f"유효하지 않은 board_name: {board_name}. 유효한 값: {valid_names}")
     

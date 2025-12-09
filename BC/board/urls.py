@@ -5,7 +5,7 @@ app_name = 'board'
 
 urlpatterns = [
     path('', views.article_list, name='board'),  # 기본 경로는 공지사항으로
-    path('faq/', views.faq, name='faq'),
+    # path('faq/', views.faq, name='faq'),
 
     path('<str:board_name>/', views.article_list, name='list'),
     path('<str:board_name>/write/', views.article_write, name='write'),

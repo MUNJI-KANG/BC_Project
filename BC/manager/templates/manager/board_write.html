@@ -49,12 +49,16 @@
                 <!-- 내용 -->
                 <div class="form-group full-row">
                     <label class="form-label">내용 / 설명</label>
-                    <!-- <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요">{% if is_edit %}<pre>{{ article.contents }}</pre>{% endif %}</textarea> -->
+                    {% if boardId == 5 %}
+                    <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요">{% if is_edit %}<pre>{{ article.contents }}</pre>{% endif %}</textarea>
+                    {% else %}
                     <div id="editor"></div>
                     <input type="hidden" name="context" id="contextInput">
+                    {% endif %}
                 </div>
                 
                 <!-- 파일 첨부 -->
+                {% if boardId != 5 %}
                 <div class="form-group full-row">
                     <label class="form-label">첨부파일</label>
 
@@ -90,6 +94,7 @@
                     </div>
                     {% endif %}
                 </div>
+                {% endif %}
                 {% if boardId == 2 %}
                 <!-- 상단 고정 -->
                 <div class="form-group full-row">

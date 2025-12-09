@@ -26,6 +26,7 @@ def b_name(board_name:str):
         "notice": "공지할래",
         "event": "이벤트할래",
         "post": "수다떨래",
+        "faq" : "FAQ"
     }
     if board_name not in mapping:
         raise ValueError(f"잘못된 board_name: {board_name}")
@@ -33,10 +34,10 @@ def b_name(board_name:str):
     return mapping.get(board_name, "")
 
 def article_list(request, board_name):
+    print('dsfasdfasdasfd')
     try:
         now = timezone.now()
         b_id = get_board_by_name(board_name).board_id
-
         noticeList = []
 
         # 기본 QuerySet
@@ -81,7 +82,7 @@ def article_list(request, board_name):
                     'date': article.reg_date.strftime('%Y-%m-%d'),
                     'views': article.view_cnt,
                 })
-        print("noticeList  : " , noticeList)
+     
         # 전체 게시글 (공지 포함 전체)
         articleList = (
             articleList
@@ -163,8 +164,9 @@ def article_list(request, board_name):
         
     }
 
+    if b_id == 5 :
+        return render(request, 'board/faq.html', context)
     return render(request, 'board/list.html', context)
-
 
 
 def article_detail(request, board_name:str, article_id:int):
