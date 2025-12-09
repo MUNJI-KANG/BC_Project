@@ -32,7 +32,8 @@
     border-color: var(--color-deep-blue);
 }
 
-.form-textarea {
+/* 본문 작성란 전용 스타일 */
+.content-textarea {
     width: 100%;
     height: 200px;
     resize: vertical;

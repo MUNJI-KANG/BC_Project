@@ -73,23 +73,21 @@
 
 /* input / textarea */
 .form-input,
-.form-textarea {
+/* 본문 작성란 전용 스타일 */
+.content-textarea {
     width: 100%;
     padding: var(--spacing-md) var(--spacing-lg);
     border: 1px solid var(--color-soft-gray-line);
     background: var(--color-card-box);
     font-size: 1rem;
-    transition: border-color var(--transition-base), box-shadow var(--transition-base);
-}
-
-.form-textarea {
     height: 180px;
     resize: vertical;
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 /* focus 스타일 */
 .form-input:focus,
-.form-textarea:focus {
+.content-textarea:focus {
     border-color: var(--color-deep-blue);
     box-shadow: 0 0 0 2px rgba(47, 92, 156, 0.2);
     outline: none;

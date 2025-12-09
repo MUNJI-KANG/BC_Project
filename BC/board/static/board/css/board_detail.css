@@ -337,7 +337,8 @@
     margin-bottom: 6px;
 }
 
-.comment-form .form-textarea {
+/* 댓글 작성란 전용 스타일 */
+.comment-textarea {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #d1d5db;
@@ -345,18 +346,18 @@
     font-size: 14px;
     background: #fff;
     color: #111827;
-    resize: vertical;
+    resize: none;
     font-family: inherit;
     line-height: 1.6;
 }
 
-.comment-form .form-textarea:focus {
+.comment-textarea:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
-.comment-form .form-textarea::placeholder {
+.comment-textarea::placeholder {
     color: #9ca3af;
 }
 

@@ -139,7 +139,7 @@
         <form method="post" action="{% url 'facility:facility_comment' facility_id %}" class="comment-form">
             {% csrf_token %}
             <label for="comment">댓글 쓰기</label>
-            <textarea id="comment" name="content" rows="3" required></textarea>
+            <textarea id="comment" name="content" class="comment-textarea" rows="3" required></textarea>
             <div class="comment-btn-box">
                 <button type="submit" class="btn btn-submit">등록</button>
             </div>
