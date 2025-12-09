@@ -100,9 +100,9 @@
 
             <!-- 새 파일 업로드 UI -->
             <div class="file-upload-wrapper">
-                <input type="file" id="newFileInput" class="attachment-input" multiple>
+                <input type="file" name="file" id="fileInput" class="file-input" multiple>
                 <label for="newFileInput" class="file-upload-btn">📎 파일 선택</label>
-                <div class="file-list" id="newFileList"></div>
+                <div class="file-list" id="fileList"></div>
             </div>
         </div>
 
@@ -152,6 +152,6 @@
 
 <!-- 기존 JS -->
 <script src="{% static 'manager/js/facility_modify.js' %}"></script>
-
+<script src="{% static 'common/js/board/fileupload.js' %}"></script>
 
 {% endblock %}
