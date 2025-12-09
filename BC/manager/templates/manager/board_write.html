@@ -11,6 +11,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'manager/css/board_form.css' %}">
+<link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
 {% endblock %}
 
 {% block content %}
@@ -48,7 +49,9 @@
                 <!-- 내용 -->
                 <div class="form-group full-row">
                     <label class="form-label">내용 / 설명</label>
-                    <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요">{% if is_edit %}<pre>{{ article.contents }}</pre>{% endif %}</textarea>
+                    <!-- <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요">{% if is_edit %}<pre>{{ article.contents }}</pre>{% endif %}</textarea> -->
+                    <div id="editor"></div>
+                    <input type="hidden" name="context" id="contextInput">
                 </div>
                 
                 <!-- 파일 첨부 -->
@@ -152,5 +155,11 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    window.initialContent = `{% if is_edit %}{{ article.contents|escapejs }}{% endif %}`;
+</script>
 <script src="{% static 'manager/js/board_write.js' %}"></script>
+<script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+<script src="{% static 'common/js/board/editor.js' %}"></script>
+<script src="{% static 'common/js/board/fileupload.js' %}"></script>
 {% endblock %}

@@ -22,7 +22,7 @@
         </div>
 
         <div class="detail-content">
-            {{ article.contents|linebreaksbr }}
+            {{ article.contents|safe }}
         </div>
 
         {% if files %}

@@ -61,17 +61,8 @@
         <!-- 게시글 내용 -->
         <section class="article-content">
             <div class="article-body">
-                {{ article.contents|linebreaksbr }}
-
-                {% if article.images %}
-                <div class="article-images">
-                    {% for image in article.images %}
-                    <div class="article-image-item">
-                        <img src="{{ image.url }}" alt="{{ image.name }}" class="article-image">
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
+                {{ article.contents|safe }}
+                
             </div>
         </section>
 
