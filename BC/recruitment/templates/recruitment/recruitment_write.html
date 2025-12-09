@@ -3,6 +3,7 @@
 {% block css %}
 <link rel="stylesheet" href="{% static 'recruitment/css/recruitment_list.css' %}" />
 <link rel="stylesheet" href="{% static 'recruitment/css/recruitment_write.css' %}" />
+<link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
 {% endblock %}
 
 
@@ -11,7 +12,12 @@
 {% endblock %}
 
 {% block script1 %}
+<script>
+    window.initialContent = ``;
+</script>
+<script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
 <script src="{% static 'recruitment/js/recruitment_write.js' %}"></script>
+<script src="{% static 'common/js/board/editor.js' %}"></script>
 {% endblock %}
 
 {% block contents %}
@@ -96,7 +102,8 @@
         <!-- 4. 기본적인 내용 입력 -->
         <div class="form-group full-row">
           <label class="form-label">내용</label>
-          <textarea class="content-textarea" name="content" required></textarea>
+          <div id="editor"></div>
+          <input type="hidden" name="content" id="contentInput">
         </div>
 
         <!-- 5. 기타 URL -->

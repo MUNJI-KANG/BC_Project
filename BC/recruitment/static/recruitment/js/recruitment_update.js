@@ -107,3 +107,17 @@ function handle_list() {
     // 실제 리스트 URL에 맞게 수정해서 쓰시면 됩니다.
     window.location.href = "/recruitment";
 }
+
+// Editor 내용을 form submit 시 hidden input에 저장
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('recruit_form');
+    const contentInput = document.getElementById('contentInput');
+
+    if (form && contentInput) {
+        form.addEventListener('submit', function (e) {
+            if (window.editorInstance) {
+                contentInput.value = window.editorInstance.getHTML();
+            }
+        });
+    }
+});

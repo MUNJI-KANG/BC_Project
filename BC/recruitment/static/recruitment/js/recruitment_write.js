@@ -222,3 +222,17 @@ function handle_list() {
     // 또는 모달 열기, 입력 필드 활성화 등 여기 넣으면 됨
     // alert("정보 수정 기능 준비중");
 }
+
+// Editor 내용을 form submit 시 hidden input에 저장
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('recruit-form');
+    const contentInput = document.getElementById('contentInput');
+
+    if (form && contentInput) {
+        form.addEventListener('submit', function (e) {
+            if (window.editorInstance) {
+                contentInput.value = window.editorInstance.getHTML();
+            }
+        });
+    }
+});

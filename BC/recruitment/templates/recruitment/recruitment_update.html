@@ -8,10 +8,16 @@
 {% block css %}
 <link rel="stylesheet" href="{% static 'recruitment/css/recruitment_list.css' %}" />
 <link rel="stylesheet" href="{% static 'recruitment/css/recruitment_write.css' %}" />
+<link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
 {% endblock %}
 
 {% block script1 %}
+<script>
+    window.initialContent = `{{ recruit.contents|escapejs }}`;
+</script>
+<script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
 <script src="{% static 'recruitment/js/recruitment_update.js' %}"></script>
+<script src="{% static 'common/js/board/editor.js' %}"></script>
 {% endblock %}
 
 {% block contents %}
@@ -88,8 +94,8 @@
 
 
 
-                
-                    {# grp.reservation, grp.facility, grp.times 사용 #}
+                <!-- 3. 시설 -->
+                <div class="form-group full-row">
                     <label class="form-label">시설</label>
                     <select name="reservation_choice" id="reservation_choice" class="form-input">
                         <option value="">시설 선택</option>
@@ -113,9 +119,8 @@
                 <!-- 4. 내용 (수정 가능한 유일한 필드) -->
                 <div class="form-group full-row">
                     <label class="form-label">내용</label>
-                <textarea class="content-textarea"
-                    name="content"    
-                    rows="6">{{ recruit.contents }}</textarea>
+                    <div id="editor"></div>
+                    <input type="hidden" name="content" id="contentInput">
                 </div>
 
                 <!-- 5. 오픈카톡 URL (수정 가능하게 변경 가능) -->
