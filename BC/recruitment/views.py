@@ -693,15 +693,25 @@ def delete(request, pk):
         return redirect("/login")
 
     # 2) 삭제 대상 글 조회
-    try:
-        community = Community.objects.get(pk=pk)
-    except Community.DoesNotExist:
-        raise Http404("존재하지 않는 글입니다.")
+    community = get_object_or_404(Community, pk=pk)
 
-    # 3) 작성자 본인 확인 (URL로 악의적 접근 방지)
-    if member.manager_yn != 1:
-        messages.error(request, "관리자만 글을 삭제할 수 있습니다.")
+    # 3) 권한 체크
+    is_manager = (member.manager_yn == 1)
+    is_owner = (community.member_id == member)
+
+    # 3-1) 관리자도 아니고, 작성자도 아니면 → 삭제 불가
+    if not (is_manager or is_owner):
+        messages.error(request, "삭제 권한이 없습니다.")
         return redirect("recruitment:recruitment_detail", pk=pk)
+
+    # 3-2) 작성자인데, 참여신청이 하나라도 있으면 삭제 막기
+    #      (관리자는 참여신청이 있어도 삭제 가능)
+    if not is_manager and is_owner:
+        has_join = JoinStat.objects.filter(community_id=community).exists()
+        if has_join:
+            messages.error(request, "이미 참여 신청이 있어 글을 삭제할 수 없습니다.")
+            return redirect("recruitment:recruitment_detail", pk=pk)       
+    
 
     # 4) soft delete
     community.delete_date = timezone.now()

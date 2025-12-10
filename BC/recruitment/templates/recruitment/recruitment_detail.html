@@ -134,6 +134,9 @@
     
 <!-- 버튼(들) -->
 <div class="detail-btn-box">
+
+
+
     {% if is_owner or is_manager %}
         {# ✅ 모집 마감 버튼 (작성자 + 관리자) #}
         {% if not is_deleted %}
@@ -153,22 +156,28 @@
                 </span>
             {% endif %}
         {% endif %}
+        
+        <!-- 작성자(대기,참여인원 0일때만) 관리자 삭제 -->
+        <form method="post"
+        action="{% url 'recruitment:recruitment_delete' recruit.community_id %}"
+        onsubmit="return confirm('정말 글을 삭제하시겠습니까?');">
+        {% csrf_token %}
+        <button type="submit" class="detail-btn btn-delete" id="btnCloseRecruit">
+            삭제하기
+        </button>
+        </form>
+        
+
 
         {% if is_owner %}
-            <!-- 글 수정 -->
-            <a href="{% url 'recruitment:recruitment_update' recruit.community_id %}"
-               class="detail-btn btn-edit">수정하기</a>
-        {% elif is_manager %}
-            <!-- 관리자 삭제 -->
-            <form method="post"
-                  action="{% url 'recruitment:recruitment_delete' recruit.community_id %}"
-                  onsubmit="return confirm('정말 글을 삭제하시겠습니까?');">
-                {% csrf_token %}
-                <button type="submit" class="detail-btn btn-edit" id="btnCloseRecruit">
-                    삭제하기
-                </button>
-            </form>
+        <!-- 글 수정 -->
+        <a href="{% url 'recruitment:recruitment_update' recruit.community_id %}"
+        class="detail-btn btn-edit">수정하기</a>
         {% endif %}
+            
+
+
+
 
     {% else %}
         {# 🔽 일반 사용자 영역 #}
