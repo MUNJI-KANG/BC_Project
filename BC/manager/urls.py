@@ -66,4 +66,7 @@ urlpatterns = [
     path("logout/", views.logout, name="logout"),
     # 예약 취소 API
     # path('api/reservations/cancel-timeslot/<str:reservation_num>/', views.manager_cancel_timeslot, name='manager_cancel_timeslot'),
+
+    # 회원관리
+    path('member_list/', views.member_list, name='member_list')
 ]

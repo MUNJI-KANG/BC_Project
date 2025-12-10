@@ -2515,3 +2515,7 @@ def logout(request):
     
     messages.success(request, "로그아웃되었습니다.")
     return redirect('manager:manager_login')
+
+
+def member_list(request):
+    return render(request, 'manager/member_list.html')
