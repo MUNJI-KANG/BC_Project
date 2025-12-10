@@ -60,7 +60,6 @@
 
 
 
-
             {% if reservation_slots %}
             <span class="detail-badge"># 시설 : {{ reservation_slots.0.facility.faci_nm }}</span>
             <!-- <div>{{ reservation_slots.0.facility.faci_nm }}</div> -->
@@ -79,7 +78,17 @@
             
             {% else %}
             <span class="detail-badge">예약된 시설이 없습니다.</span>
-            {% endif %}            
+            {% endif %}    
+            
+            
+            <span class="detail-badge">
+                # 마감일자 :
+                {% if is_always_open %}
+                    상시 모집
+                {% else %}
+                    {{ end_status.end_set_date|date:"Y-m-d" }}
+                {% endif %}
+            </span>
 
         </div>
         

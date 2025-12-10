@@ -76,6 +76,28 @@
             <input type="number" class="form-input" name="personnel" min="1" required>
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group small">
+            <label class="form-label">마감날짜</label>
+            <div class="radio-group">
+              <label>
+                <input type="radio" name="end_type" value="date" checked>
+                마감일 설정
+              </label>
+              <label style="margin-left: 10px;">
+                <input type="radio" name="end_type" value="always">
+                상시 모집
+              </label>
+            </div>
+            <input type="date"
+                  name="end_set_date"
+                  class="form-input"
+                  id="endDateInput"
+                  min="{{ today }}"
+                  required>
+          
+          </div>
+        </div>
 
         <!-- 3. 시설 -->
         <div class="form-group full-row">
@@ -155,6 +177,25 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     });
+
+    const radios = document.querySelectorAll('input[name="end_type"]');
+    const endDateInput = document.getElementById("endDateInput");
+
+    function toggleEndDate() {
+      const val = document.querySelector('input[name="end_type"]:checked').value;
+      if (val === "always") {
+        endDateInput.disabled = true;
+        endDateInput.required =  false;
+        endDateInput.value = "";
+      } else {
+        endDateInput.disabled = false;
+        endDateInput.required =  true;
+      }
+    }
+
+    radios.forEach(r => r.addEventListener("change", toggleEndDate));
+    toggleEndDate();
+
 });
 </script>
 

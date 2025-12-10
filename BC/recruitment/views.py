@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 
 
+
 from .models import *
 from reservation.models import *
 from member.models import Member
@@ -25,6 +26,8 @@ from collections import OrderedDict
 import os
 import uuid
 from django.conf import settings
+from datetime import date
+
 
 from django.db.models import Q
 from django.core.paginator import Paginator
@@ -127,7 +130,7 @@ def recruitment_list(request):
 
 
 
-
+ALWAYS_OPEN_DATE = date(2099, 1, 1)
 def write(request):
     
     res = check_login(request)
@@ -214,8 +217,25 @@ def write(request):
 
         reservation_id = (request.POST.get("reservation_choice") or "").strip()
 
+        end_type = request.POST.get("end_type") or "date"              # 'date' or 'always'
+        end_set_date_raw = request.POST.get("end_set_date")  # YYYY-MM-DD or ''
+
         facility_name = "미정"
         reservation_obj = None
+        # 🔹 폼 다시 뿌릴 때 쓸 데이터 묶음
+        form_data = {
+            "title": title,
+            "sido": region,
+            "sigungu": region2,
+            "sport": sport_type,
+            "personnel": num_member,
+            "content": contents,
+            "openchat_url": chat_url,
+            "reservation_choice": reservation_id,
+            "end_type": end_type,
+            "end_set_date": end_set_date_raw,
+        }
+
 
         if reservation_id:
             # 선택된 예약 객체
@@ -261,6 +281,40 @@ def write(request):
             reservation_id=reservation_obj,
         )
 
+        # 🔹 상시모집 / 날짜모집 분기
+        if end_type == "always":
+            end_set_date = ALWAYS_OPEN_DATE
+        else:
+            if end_set_date_raw:
+                try:
+                    end_set_date = date.fromisoformat(end_set_date_raw)
+                except ValueError:
+                    messages.error(request, "유효한 마감일을 선택해 주세요.")
+                    context = {
+                        "my_reservations": my_reservations,
+                        "my_reservation_slots": my_reservation_slots,
+                    }
+                    return render(request, "recruitment/recruitment_write.html", context)
+                
+                    # end_set_date = date.today()
+                    
+            else:
+                messages.error(request, "유효한 마감일을 선택해 주세요.")
+                context = {
+                    "my_reservations": my_reservations,
+                    "my_reservation_slots": my_reservation_slots,
+                }
+                return render(request, "recruitment/recruitment_write.html", context)
+
+        EndStatus.objects.create(
+            community=recruit,
+            end_set_date=end_set_date,
+            end_date=None,
+            end_stat=0,
+        )
+
+
+
         files = request.FILES.getlist("files")
 
         for f in files:
@@ -290,11 +344,12 @@ def write(request):
                 # reg_date 는 model 에 auto_now_add=True 면 안 넣어도 됨
             )
         return redirect("recruitment:recruitment_detail", pk=recruit.pk)
-
+    today = date.today().isoformat()
     # 3) GET 요청이면 작성 폼 + 내 예약 목록 넘기기
     context = {
         "my_reservations": my_reservations,
         "my_reservation_slots": my_reservation_slots,
+        "today":today
     }
     return render(request, "recruitment/recruitment_write.html", context)
 
@@ -567,13 +622,16 @@ def detail(request, pk):
     # -------------------------
     # 자동 마감 처리
     # -------------------------
-    end_status, created = EndStatus.objects.get_or_create(
-        community=recruit,
-        defaults={
-            "end_set_date": timezone.now().date(),
-            "end_stat": 0,
-        },
-    )
+    try:
+        end_status = EndStatus.objects.get(community=recruit)
+    except EndStatus.DoesNotExist:
+        # 혹시 예전 데이터(EndStatus 없이 만들어진 글)를 대비한 안전장치
+        end_status = EndStatus.objects.create(
+            community=recruit,
+            end_set_date=ALWAYS_OPEN_DATE,  # 상시모집으로 기본 세팅
+            end_stat=0,
+        )
+    is_always_open = (end_status.end_set_date == ALWAYS_OPEN_DATE)
 
     if approved_count >= capacity and capacity > 0:
         if end_status.end_stat != 1:
@@ -660,6 +718,11 @@ def detail(request, pk):
         "recruit": recruit,
         "add_info": add_info_list,
         "is_owner": is_owner,
+
+        # 마감관련
+        "end_status":end_status,
+        "is_always_open":is_always_open,
+
         "is_manager": is_manager_user,
         "join_list": join_list,
         "approved_count": approved_count,

@@ -33,7 +33,7 @@ class Community(models.Model):
 class EndStatus(models.Model):
     community = models.OneToOneField(Community,primary_key=True,on_delete=models.CASCADE)  # community_id로 변경 필요? (11/27)
     end_date = models.DateField(null=True, blank=True)
-    end_set_date = models.DateField()
+    end_set_date = models.DateField()               # 마감 지정날짜
     end_stat = models.IntegerField(default=0)       # 마감여부(0=마감안됨, 1=마감)
 
     class Meta:
