@@ -16,7 +16,7 @@ from board.utils import get_board_by_name
 from django.conf import settings
 import uuid
 from django.utils.dateparse import parse_datetime
-from common.utils import handle_file_uploads, save_encoded_image, upload_multiple_files, delete_selected_files, is_manager
+from common.utils import save_encoded_image, delete_selected_files, is_manager, upload_files
 from django.http import FileResponse, Http404
 
 # models import 
@@ -522,7 +522,7 @@ def facility_modify(request, id):
     delete_selected_files(request)
 
     # 3) 첨부파일 업로드 (FK 자동 저장됨)
-    upload_multiple_files(
+    upload_files(
         request=request,
         instance=info,
         file_field="attachment_files",
@@ -2338,7 +2338,7 @@ def create_article(request, board_id):
     article.save()
 
     # 파일 업로드
-    handle_file_uploads(request, article)
+    upload_files(request, article, file_field="file", sub_dir="uploads/articles")
 
     messages.success(request, "등록되었습니다.")
     return redirect('manager:board_detail', pk=article.article_id)
@@ -2379,7 +2379,7 @@ def update_article(request, article, board_id, pk):
         files_to_delete.delete()
 
     # 새 파일 업로드
-    handle_file_uploads(request, article)
+    upload_files(request, article, file_field="file", sub_dir="uploads/articles")
 
     messages.success(request, "수정되었습니다.")
     return redirect('manager:board_detail',pk=pk)
@@ -2518,4 +2518,91 @@ def logout(request):
 
 
 def member_list(request):
-    return render(request, 'manager/member_list.html')
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
+    
+    members = Member.objects.all().order_by('delete_yn', 'member_id')
+    search = request.GET.get("search", "name")
+    q = request.GET.get("q", "")
+    member_type = request.GET.get("member_type", "")
+    per_page = int(request.GET.get("per_page", 15))
+
+
+    # 검색 기능
+    if q:
+        if search == "name":
+            members = members.filter(name__icontains=q)
+        elif search == "user_id":
+            members = members.filter(user_id__icontains=q)
+        elif search == "nickname":
+            members = members.filter(nickname__icontains=q)
+
+
+    # 회원 유형 필터링
+    if member_type == "kakao":
+        members = members.filter(user_id__startswith="kakao")
+    elif member_type == "normal":
+        members = members.exclude(user_id__startswith="kakao")
+    elif member_type == 'withdraw':
+        members = members.filter(delete_yn__in =  [1,2])
+
+
+    for m in members:
+        a1 = m.addr1 or ""
+        a2 = m.addr2 or ""
+        a3 = m.addr3 or ""
+
+        a1 = a1.strip()
+        a2 = a2.strip()
+        a3 = a3.strip()
+
+        # join할 때 None, 공백 제거
+        m.full_address = " ".join([p for p in [a1, a2, a3] if p])
+
+    paginator = Paginator(members, per_page)
+    page = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page)
+
+    page_range = paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1)
+    context = {
+        "member_list": page_obj,     
+        "page_obj": page_obj,
+        "page_range": page_range,
+        "per_page": per_page,
+        "search": search,
+        "q": q,
+        "member_type": member_type,
+    }
+
+    return render(request, 'manager/member_list.html', context)
+
+
+def member_delete(request):
+    if request.method == "POST":
+        ids = request.POST.getlist("ids")  # 선택된 member_id 목록
+
+        if ids:
+            # delete_yn = 2 로 변경
+            Member.objects.filter(member_id__in=ids).update(delete_yn=2)
+            Member.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
+
+
+    messages.success(request, "탈퇴 처리가 완료되었습니다.")
+    return redirect("manager:member_list")
+
+
+def member_restore(request):
+    if request.method == "POST":
+        ids = request.POST.getlist("ids")
+
+        if ids:
+            Member.objects.filter(member_id__in=ids).update(delete_yn=0)
+            Member.objects.filter(member_id__in=ids).update(delete_date=None)
+            
+
+    messages.success(request, "회원 복구가 완료되었습니다.")
+    return redirect("manager:member_list")
+
+        

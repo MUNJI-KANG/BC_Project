@@ -551,7 +551,7 @@ def delete_selected_files(request):
     폼에서 넘어온 체크박스(name='delete_file') 목록을 기준으로
     AddInfo + 실제 파일을 삭제한다.
     """
-    delete_ids = request.POST.getlist("delete_file")
+    delete_ids = request.POST.getlist("delete_files")
 
     for fid in delete_ids:
         try:
@@ -569,3 +569,84 @@ def delete_selected_files(request):
 
         # DB 레코드 삭제
         f.delete()
+
+
+
+import os
+import uuid
+from django.conf import settings
+from django.contrib import messages
+from common.models import AddInfo
+
+
+def upload_files(request, instance, file_field="file", sub_dir="uploads/common"):
+    """
+    다중 파일 업로드 통합 함수
+    
+    - instance: Article 또는 FacilityInfo 인스턴스
+    - file_field: <input type="file" name="file" multiple> 의 name
+    - sub_dir: 저장 경로 (예: uploads/articles, uploads/facility)
+    """
+
+    if file_field not in request.FILES:
+        return []
+
+    files = request.FILES.getlist(file_field)
+
+    save_dir = os.path.join(settings.MEDIA_ROOT, sub_dir)
+    os.makedirs(save_dir, exist_ok=True)
+
+    allowed_exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.pdf', '.txt', '.hwp', '.docx']
+    MAX_FILE_SIZE = 2 * 1024 * 1024  # 2MB 제한
+
+    uploaded_files = []
+
+    # instance가 Article인지 FacilityInfo인지 자동 감지
+    fk_field = None
+    if hasattr(instance, "article_id"):  # Article PK 존재
+        fk_field = "article_id"
+    elif hasattr(instance, "facility_id") or hasattr(instance, "faci_nm"):
+        fk_field = "facility_id"
+    else:
+        raise Exception("지원되지 않는 모델 타입입니다.")
+
+    for f in files:
+        ext = os.path.splitext(f.name)[1].lower()
+
+        # 확장자 체크
+        if ext not in allowed_exts:
+            messages.error(request, f"허용되지 않은 파일 형식입니다: {f.name}")
+            continue
+
+        # 용량 체크
+        if f.size > MAX_FILE_SIZE:
+            messages.error(request, f"파일 크기 초과(2MB): {f.name}")
+            continue
+
+        # UUID 파일명 생성
+        new_name = f"{uuid.uuid4()}{ext}"
+        save_path = os.path.join(save_dir, new_name)
+
+        # 실제 파일 저장
+        with open(save_path, "wb+") as dest:
+            for chunk in f.chunks():
+                dest.write(chunk)
+
+        # AddInfo 저장
+        add_info = AddInfo.objects.create(
+            file_name=f.name,
+            encoded_name=new_name,
+            path=f"{sub_dir}/{new_name}",
+            **{fk_field: instance}  # article_id 또는 facility_id 자동 연결
+        )
+
+        # 출력용 리스트 저장
+        uploaded_files.append({
+            "id": add_info.add_info_id,
+            "file_name": f.name,
+            "encoded_name": new_name,
+            "url": f"{settings.MEDIA_URL}{sub_dir}/{new_name}",
+            "is_image": ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
+        })
+
+    return uploaded_files

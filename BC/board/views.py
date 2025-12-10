@@ -12,7 +12,7 @@ from django.utils.dateparse import parse_datetime
 
 import os
 import uuid
-from common.utils import check_login, handle_file_uploads, is_manager
+from common.utils import check_login, handle_file_uploads, is_manager, upload_files
 from board.models import Article, Board, Category
 from board.utils import get_board_by_name
 from common.models import Comment, AddInfo
@@ -394,7 +394,8 @@ def create_article(request, b_id, member_id):
     article.save()
 
     # 파일 업로드
-    handle_file_uploads(request, article)
+    upload_files(request, article, file_field="file", sub_dir="uploads/articles")
+    # handle_file_uploads(request, article)
 
     messages.success(request, "등록되었습니다.")
     return redirect('board:detail', board_name=board_name, article_id=article.article_id)
@@ -438,7 +439,8 @@ def update_article(request, article, b_id, pk):
         files_to_delete.delete()
 
     # 새 파일 업로드
-    handle_file_uploads(request, article)
+    upload_files(request, article, file_field="file", sub_dir="uploads/articles")
+    # handle_file_uploads(request, article)
 
     messages.success(request, "수정되었습니다.")
     return redirect('board:detail', board_name=board_name, article_id=pk)
