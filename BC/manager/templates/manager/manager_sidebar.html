@@ -1,45 +1,57 @@
 {% load static %}
 <aside class="admin-sidebar">
     <div class="sidebar-title">관리자님<br>어서오십시오</div>
-    <span><a href="{% url 'manager:logout' %}">로그아웃</a href></span>
+    <div class="sidebar-logout">
+        <a href="{% url 'manager:logout' %}">로그아웃</a>
+    </div>
     <ul class="sidebar-menu">
-
         <!-- 1Depth: 시설 -->
-        <li class="menu-title">시설</li>
-        <ul class="submenu">
-            <li><a href="{% url 'manager:facility_add' %}">시설 추가</a></li>
-            <li><a href="{% url 'manager:facility_list' %}">시설 관리</a></li>
-        </ul>
+        <li class="menu-item">
+            <div class="menu-title">시설</div>
+            <ul class="submenu">
+                <li><a href="{% url 'manager:facility_add' %}">시설 추가</a></li>
+                <li><a href="{% url 'manager:facility_list' %}">시설 관리</a></li>
+            </ul>
+        </li>
 
         <!-- 1Depth: 웹관리 -->
-        <li class="menu-title">웹관리</li>
-        <ul class="submenu">
-            <li><a href="{%url 'manager:recruitment_manager'%}">모집글관리</a></li>
-            <li><a href="{%url 'manager:board_list' 2%}">공지사항 관리</a></li>
-            <li><a href="{%url 'manager:board_list' 3%}">이벤트 관리</a></li>
-            <li><a href="{%url 'manager:board_list' 4%}">자유게시판 관리</a></li>
-            <li><a href="{%url 'manager:board_list' 5%}">faq 관리</a></li>
-            <li><a href="{%url 'manager:banner_manager'%}">배너관리</a></li>
-        </ul>
+        <li class="menu-item">
+            <div class="menu-title">웹관리</div>
+            <ul class="submenu">
+                <li><a href="{% url 'manager:recruitment_manager' %}">모집글관리</a></li>
+                <li><a href="{% url 'manager:board_list' 2 %}">공지사항 관리</a></li>
+                <li><a href="{% url 'manager:board_list' 3 %}">이벤트 관리</a></li>
+                <li><a href="{% url 'manager:board_list' 4 %}">자유게시판 관리</a></li>
+                <li><a href="{% url 'manager:board_list' 5 %}">FAQ 관리</a></li>
+                <li><a href="{% url 'manager:banner_manager' %}">배너관리</a></li>
+            </ul>
+        </li>
 
         <!-- 1Depth: 회원관리 -->
-        <li class="menu-title">회원관리</li>
-        <ul class="submenu">
-            <li><a href="{% url 'manager:member_list' %}">회원 리스트</a></li>
-        </ul>
+        <li class="menu-item">
+            <div class="menu-title">회원관리</div>
+            <ul class="submenu">
+                <li><a href="{% url 'manager:member_list' %}">회원 리스트</a></li>
+            </ul>
+        </li>
 
         <!-- 1Depth: 통계 -->
-        <li class="menu-title">통계</li>
-        <ul class="submenu">
-            <li><a href="{% url 'manager:dashboard' %}">대시보드</a></li>
-            <li><a href="{% url 'manager:facility_inspection_stats' %}">안전통계</a></li>
-        </ul>
+        <li class="menu-item">
+            <div class="menu-title">통계</div>
+            <ul class="submenu">
+                <li><a href="{% url 'manager:dashboard' %}">대시보드</a></li>
+                <li><a href="{% url 'manager:facility_inspection_stats' %}">안전통계</a></li>
+                <li><a href="{% url 'ai_analytics:dashboard' %}">🤖 AI 분석</a></li>
+            </ul>
+        </li>
         
-        <!-- 메인페이지 가기 -->
-        <li class="menu-title sidebar-footer-menu">이동</li>
-        <ul class="submenu">
-            <li><a href="/">🏠 메인페이지 가기</a></li>
-        </ul>
+        <!-- 메인페이지 가기 (하단 고정) -->
+        <li class="menu-item sidebar-footer-menu">
+            <div class="menu-title">이동</div>
+            <ul class="submenu">
+                <li><a href="/">🏠 메인페이지 가기</a></li>
+            </ul>
+        </li>
     </ul>
 </aside>
 

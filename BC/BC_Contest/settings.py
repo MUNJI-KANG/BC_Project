@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'common',
     'facility',
     'manager',
+    'ai_analytics',
 ]
 
 MIDDLEWARE = [

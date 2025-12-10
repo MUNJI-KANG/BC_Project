@@ -33,11 +33,28 @@ body {
     font-size: 20px;
     font-weight: 700;
     line-height: 1.4;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     margin-top: 0;
     padding: 0;
     color: white;
     box-sizing: border-box;
+}
+
+.sidebar-logout {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logout a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+}
+
+.sidebar-logout a:hover {
+    color: white;
 }
 
 .sidebar-menu {
@@ -49,12 +66,38 @@ body {
     flex: 1;
     min-height: 0;
     box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* 스크롤바 스타일링 */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.sidebar-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .sidebar-menu li {
-    margin: 8px 0;
+    margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+.menu-item {
+    margin-bottom: 12px;
 }
 
 .sidebar-menu a {
@@ -72,7 +115,7 @@ body {
 }
 
 .menu-title {
-    margin-top: 18px;
+    margin-top: 0;
     margin-bottom: 8px;
     font-size: 14px;
     color: #9fb3d1;
@@ -81,15 +124,15 @@ body {
     box-sizing: border-box;
 }
 
-.menu-title:first-child {
-    margin-top: 0;
-}
-
 .menu-title.sidebar-footer-menu {
     margin-top: auto;
     padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     box-sizing: border-box;
+    position: sticky;
+    bottom: 0;
+    background: #1A2A43;
+    z-index: 10;
 }
 
 .submenu {

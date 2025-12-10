@@ -33,6 +33,7 @@ urlpatterns = [
     path('', include("common.urls")), 
     path('facility/', include("facility.urls")),
     path('manager/', include('manager.urls')),
+    path('ai-analytics/', include('ai_analytics.urls')),
 ]
 
 # Media files serving (개발 환경에서만)
