@@ -329,16 +329,9 @@
             
             
             {% if comment.delete_date %}
-                <p class="comment-content-delete">
-                    (관리자에 의해 삭제된 댓글입니다.)
-                    {% if is_manager %}
-                        <br>{{ comment.comment|linebreaksbr }}
-                    {% endif %}
-                </p>
+                <p class="comment-content-delete">(관리자에 의해 삭제된 댓글입니다.){% if is_manager %}{{ comment.comment|linebreaksbr }}{% endif %}</p>
             {% else %}
-                <p class="comment-content">
-                    {{ comment.comment|linebreaksbr }}
-                </p>
+                <p class="comment-content">{{ comment.comment|linebreaksbr }}</p>
             {% endif %}
 
             
