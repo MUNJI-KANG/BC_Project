@@ -87,7 +87,9 @@
                 <li class="attached-item" data-id="{{ f.add_info_id }}">
                     <span class="file-name">{{ f.file_name }}</span>
 
-                    <button type="button" class="delete-existing-btn" data-id="{{ f.add_info_id }}"
+                    <button type="button"
+                            class="delete-existing-btn"
+                            data-file-id="{{ f.add_info_id }}"
                             style="background:#ff4d4d; color:white; border:none; padding:2px 6px; cursor:pointer; border-radius:3px;">
                         X
                     </button>
@@ -102,8 +104,7 @@
             <div class="file-upload-wrapper">
                 <input type="file" name="file" id="fileInput" class="file-input" multiple>
                 <label for="newFileInput" class="file-upload-btn">📎 파일 선택</label>
-                <div class="file-list" id="fileList"></div>
-            </div>
+                <div class="file-list" id="fileList"></div> 
         </div>
 
         <!-- ================================

@@ -16,7 +16,7 @@ from board.utils import get_board_by_name
 from django.conf import settings
 import uuid
 from django.utils.dateparse import parse_datetime
-from common.utils import handle_file_uploads, save_encoded_image, upload_multiple_files, delete_selected_files, is_manager
+from common.utils import save_encoded_image, delete_selected_files, is_manager, upload_files
 from django.http import FileResponse, Http404
 
 # models import 
@@ -522,7 +522,7 @@ def facility_modify(request, id):
     delete_selected_files(request)
 
     # 3) 첨부파일 업로드 (FK 자동 저장됨)
-    upload_multiple_files(
+    upload_files(
         request=request,
         instance=info,
         file_field="attachment_files",
@@ -2338,7 +2338,7 @@ def create_article(request, board_id):
     article.save()
 
     # 파일 업로드
-    handle_file_uploads(request, article)
+    upload_files(request, article, file_field="file", sub_dir="uploads/articles")
 
     messages.success(request, "등록되었습니다.")
     return redirect('manager:board_detail', pk=article.article_id)
@@ -2379,7 +2379,7 @@ def update_article(request, article, board_id, pk):
         files_to_delete.delete()
 
     # 새 파일 업로드
-    handle_file_uploads(request, article)
+    upload_files(request, article, file_field="file", sub_dir="uploads/articles")
 
     messages.success(request, "수정되었습니다.")
     return redirect('manager:board_detail',pk=pk)
