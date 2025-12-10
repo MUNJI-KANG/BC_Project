@@ -49,6 +49,10 @@
 
     <form class="register-form" method="post" action="/signup/">
       {% csrf_token %}
+      
+      {% if is_kakao_signup %}
+        <input type="hidden" name="kakao_signup" value="true">
+      {% endif %}
 
       <!-- 이름 -->
       <div class="form-group">
@@ -59,7 +63,7 @@
           name="name"
           class="form-input"
           placeholder="이름 입력"
-          value="{{ input.name }}"
+          value="{% if is_kakao_signup %}{{ kakao_name }}{% else %}{{ input.name }}{% endif %}"
           required
         />
       </div>
@@ -72,19 +76,28 @@
             type="text"
             id="username"
             name="username"
-            class="form-input"
+            class="form-input {% if is_kakao_signup %}disabled-input{% endif %}"
             placeholder="아이디 입력"
-            value="{{ input.username }}"
+            value="{% if is_kakao_signup %}{{ kakao_user_id }}{% else %}{{ input.username }}{% endif %}"
+            {% if is_kakao_signup %}readonly{% endif %}
             required
           />
+          {% if not is_kakao_signup %}
           <button type="button" id="usernameCheckBtn" class="check-btn small-btn">
             중복 확인
           </button>
+          {% endif %}
         </div>
+        {% if not is_kakao_signup %}
         <small id="username_msg" class="msg-area"></small>
+        {% endif %}
       </div>
 
       <!-- 비밀번호 -->
+      {% if is_kakao_signup %}
+      <input type="hidden" name="password" value="kakao_login_no_password">
+      <input type="hidden" name="password2" value="kakao_login_no_password">
+      {% else %}
       <div class="form-group">
         <label class="form-label" for="password">비밀번호</label>
         <input
@@ -110,6 +123,7 @@
         />
         <small id="pw_msg" class="msg-area"></small>
       </div>
+      {% endif %}
 
       <!-- 닉네임 -->
       <div class="form-group">
@@ -121,7 +135,7 @@
             name="nickname"
             class="form-input"
             placeholder="닉네임 입력"
-            value="{{ input.nickname }}"
+            value="{% if is_kakao_signup %}{{ kakao_nickname }}{% else %}{{ input.nickname }}{% endif %}"
             required
           />
           <button type="button" id="nicknameCheckBtn" class="check-btn small-btn">

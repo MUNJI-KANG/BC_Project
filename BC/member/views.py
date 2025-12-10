@@ -871,10 +871,24 @@ def withdraw(request):
     try:
         # DB에서 최신 회원 정보 가져오기 (캐시 무시)
         user = Member.objects.get(user_id=login_id)
+
+        # 카카오 유저 여부 확인(user_id가 'kakao_'로 시작함)
+        is_kakao_user = login_id.startswith('kakao_') if login_id else False
+
         user.delete_yn =1
         user.delete_date = timezone.now()
         user.save()
         request.session.flush()
+
+        # 카카오 사용자 안내 메세지
+        if is_kakao_user:
+            messages.info(
+                request,
+                "탈퇴가 완료되었습니다. 완전한 탈퇴는 카카오 계정 설정 > 연결된 서비스 관리에서 앱 연결을 해제해 주세요."
+            )
+        else:
+            messages.success(request,'회원 탈퇴가 완료되었습니다.')
+            
         return redirect('/')
     except Member.DoesNotExist:
         messages.error(request, "회원 정보를 찾을 수 없습니다.")

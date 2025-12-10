@@ -412,32 +412,40 @@ def kakao_callback(request):
             # 기존 회원 찾기
             user = Member.objects.get(user_id=kakao_user_id)
         except Member.DoesNotExist:
-            # 신규 회원 생성
-            # 닉네임 중복 체크
+            # 신규 회원: DB에 저장하지 않고 세션에만 저장
+            # 닉네임 중복 체크 (나중에 회원가입 시 사용)
             original_nickname = nickname
             counter = 1
             while Member.objects.filter(nickname=nickname).exists():
                 nickname = f"{original_nickname}_{counter}"
                 counter += 1
             
-            try:
-                # 필수 필드 기본값 설정
-                user = Member.objects.create(
-                    user_id=kakao_user_id,
-                    name=nickname,
-                    nickname=nickname,
-                    password=make_password('kakao_login_no_password'),
-                    birthday='19000101',
-                    gender=0,
-                    addr1='',
-                    phone_num=f'010-0000-{kakao_id[-4:]}' if len(kakao_id) >= 4 else '010-0000-0000',
-                )
-                messages.success(request, "카카오 로그인으로 회원가입이 완료되었습니다.")
-            except Exception as e:
-                messages.error(request, "회원가입 중 오류가 발생했습니다.")
-                return redirect('/login/')
+            # 세션에 카카오 회원가입 정보 저장 (DB 저장 X)
+            request.session['kakao_signup_user_id'] = kakao_user_id
+            request.session['kakao_signup_name'] = nickname
+            request.session['kakao_signup_nickname'] = nickname
+            request.session['kakao_signup_mode'] = True
+            request.session['kakao_id'] = kakao_id  # 나중에 DB 저장 시 사용
+            
+            # 약관 동의 페이지로 리다이렉트
+            return redirect('common:terms')
         
-        # 5. 세션에 로그인 정보 저장
+        # 6. 기존 회원의 경우도 주소 정보 체크 (addr1이 비어있으면 약관 동의 페이지로 - 신규/기존 동일 처리)
+        if not user.addr1 or user.addr1.strip() == '':
+            # 원래 가려던 페이지 저장
+            next_url = request.session.pop('kakao_next', None) or '/'
+            request.session['profile_complete_next'] = next_url
+            
+            # 카카오 회원가입 정보 세션에 저장
+            request.session['kakao_signup_user_id'] = user.user_id
+            request.session['kakao_signup_name'] = user.name
+            request.session['kakao_signup_nickname'] = user.nickname
+            request.session['kakao_signup_mode'] = True
+            
+            # 약관 동의 페이지로 리다이렉트
+            return redirect('common:terms')
+        
+        # 7. 세션에 로그인 정보 저장 (주소 정보가 있는 경우만)
         try:
             request.session['user_id'] = user.user_id
             request.session['user_name'] = user.name
@@ -450,18 +458,7 @@ def kakao_callback(request):
             messages.error(request, "세션 저장 중 오류가 발생했습니다.")
             return redirect('/login/')
         
-        # 6. 주소 정보 체크 (addr1이 비어있으면 정보 수정 페이지로)
-        if not user.addr1 or user.addr1.strip() == '':
-            # 원래 가려던 페이지 저장
-            next_url = request.session.pop('kakao_next', None) or '/'
-            request.session['profile_complete_next'] = next_url
-            request.session['show_profile_complete_modal'] = True  # 팝업 표시 플래그
-            
-            # 정보 수정 페이지로 리다이렉트
-            messages.info(request, "추가 정보를 입력해주세요.")
-            return redirect('member:edit')
-        
-        # 7. 관리자 체크 및 리다이렉트
+        # 8. 관리자 체크 및 리다이렉트
         if user.manager_yn == 1:
             request.session['manager_id'] = user.member_id
             request.session['manager_name'] = user.name
@@ -487,87 +484,232 @@ PASSWORD_PATTERN = re.compile(
 PHONE_PATTERN = re.compile(r'^\d{3}-\d{4}-\d{4}$')
 
 def signup(request):
+
+    # 카카오 회원가입 모드 확인
+    is_kakao_signup = request.session.get('kakao_signup_mode', False) or request.GET.get('kakao') == 'true'
+
     if request.method == "POST":
         data = request.POST
         ctx = {"input": data}
 
-        name = data.get('name')
-        user_id = data.get('username')
-        password = data.get('password')
-        password2 = data.get('password2')
-        nickname = data.get('nickname')
-        birthday = data.get('birthday')
-        gender = data.get('gender')
-        address = data.get('address')
-        address_detail = data.get('address_detail', '')
-        address_data_str = data.get('address_data', '')
-        phone = data.get('phone')
+        # 카카오 회원가입인 경우 체크
+        if is_kakao_signup:
+            kakao_user_id = request.session.get('kakao_signup_user_id')
+            if not kakao_user_id:
+                messages.error(request, "카카오 회원가입 정보를 찾을 수 없습니다.")
+                return redirect('/login/')
 
-        if not PASSWORD_PATTERN.match(password or ""):
-            messages.error(request, "비밀번호 형식이 올바르지 않습니다.")
-            return render(request, "common/signup.html", ctx)
+            # 입력값 가져오기
+            name = data.get('name')
+            nickname = data.get('nickname')
+            birthday = data.get('birthday')
+            gender = data.get('gender')
+            address = data.get('address')
+            address_detail = data.get('address_detail', '')
+            address_data_str = data.get('address_data', '')
+            phone = data.get('phone')
 
-        if password != password2:
-            messages.error(request, "비밀번호가 일치하지 않습니다.")
-            return render(request, "common/signup.html", ctx)
+            # 닉네임 중복 체크
+            if nickname and Member.objects.filter(nickname=nickname).exists():
+                messages.error(request, "이미 존재하는 닉네임입니다.")
+                ctx['is_kakao_signup'] = True
+                ctx['kakao_user_id'] = kakao_user_id
+                ctx['kakao_name'] = request.session.get('kakao_signup_name', '')
+                ctx['kakao_nickname'] = request.session.get('kakao_signup_nickname', '')
+                return render(request, "common/signup.html", ctx)
 
-        if not USERNAME_PATTERN.match(user_id or ""):
-            messages.error(request, "아이디는 6자 이상, 영문+숫자 조합이어야 합니다.")
-            return render(request, "common/signup.html", ctx)
+            if phone and not re.match(PHONE_PATTERN, phone or ""):
+                messages.error(request, "전화번호는 010-0000-0000 형식으로 입력해주세요.")
+                ctx['is_kakao_signup'] = True
+                ctx['kakao_user_id'] = kakao_user_id
+                ctx['kakao_name'] = request.session.get('kakao_signup_name', '')
+                ctx['kakao_nickname'] = request.session.get('kakao_signup_nickname', '')
+                return render(request, "common/signup.html", ctx)
 
-        if Member.objects.filter(user_id=user_id).exists():
-            messages.error(request, "이미 존재하는 아이디입니다.")
-            return render(request, "common/signup.html", ctx)
-
-        if Member.objects.filter(nickname=nickname).exists():
-            messages.error(request, "이미 존재하는 닉네임입니다.")
-            return render(request, "common/signup.html", ctx)
-
-        if not PHONE_PATTERN.match(phone or ""):
-            messages.error(request, "전화번호는 010-0000-0000 형식으로 입력해주세요.")
-            return render(request, "common/signup.html", ctx)
-
-        if Member.objects.filter(phone_num=phone).exists():
-            messages.error(request, "이미 등록된 전화번호입니다.")
-            return render(request, "common/signup.html", ctx)
-
-        gender_value = 0 if gender == "male" else 1
-
-        # 주소 파싱
-        from common.utils import parse_address
-        import json
-
-        # 기본 문자열 분리 (레거시 대비)
-        addr1 = address.split()[0]
-        addr2 = address.split()[1]
-        addr3 = ' '.join(address.split()[2:]) + address_detail
-
-        if address_data_str:
-            try:
-                address_data = json.loads(address_data_str)
-                addr1, addr2, addr3 = parse_address(address_data, address_detail)
-            except (json.JSONDecodeError, Exception):
-                # 파싱 실패 시 기존 방식 사용
+            if phone and Member.objects.filter(phone_num=phone).exists():
+                messages.error(request, "이미 등록된 전화번호입니다.")
+                ctx['is_kakao_signup'] = True
+                ctx['kakao_user_id'] = kakao_user_id
+                ctx['kakao_name'] = request.session.get('kakao_signup_name', '')
+                ctx['kakao_nickname'] = request.session.get('kakao_signup_nickname', '')
+                return render(request, "common/signup.html", ctx)
+            
+            # 주소 파싱
+            from common.utils import parse_address
+            import json
+            
+            if address_data_str:
+                try:
+                    address_data = json.loads(address_data_str)
+                    addr1, addr2, addr3 = parse_address(address_data, address_detail)
+                except (json.JSONDecodeError, Exception):
+                    addr1 = address
+                    addr2 = address_detail
+                    addr3 = ""
+            else:
                 addr1 = address
                 addr2 = address_detail
                 addr3 = ""
+            
+            # addr1 필수 입력 검증
+            if not addr1 or addr1.strip() == '':
+                messages.error(request, "주소를 입력해주세요.")
+                ctx['is_kakao_signup'] = True
+                ctx['kakao_user_id'] = kakao_user_id
+                ctx['kakao_name'] = request.session.get('kakao_signup_name', '')
+                ctx['kakao_nickname'] = request.session.get('kakao_signup_nickname', '')
+                return render(request, "common/signup.html", ctx)
+            
+            gender_value = 0 if gender == "male" else 1
+            
+            # DB에 새로 생성 (세션에만 저장되어 있던 정보를 DB에 저장)
+            kakao_id = request.session.get('kakao_id', '')
+            user = Member.objects.create(
+                user_id=kakao_user_id,
+                name=name,
+                nickname=nickname,
+                password=make_password('kakao_login_no_password'),
+                birthday=birthday,
+                gender=gender_value,
+                addr1=addr1,
+                addr2=addr2,
+                addr3=addr3,
+                phone_num=phone,
+            )
+            
+            # 세션 정리 및 로그인 처리
+            request.session.pop('kakao_signup_mode', None)
+            request.session.pop('kakao_signup_user_id', None)
+            request.session.pop('kakao_signup_name', None)
+            request.session.pop('kakao_signup_nickname', None)
+            request.session.pop('kakao_id', None)
+            
+            request.session['user_id'] = user.user_id
+            request.session['user_name'] = user.name
+            request.session['nickname'] = user.nickname
+            request.session['is_kakao_user'] = True
+            
+            # 원래 가려던 페이지로 리다이렉트 (있으면)
+            profile_complete_next = request.session.pop('profile_complete_next', None)
+            redirect_url = profile_complete_next if profile_complete_next else '/'
+            
+            # 회원가입 완료 alert 표시
+            context = {
+                'redirect_url': redirect_url,
+                'is_kakao_signup': True
+            }
+            return render(request, 'common/signup_success.html', context)
+        
+        # 일반 회원가입 처리 (카카오 회원가입이 아닐 때만 실행)
+        else:
+            name = data.get('name')
+            user_id = data.get('username')
+            password = data.get('password')
+            password2 = data.get('password2')
+            nickname = data.get('nickname')
+            birthday = data.get('birthday')
+            gender = data.get('gender')
+            address = data.get('address')
+            address_detail = data.get('address_detail', '')
+            address_data_str = data.get('address_data', '')
+            phone = data.get('phone')
 
-        Member.objects.create(
-            name=name,
-            user_id=user_id,
-            password=make_password(password),
-            nickname=nickname,
-            birthday=birthday,
-            gender=gender_value,
-            addr1=addr1,
-            addr2=addr2,
-            addr3=addr3,
-            phone_num=phone,
-        )
+            if not PASSWORD_PATTERN.match(password or ""):
+                messages.error(request, "비밀번호 형식이 올바르지 않습니다.")
+                return render(request, "common/signup.html", ctx)
 
-        return render(request, 'common/signup_success.html')
+            if password != password2:
+                messages.error(request, "비밀번호가 일치하지 않습니다.")
+                return render(request, "common/signup.html", ctx)
 
-    return render(request, "common/signup.html")
+            if not USERNAME_PATTERN.match(user_id or ""):
+                messages.error(request, "아이디는 6자 이상, 영문+숫자 조합이어야 합니다.")
+                return render(request, "common/signup.html", ctx)
+
+            if Member.objects.filter(user_id=user_id).exists():
+                messages.error(request, "이미 존재하는 아이디입니다.")
+                return render(request, "common/signup.html", ctx)
+
+            if Member.objects.filter(nickname=nickname).exists():
+                messages.error(request, "이미 존재하는 닉네임입니다.")
+                return render(request, "common/signup.html", ctx)
+
+            if not PHONE_PATTERN.match(phone or ""):
+                messages.error(request, "전화번호는 010-0000-0000 형식으로 입력해주세요.")
+                return render(request, "common/signup.html", ctx)
+
+            if Member.objects.filter(phone_num=phone).exists():
+                messages.error(request, "이미 등록된 전화번호입니다.")
+                return render(request, "common/signup.html", ctx)
+
+            gender_value = 0 if gender == "male" else 1
+
+            # 주소 파싱
+            from common.utils import parse_address
+            import json
+
+            # 기본 문자열 분리 (레거시 대비)
+            addr1 = address.split()[0]
+            addr2 = address.split()[1]
+            addr3 = ' '.join(address.split()[2:]) + address_detail
+
+            if address_data_str:
+                try:
+                    address_data = json.loads(address_data_str)
+                    addr1, addr2, addr3 = parse_address(address_data, address_detail)
+                except (json.JSONDecodeError, Exception):
+                    # 파싱 실패 시 기존 방식 사용
+                    addr1 = address
+                    addr2 = address_detail
+                    addr3 = ""
+
+            # addr1 필수 입력 검증
+            if not addr1 or addr1.strip() == '':
+                messages.error(request, "주소를 입력해주세요.")
+                return render(request, "common/signup.html", ctx)
+
+            Member.objects.create(
+                name=name,
+                user_id=user_id,
+                password=make_password(password),
+                nickname=nickname,
+                birthday=birthday,
+                gender=gender_value,
+                addr1=addr1,
+                addr2=addr2,
+                addr3=addr3,
+                phone_num=phone,
+            )
+
+            return render(request, 'common/signup_success.html')
+
+    # GET 요청
+    context = {}
+    if is_kakao_signup:
+        kakao_user_id = request.session.get('kakao_signup_user_id')
+        if kakao_user_id:
+            # 세션에서 정보 가져오기 (DB에 저장되지 않았으므로)
+            kakao_name = request.session.get('kakao_signup_name', '')
+            kakao_nickname = request.session.get('kakao_signup_nickname', '')
+            
+            context = {
+                'is_kakao_signup': True,
+                'kakao_user_id': kakao_user_id,
+                'kakao_name': kakao_name,
+                'kakao_nickname': kakao_nickname,
+                'input': {
+                    'name': kakao_name,
+                    'username': kakao_user_id,
+                    'nickname': kakao_nickname,
+                    'birthday': '',
+                    'gender': '',
+                    'address': '',
+                    'address_detail': '',
+                    'phone': '',
+                }
+            }
+    
+    return render(request, "common/signup.html", context)
 
 def check_userid(request):
     user_id = request.GET.get('username')
@@ -576,7 +718,15 @@ def check_userid(request):
 
 def check_nickname(request):
     nickname = request.GET.get('nickname')
-    exists = Member.objects.filter(nickname=nickname).exists()
+    exclude_user_id = request.GET.get('exclude_user_id')  # 카카오 회원가입 모드일 때 본인 제외
+    
+    if exclude_user_id:
+        # 카카오 회원가입 모드: 본인 제외하고 중복 체크
+        exists = Member.objects.filter(nickname=nickname).exclude(user_id=exclude_user_id).exists()
+    else:
+        # 일반 회원가입 모드: 전체 중복 체크
+        exists = Member.objects.filter(nickname=nickname).exists()
+    
     return JsonResponse({'exists': exists})
 
 def check_phone(request):

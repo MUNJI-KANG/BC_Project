@@ -35,45 +35,48 @@ document.addEventListener('DOMContentLoaded', function () {
 const addressSearchBtn = document.getElementById("addressSearchBtn");
 const addressInput = document.getElementById("address");
 
-addressSearchBtn.addEventListener("click", function () {
-  new daum.Postcode({
-    oncomplete: function (data) {
-      // 도로명주소 또는 지번주소 선택
-      let addr = '';
-      if (data.userSelectedType === 'R') {
-        // 사용자가 도로명 주소를 선택했을 경우
-        addr = data.roadAddress;
-      } else {
-        // 사용자가 지번 주소를 선택했을 경우
-        addr = data.jibunAddress;
+if (addressSearchBtn && addressInput) {
+  addressSearchBtn.addEventListener("click", function () {
+    new daum.Postcode({
+      oncomplete: function (data) {
+        // 도로명주소 또는 지번주소 선택
+        let addr = '';
+        if (data.userSelectedType === 'R') {
+          // 사용자가 도로명 주소를 선택했을 경우
+          addr = data.roadAddress;
+        } else {
+          // 사용자가 지번 주소를 선택했을 경우
+          addr = data.jibunAddress;
+        }
+        
+        addressInput.value = addr;
+        
+        // 주소 데이터를 hidden input에 저장 (서버에서 파싱용)
+        const addrDataInput = document.getElementById("address_data");
+        if (!addrDataInput) {
+          // hidden input이 없으면 생성
+          const hiddenInput = document.createElement('input');
+          hiddenInput.type = 'hidden';
+          hiddenInput.id = 'address_data';
+          hiddenInput.name = 'address_data';
+          addressInput.parentElement.appendChild(hiddenInput);
+        }
+        document.getElementById("address_data").value = JSON.stringify({
+          sido: data.sido,
+          sigungu: data.sigungu,
+          roadAddress: data.roadAddress,
+          jibunAddress: data.jibunAddress,
+          userSelectedType: data.userSelectedType
+        });
+        
+        document.getElementById("address_detail").focus();
       }
-      
-      addressInput.value = addr;
-      
-      // 주소 데이터를 hidden input에 저장 (서버에서 파싱용)
-      const addrDataInput = document.getElementById("address_data");
-      if (!addrDataInput) {
-        // hidden input이 없으면 생성
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.id = 'address_data';
-        hiddenInput.name = 'address_data';
-        addressInput.parentElement.appendChild(hiddenInput);
-      }
-      document.getElementById("address_data").value = JSON.stringify({
-        sido: data.sido,
-        sigungu: data.sigungu,
-        roadAddress: data.roadAddress,
-        jibunAddress: data.jibunAddress,
-        userSelectedType: data.userSelectedType
-      });
-      
-      document.getElementById("address_detail").focus();
-    }
-  }).open();
-});
+    }).open();
+  });
+}
 
-  usernameCheckBtn.addEventListener('click', function () {
+  if (usernameCheckBtn) {
+    usernameCheckBtn.addEventListener('click', function () {
     const username = usernameInput.value.trim();
 
     if (!usernameRegex.test(username)) {
@@ -93,51 +96,56 @@ addressSearchBtn.addEventListener("click", function () {
           state.usernameAvailable = true;
         }
       });
-  });
+    });
+  }
 
-  nicknameCheckBtn.addEventListener('click', function () {
-    const nickname = nicknameInput.value.trim();
+  if (nicknameCheckBtn) {
+    nicknameCheckBtn.addEventListener('click', function () {
+      const nickname = nicknameInput.value.trim();
 
-    if (!nickname) {
-      showMsg("nickname_msg", "닉네임을 입력해주세요.");
-      state.nicknameAvailable = false;
-      return;
-    }
+      if (!nickname) {
+        showMsg("nickname_msg", "닉네임을 입력해주세요.");
+        state.nicknameAvailable = false;
+        return;
+      }
 
-    fetch(`/check/nickname?nickname=${nickname}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.exists) {
-          showMsg("nickname_msg", "이미 사용 중인 닉네임입니다.");
-          state.nicknameAvailable = false;
-        } else {
-          showMsg("nickname_msg", "사용 가능한 닉네임입니다.", true);
-          state.nicknameAvailable = true;
-        }
-      });
-  });
+      fetch(`/check/nickname?nickname=${nickname}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.exists) {
+            showMsg("nickname_msg", "이미 사용 중인 닉네임입니다.");
+            state.nicknameAvailable = false;
+          } else {
+            showMsg("nickname_msg", "사용 가능한 닉네임입니다.", true);
+            state.nicknameAvailable = true;
+          }
+        });
+    });
+  }
 
-  phoneCheckBtn.addEventListener('click', function () {
-    const phone = phoneInput.value.trim();
+  if (phoneCheckBtn) {
+    phoneCheckBtn.addEventListener('click', function () {
+      const phone = phoneInput.value.trim();
 
-    if (!phoneRegex.test(phone)) {
-      showMsg("phone_msg", "전화번호는 010-0000-0000 형식으로 입력해주세요.");
-      state.phoneAvailable = false;
-      return;
-    }
+      if (!phoneRegex.test(phone)) {
+        showMsg("phone_msg", "전화번호는 010-0000-0000 형식으로 입력해주세요.");
+        state.phoneAvailable = false;
+        return;
+      }
 
-    fetch(`/check/phone?phone=${phone}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.exists) {
-          showMsg("phone_msg", "이미 등록된 전화번호입니다.");
-          state.phoneAvailable = false;
-        } else {
-          showMsg("phone_msg", "사용 가능한 전화번호입니다.", true);
-          state.phoneAvailable = true;
-        }
-      });
-  });
+      fetch(`/check/phone?phone=${phone}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.exists) {
+            showMsg("phone_msg", "이미 등록된 전화번호입니다.");
+            state.phoneAvailable = false;
+          } else {
+            showMsg("phone_msg", "사용 가능한 전화번호입니다.", true);
+            state.phoneAvailable = true;
+          }
+        });
+    });
+  }
 
   function checkPw() {
     const val1 = pw.value;
@@ -160,49 +168,59 @@ addressSearchBtn.addEventListener("click", function () {
     }
   }
 
-  pw.addEventListener("input", checkPw);
-  pw2.addEventListener("input", checkPw);
+  if (pw && pw2) {
+    pw.addEventListener("input", checkPw);
+    pw2.addEventListener("input", checkPw);
+  }
 
-  signupForm.addEventListener("submit", function (e) {
-    const requiredFields = signupForm.querySelectorAll("input[required]");
-    for (let field of requiredFields) {
-      if (!field.value.trim()) {
+  if (signupForm) {
+    signupForm.addEventListener("submit", function (e) {
+      // 카카오 회원가입 모드인지 확인
+      const isKakaoSignup = document.querySelector('input[name="kakao_signup"]') !== null;
+      
+      const requiredFields = signupForm.querySelectorAll("input[required]");
+      for (let field of requiredFields) {
+        if (!field.value.trim()) {
+          e.preventDefault();
+          alert("모든 항목을 입력해주세요.");
+          field.focus();
+          return;
+        }
+      }
+
+      // 카카오 회원가입 모드가 아닐 때만 아이디 형식 및 중복 확인 체크
+      if (!isKakaoSignup) {
+        if (usernameInput && !usernameRegex.test(usernameInput.value.trim())) {
+          e.preventDefault();
+          alert("아이디 형식을 확인해주세요.");
+          usernameInput.focus();
+          return;
+        }
+        if (!state.usernameAvailable) {
+          e.preventDefault();
+          alert("아이디 중복확인을 완료해주세요.");
+          return;
+        }
+      }
+
+      if (pw && (!state.pwValid || !state.pwMatch)) {
         e.preventDefault();
-        alert("모든 항목을 입력해주세요.");
-        field.focus();
+        alert("비밀번호를 다시 확인해주세요.");
+        pw.focus();
         return;
       }
-    }
 
-    if (!usernameRegex.test(usernameInput.value.trim())) {
-      e.preventDefault();
-      alert("아이디 형식을 확인해주세요.");
-      usernameInput.focus();
-      return;
-    }
-    if (!state.usernameAvailable) {
-      e.preventDefault();
-      alert("아이디 중복확인을 완료해주세요.");
-      return;
-    }
-
-    if (!state.pwValid || !state.pwMatch) {
-      e.preventDefault();
-      alert("비밀번호를 다시 확인해주세요.");
-      pw.focus();
-      return;
-    }
-
-    if (!phoneRegex.test(phoneInput.value.trim())) {
-      e.preventDefault();
-      alert("전화번호 형식을 확인해주세요.");
-      phoneInput.focus();
-      return;
-    }
-    if (!state.phoneAvailable) {
-      e.preventDefault();
-      alert("전화번호 중복확인을 완료해주세요.");
-      return;
-    }
-  });
+      if (phoneInput && !phoneRegex.test(phoneInput.value.trim())) {
+        e.preventDefault();
+        alert("전화번호 형식을 확인해주세요.");
+        phoneInput.focus();
+        return;
+      }
+      if (!state.phoneAvailable) {
+        e.preventDefault();
+        alert("전화번호 중복확인을 완료해주세요.");
+        return;
+      }
+    });
+  }
 });

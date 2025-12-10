@@ -176,10 +176,30 @@ def is_admin(member):
 def check_login(request):
     """로그인 체크 및 리다이렉트
     관리자(manager_yn == 1)는 모든 로그인 검증에서 통과
+    카카오 회원가입 미완료 상태에서 다른 페이지로 이동 시 세션 삭제
     """
     # 관리자 체크: 관리자는 로그인 검증 통과
     if is_manager(request):
         return None
+    
+    # 카카오 회원가입 미완료 상태 체크
+    # 회원가입 관련 페이지는 예외 처리
+    allowed_paths = ['/signup/', '/terms/', '/login/', '/logout/', '/login/kakao/', '/login/kakao/callback/']
+    current_path = request.path
+    
+    # 카카오 회원가입 모드이고, 허용된 경로가 아니면
+    if request.session.get('kakao_signup_mode'):
+        if current_path not in allowed_paths:
+            # 허용되지 않은 경로로 이동 시 세션 삭제
+            request.session.pop('kakao_signup_mode', None)
+            request.session.pop('kakao_signup_user_id', None)
+            request.session.pop('kakao_signup_name', None)
+            request.session.pop('kakao_signup_nickname', None)
+            request.session.pop('kakao_id', None)
+            from django.contrib import messages
+            messages.info(request, "회원가입이 취소되었습니다.")
+            return redirect('/')
+        # 허용된 경로면 그대로 진행
     
     # 일반 사용자 로그인 체크
     if 'user_id' not in request.session:

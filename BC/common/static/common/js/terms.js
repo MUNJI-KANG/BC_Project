@@ -49,11 +49,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     else{
         alert("약관에 동의 하셨습니다.");
+        // 카카오 회원가입 모드 여부 확인
+        const isKakaoSignup = sessionStorage.getItem('kakao_signup_mode') ||
+        new URLSearchParams(window.location.search).get('kakao') === 'true';
+
+        if (isKakaoSignup) {
+          window.location.href = "/signup/?kakao=true";
+        } else {
         window.location.href = "/signup";
-
-
+        }
     }
-       
   });
 
   // ================================
