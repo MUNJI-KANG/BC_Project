@@ -27,6 +27,7 @@ import os
 import uuid
 from django.conf import settings
 from datetime import date
+ALWAYS_OPEN_DATE = date(2099, 1, 1)
 
 
 from django.db.models import Q
@@ -130,7 +131,7 @@ def recruitment_list(request):
 
 
 
-ALWAYS_OPEN_DATE = date(2099, 1, 1)
+
 def write(request):
     
     res = check_login(request)
@@ -347,11 +348,12 @@ def write(request):
     today = date.today().isoformat()
     # 3) GET 요청이면 작성 폼 + 내 예약 목록 넘기기
     context = {
+        'mode':'create',
         "my_reservations": my_reservations,
         "my_reservation_slots": my_reservation_slots,
         "today":today
     }
-    return render(request, "recruitment/recruitment_write.html", context)
+    return render(request, "recruitment/recruitment_form.html", context)
 
 
 
@@ -415,6 +417,10 @@ def update(request, pk):
         .exclude(reservation_id_id=current_reservation_id)
         .values_list("reservation_id_id", flat=True)
     )
+
+    # 연계된 마감여부 갖고 오기
+
+    end_status = get_object_or_404(EndStatus, community=community)
 
     # ----------------------------------------
     # 🔹 현재 지역에 맞는 나의 타임슬롯 중
@@ -576,14 +582,16 @@ def update(request, pk):
 
     # 5) GET: 수정 폼 화면
     context = {
+        'mode':'edit',
         "community": community,
         "recruit": community,                 # 템플릿에서 recruit 로 쓰고 있으면 유지
+        "end_status":end_status,
         "my_reservations": my_reservations,
         "my_reservation_slots": my_reservation_slots,
         "current_reservation_id": current_reservation_id,
         "existing_files": existing_files,     # ✅ 기존 첨부파일 목록
     }
-    return render(request, "recruitment/recruitment_update.html", context)
+    return render(request, "recruitment/recruitment_form.html", context)
 
 
 

@@ -2,7 +2,7 @@
 
 // DOM 로드 후 실행
 document.addEventListener("DOMContentLoaded", () => {
-    const btn_submit   = document.querySelector(".btn-submit");
+    const btn_submit   = document.querySelector(".btn-update");
     const btn_list     = document.querySelector(".btn-list");
     const recruit_form = document.querySelector("#recruit_form");  // 폼이 있으면 여기로
 

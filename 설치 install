@@ -21,3 +21,6 @@ pip install sqlparse
 pip install mysqlclient
 pip install xmltodict
 pip install pandas django-pandas
+
+pip install markdown bleach
+pip install openai
