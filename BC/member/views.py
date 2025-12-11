@@ -13,6 +13,9 @@ from member.models import Member
 from common.models import Comment
 from recruitment.models import Community
 from board.models import Article
+from common.models import Comment
+from recruitment.models import Community
+from board.models import Article
 from facility.models import FacilityInfo
 from reservation.models import Reservation, TimeSlot
 from common.utils import check_login
