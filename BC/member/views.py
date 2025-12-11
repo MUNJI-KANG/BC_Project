@@ -10,6 +10,9 @@ from datetime import datetime
 import re
 import json
 from member.models import Member
+from common.models import Comment
+from recruitment.models import Community
+from board.models import Article
 from facility.models import FacilityInfo
 from reservation.models import Reservation, TimeSlot
 from common.utils import check_login
@@ -841,6 +844,13 @@ def withdraw(request):
         # 카카오 유저 여부 확인(user_id가 'kakao_'로 시작함)
         is_kakao_user = login_id.startswith('kakao_') if login_id else False
 
+        # 카카오 사용자가 아닌 경우에만 비밀번호 확인
+        if not is_kakao_user:
+            password = request.POST.get('password', '')
+            if not check_password(password, user.password):
+                messages.error(request, "비밀번호가 올바르지 않습니다.")
+                return redirect('/member/info/')
+
         # 탈퇴 사유 받기
         delete_reason = request.POST.get('delete_reason', '')
         
@@ -865,6 +875,14 @@ def withdraw(request):
         user.delete_yn = 1
         user.delete_date = timezone.now()
         user.save()
+        # 회원 탈퇴시 관련된것들 다 삭제
+        if user:
+            Comment.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
+            Article.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
+            Community.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
+            Reservation.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
+            Reservation.objects.filter(member_id__in=user).update(delete_yn=1)
+
         request.session.flush()
 
         # 카카오 사용자 안내 메세지

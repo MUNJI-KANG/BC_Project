@@ -43,6 +43,9 @@ mypage base
 
     <section class="mypage-profile">
 
+        <!-- user_id를 JavaScript에서 사용할 수 있도록 data 속성 추가 -->
+        <div data-user-id="{{ user_id }}" style="display:none;"></div>
+
         <form class="mypage-form">
 
 
@@ -96,51 +99,6 @@ mypage base
 
         </form>
         
-        <!-- 탈퇴 사유 섹션 (인라인 표시) -->
-        <div id="withdrawSection" class="withdraw-section" style="display:none; margin-top:30px; padding-top:30px; border-top:1px solid #e0e0e0;">
-            <h3 style="font-size:18px; font-weight:600; margin-bottom:20px; color:#333;">회원 탈퇴 사유를 선택해주세요</h3>
-            <form id="withdrawReasonForm">
-                <div class="reason-options" style="display:flex; flex-direction:column; gap:12px;">
-                    <label style="display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #ddd; border-radius:8px; cursor:pointer; transition:all 0.2s;">
-                        <input type="radio" name="delete_reason" value="1" style="cursor:pointer;">
-                        <span style="font-size:15px;">서비스 이용이 불편함</span>
-                    </label>
-                    <label style="display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #ddd; border-radius:8px; cursor:pointer; transition:all 0.2s;">
-                        <input type="radio" name="delete_reason" value="2" style="cursor:pointer;">
-                        <span style="font-size:15px;">원하는 기능이 없음</span>
-                    </label>
-                    <label style="display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #ddd; border-radius:8px; cursor:pointer; transition:all 0.2s;">
-                        <input type="radio" name="delete_reason" value="3" style="cursor:pointer;">
-                        <span style="font-size:15px;">이용 빈도가 낮음</span>
-                    </label>
-                    <label style="display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #ddd; border-radius:8px; cursor:pointer; transition:all 0.2s;">
-                        <input type="radio" name="delete_reason" value="4" style="cursor:pointer;">
-                        <span style="font-size:15px;">개인정보 보호 우려</span>
-                    </label>
-                    <label style="display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #ddd; border-radius:8px; cursor:pointer; transition:all 0.2s;">
-                        <input type="radio" name="delete_reason" value="5" style="cursor:pointer;">
-                        <span style="font-size:15px;">다른 서비스 이용</span>
-                    </label>
-                    <label style="display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #ddd; border-radius:8px; cursor:pointer; transition:all 0.2s;">
-                        <input type="radio" name="delete_reason" value="6" style="cursor:pointer;">
-                        <span style="font-size:15px;">기타</span>
-                    </label>
-                </div>
-                <div id="otherReasonBox" style="display:none; margin-top:15px;">
-                    <textarea 
-                        id="otherReasonText" 
-                        placeholder="탈퇴 사유를 입력해주세요" 
-                        rows="3"
-                        style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px; resize:vertical;"
-                    ></textarea>
-                </div>
-                <div class="withdraw-buttons" style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
-                    <button type="button" id="cancelWithdraw" style="padding:10px 24px; background:#f5f5f5; border:1px solid #ddd; border-radius:8px; cursor:pointer; font-size:14px; color:#666;">취소</button>
-                    <button type="button" id="confirmWithdraw" style="padding:10px 24px; background:#ff4d4f; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:500;">탈퇴하기</button>
-                </div>
-            </form>
-        </div>
-
         <!-- 숨겨진 폼 -->
         <form id="withdrawForm"
               method="post"
@@ -148,7 +106,78 @@ mypage base
               style="display:none;">
             {% csrf_token %}
             <input type="hidden" name="delete_reason" id="delete_reason_input">
+            <input type="hidden" name="password" id="password_input">
         </form>
+
+        <!-- 탈퇴 (2단계) -->
+        <div id="withdrawModal" class="withdraw-modal">
+            <div class="withdraw-modal-backdrop"></div>
+            <div class="withdraw-modal-content">
+                <!-- 1: 탈퇴 사유 설문 -->
+                <div id="withdrawStep1" class="withdraw-step">
+                    <h3 class="withdraw-modal-title">회원 탈퇴 사유를 선택해주세요</h3>
+                    <form id="withdrawReasonForm">
+                        <div class="reason-options">
+                            <label>
+                                <input type="radio" name="delete_reason" value="1">
+                                <span>서비스 이용이 불편함</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="delete_reason" value="2">
+                                <span>원하는 기능이 없음</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="delete_reason" value="3">
+                                <span>이용 빈도가 낮음</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="delete_reason" value="4">
+                                <span>개인정보 보호 우려</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="delete_reason" value="5">
+                                <span>다른 서비스 이용</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="delete_reason" value="6">
+                                <span>기타</span>
+                            </label>
+                        </div>
+                        <div id="otherReasonBox" class="other-reason-box">
+                            <textarea 
+                                id="otherReasonText" 
+                                placeholder="탈퇴 사유를 입력해주세요" 
+                                rows="3"
+                            ></textarea>
+                        </div>
+                        <div class="modal-buttons">
+                            <button type="button" id="cancelWithdraw" class="btn-cancel">취소</button>
+                            <button type="button" id="nextToPassword" class="btn-next">다음</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 2: 비밀번호 확인 -->
+                <div id="withdrawStep2" class="withdraw-step" style="display:none;">
+                    <h3 class="withdraw-modal-title">비밀번호 확인</h3>
+                    <p class="withdraw-modal-desc">회원 탈퇴를 위해 비밀번호를 입력해주세요.</p>
+                    <div class="password-confirm-group">
+                        <label for="confirmPassword">비밀번호</label>
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            placeholder="비밀번호를 입력하세요"
+                            autocomplete="current-password"
+                        >
+                        <p id="passwordError" class="error-message" style="display:none;"></p>
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="button" id="backToReason" class="btn-back">이전</button>
+                        <button type="button" id="confirmWithdraw" class="btn-confirm">탈퇴하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </section>
 
