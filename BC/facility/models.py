@@ -20,7 +20,7 @@ class FacilityInfo(models.Model):
     homepage = models.CharField(max_length=200, null=True, blank=True)
     # 예약가능한상태인지(0: 불가 1: 가능)
     rs_posible = models.IntegerField(default=0) 
-
+    faci_gb_nm = models.CharField(max_length=200,null=True, blank=True)
     reg_date = models.DateTimeField(auto_now_add=True)
     view_cnt = models.IntegerField(default=0)
     class Meta:
@@ -45,7 +45,7 @@ class Facility(models.Model):
     faci_daddr = models.CharField(max_length=300, null=True, blank=True)
     faci_road_daddr = models.CharField(max_length=300, null=True, blank=True)
     faci_zip = models.CharField(max_length=20, null=True, blank=True)
-
+    faci_gb_nm = models.CharField(max_length=200,null=True, blank=True)
     faci_lat = models.FloatField(null=True, blank=True)
     faci_lot = models.FloatField(null=True, blank=True)
 

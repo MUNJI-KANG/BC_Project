@@ -1,8 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    /** ==========================
-     * 1) 공지사항 옵션 처리
-     * ========================== */
     const pinTopCheckbox = document.querySelector("input[name='pin_top']");
     const noticeSection = document.querySelector(".notice-section");
     const noticeTypeRadios = document.querySelectorAll("input[name='notice_type']");
@@ -54,10 +51,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    /** ==========================
-     * 2) 글쓰기 / 수정 submit 처리
-     * ========================== */
-
     const form = document.querySelector("form");
     const contextInput = document.querySelector("#contextInput");
     const fileInput = document.getElementById("fileInput");
@@ -66,26 +59,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     form.addEventListener("submit", function () {
 
-        /** ==========================
-         * (A) FAQ (boardId == 5)
-         * textarea만 있음 → 그대로 제출
-         * ========================== */
+
         const faqTextarea = document.querySelector("textarea[name='context']");
         if (faqTextarea) {
             // 아무것도 건드릴 필요 없음
             return;
         }
 
-        /** ==========================
-         * (B) 에디터 사용 게시판
-         * ========================== */
+
         if (window.editorInstance && contextInput) {
             contextInput.value = window.editorInstance.getHTML();
         }
 
-        /** ==========================
-         * (C) 파일 업로드
-         * ========================== */
         if (window.selectedFiles && fileInput) {
             const dt = new DataTransfer();
             window.selectedFiles.forEach(file => dt.items.add(file));
