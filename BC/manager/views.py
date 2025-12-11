@@ -2542,6 +2542,12 @@ def member_delete(request):
             # delete_yn = 2 로 변경
             Member.objects.filter(member_id__in=ids).update(delete_yn=2)
             Member.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
+            Comment.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
+            Article.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
+            Community.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
+            Reservation.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
+            Reservation.objects.filter(member_id__in=ids).update(delete_yn=1)
+            
 
 
     messages.success(request, "탈퇴 처리가 완료되었습니다.")
