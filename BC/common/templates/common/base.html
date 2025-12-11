@@ -50,6 +50,35 @@
     <!-- 페이지 컨텐츠 -->
     {% block contents %}{% endblock %}
 
+    <!-- 카카오 재가입 안내 팝업 -->
+    {% if request.session.kakao_rejoin_message %}
+    <div id="kakaoRejoinModal" class="rejoin-modal" style="display: flex;">
+        <div class="rejoin-modal-backdrop"></div>
+        <div class="rejoin-modal-content">
+            <h3>재가입 안내</h3>
+            <p>탈퇴한 이력이 있어 자동으로 재가입 처리 되었습니다.</p>
+            <button type="button" id="closeRejoinModal" class="btn-close-rejoin">확인</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('kakaoRejoinModal');
+            const closeBtn = document.getElementById('closeRejoinModal');
+            const backdrop = modal.querySelector('.rejoin-modal-backdrop');
+            
+            function closeModal() {
+                modal.style.display = 'none';
+                // 세션에서 플래그 제거를 위해 서버에 요청 (선택사항)
+                fetch('/member/clear-rejoin-message/', {method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}'}})
+                    .catch(err => console.log('세션 정리 실패:', err));
+            }
+            
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (backdrop) backdrop.addEventListener('click', closeModal);
+        });
+    </script>
+    {% endif %}
+
     <!-- 푸터 -->
     <div class="layout-footer-wrapper">
         {% include 'common/layout/footer.html' %}

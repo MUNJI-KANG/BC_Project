@@ -20,6 +20,7 @@ urlpatterns = [
     # 삭제 API
     path('api/article/delete/', views.delete_my_article, name='delete_my_article'),
     path('api/community/delete/', views.delete_my_community, name='delete_my_community'),
+    path('clear-rejoin-message/', views.clear_rejoin_message, name='clear_rejoin_message'),
 
     
 

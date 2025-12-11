@@ -880,11 +880,11 @@ def withdraw(request):
         user.save()
         # 회원 탈퇴시 관련된것들 다 삭제
         if user:
-            Comment.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
-            Article.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
-            Community.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
-            Reservation.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
-            Reservation.objects.filter(member_id__in=user).update(delete_yn=1)
+            Comment.objects.filter(member_id=user).update(delete_date=timezone.now().date())
+            Article.objects.filter(member_id=user).update(delete_date=timezone.now().date())
+            Community.objects.filter(member_id=user).update(delete_date=timezone.now().date())
+            Reservation.objects.filter(member_id=user).update(delete_date=timezone.now().date())
+            Reservation.objects.filter(member_id=user).update(delete_yn=1)
 
         request.session.flush()
 
@@ -901,3 +901,10 @@ def withdraw(request):
     except Member.DoesNotExist:
         messages.error(request, "회원 정보를 찾을 수 없습니다.")
         return redirect('/login/')
+
+@csrf_exempt
+def clear_rejoin_message(request):
+    """재가입 메시지 세션 정리"""
+    if 'kakao_rejoin_message' in request.session:
+        del request.session['kakao_rejoin_message']
+    return JsonResponse({'status': 'ok'})

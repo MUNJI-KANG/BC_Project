@@ -178,4 +178,24 @@
     });
   });
   </script>
+  
+  {% if messages %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      {% for message in messages %}
+        // Toast 함수가 로드될 때까지 대기
+        if (typeof showToast === 'function') {
+          showToast('{{ message|escapejs }}', '{{ message.tags }}');
+        } else {
+          // Toast 함수가 아직 로드되지 않았으면 대기
+          setTimeout(function() {
+            if (typeof showToast === 'function') {
+              showToast('{{ message|escapejs }}', '{{ message.tags }}');
+            }
+          }, 100);
+        }
+      {% endfor %}
+    });
+  </script>
+  {% endif %}
 {% endblock %}

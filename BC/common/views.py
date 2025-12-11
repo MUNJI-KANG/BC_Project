@@ -420,6 +420,24 @@ def kakao_callback(request):
         try:
             # 기존 회원 찾기
             user = Member.objects.get(user_id=kakao_user_id)
+            
+            # 탈퇴 여부 확인 (delete_yn으로 체크)
+            # delete_yn == 1: 사용자 탈퇴 (재가입 가능)
+            # delete_yn == 2: 관리자 탈퇴 (재가입 불가)
+            if user.delete_yn == 1:
+                # 탈퇴한 카카오 사용자 재가입 처리 (회원 정보 복구)
+                # 게시글은 delete_date로 이미 삭제 처리되어 있으므로 자동으로 유지됨
+                user.delete_yn = 0
+                # delete_date는 유지 (재가입 이력 추적용)
+                # delete_reason은 유지 (이력 보관용)
+                user.save()
+                # 재가입 안내 메시지를 세션에 저장 (로그인 후 팝업으로 표시)
+                request.session['kakao_rejoin_message'] = True
+            elif user.delete_yn == 2:
+                # 관리자에 의해 탈퇴된 경우 재가입 불가
+                messages.error(request, "관리자에 의해 탈퇴된 회원입니다. 관리자에게 문의하세요.")
+                return redirect('/login/')
+            
         except Member.DoesNotExist:
             # 신규 회원: DB에 저장하지 않고 세션에만 저장
             # 닉네임 중복 체크 (나중에 회원가입 시 사용)
