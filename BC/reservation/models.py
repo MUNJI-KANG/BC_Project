@@ -39,12 +39,12 @@ class Sports(models.Model):
 # -----------------------------------------------------
 class TimeSlot(models.Model):
     t_id = models.AutoField(primary_key=True)
-    facility_id = models.ForeignKey("facility.FacilityInfo", on_delete=models.CASCADE)
     date = models.DateField()
     start_time = models.CharField(max_length=20)
     end_time = models.CharField(max_length=20)
-    reservation_id = models.ForeignKey(Reservation, null=True, blank=True, on_delete=models.SET_NULL)
     delete_yn = models.IntegerField(default=0) 
+    reservation_id = models.ForeignKey(Reservation, null=True, blank=True, on_delete=models.SET_NULL)
+    facility_id = models.ForeignKey("facility.FacilityInfo", on_delete=models.CASCADE)
 
     class Meta:
         db_table = "time_slot"

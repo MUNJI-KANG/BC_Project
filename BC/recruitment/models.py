@@ -49,9 +49,12 @@ class Rating(models.Model):
     facility = models.CharField(max_length=100)
     rated = models.IntegerField(default=0)
     comments = models.TextField()
-    community_id = models.ForeignKey(Community, on_delete=models.DO_NOTHING)
+    reg_date = models.DateTimeField(auto_now=True)
+
+    community_id = models.ForeignKey(Community, null=True, blank=True, on_delete=models.DO_NOTHING)
     member_id = models.ForeignKey("member.Member", on_delete=models.DO_NOTHING)
-    
+    reservation_id = models.ForeignKey("reservation.Reservation",on_delete=models.CASCADE) 
+     
     class Meta:
         db_table = "rating"
 
