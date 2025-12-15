@@ -80,19 +80,20 @@ def member_delete(request):
     if request.method == "POST":
         ids = request.POST.getlist("ids")  # 선택된 member_id 목록
 
-    for member_id in ids:
-        delete_yn = Member.objects.get(member_id=member_id).delete_yn
-        if delete_yn == 0:
-            Member.objects.filter(member_id__in=ids).update(delete_yn=2)
-            Member.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
-            Comment.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
-            Article.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
-            Community.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
-            Reservation.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
-            Reservation.objects.filter(member_id__in=ids).update(delete_yn=1)
-            messages.success(request, "탈퇴 처리가 완료되었습니다.")
-        else:
-            messages.success(request, "이미 탈퇴된 회원입니다.")
+    if ids:
+        for member_id in ids:
+            delete_yn = Member.objects.get(member_id=member_id).delete_yn
+            if delete_yn == 0:
+                Member.objects.filter(member_id__in=ids).update(delete_yn=2)
+                Member.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
+                Comment.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
+                Article.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
+                Community.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
+                Reservation.objects.filter(member_id__in=ids).update(delete_date=timezone.now().date())
+                Reservation.objects.filter(member_id__in=ids).update(delete_yn=1)
+                messages.success(request, "탈퇴 처리가 완료되었습니다.")
+            else:
+                messages.success(request, "이미 탈퇴된 회원입니다.")
 
     return redirect("manager:member_list")
             
