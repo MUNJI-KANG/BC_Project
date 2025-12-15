@@ -17,15 +17,6 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
         }
 
-         for (const item of checked) {
-            const status = item.dataset.status;   
-
-            if (status === "1" || status === "2") {
-                alert("이미 탈퇴한 회원입니다.");
-                return;
-            }
-        }
-
     });
     // 복구 버튼
     document.getElementById("restoreBtn").addEventListener("click", function () {
