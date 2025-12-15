@@ -163,4 +163,4 @@ class Command(BaseCommand):
 
             page_no += 1
 
-        self.stdout.write(self.style.SUCCESS(f"🎉 완료! 총 {total_inserted}건 INSERT 성공"))
+        self.stdout.write(self.style.SUCCESS(f" 완료! 총 {total_inserted}건 INSERT 성공"))

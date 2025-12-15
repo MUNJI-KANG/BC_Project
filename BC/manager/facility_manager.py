@@ -40,7 +40,6 @@ def facility(request):
     keyword = request.GET.get("keyword", "")
     
     per_page = int(request.GET.get("per_page", 15))
-    page = int(request.GET.get("page", 1))
     apply_sports = request.GET.get("apply_sports", "")
 
     queryset = Facility.objects.all()
