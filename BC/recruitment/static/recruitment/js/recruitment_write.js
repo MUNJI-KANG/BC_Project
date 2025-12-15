@@ -224,15 +224,65 @@ function handle_list() {
 }
 
 // Editor 내용을 form submit 시 hidden input에 저장
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('recruit-form');
-    const contentInput = document.getElementById('contentInput');
+// document.addEventListener('DOMContentLoaded', function () {
+//     const form = document.getElementById('recruit-form');
+//     const contentInput = document.getElementById('contentInput');
 
-    if (form && contentInput) {
-        form.addEventListener('submit', function (e) {
-            if (window.editorInstance) {
-                contentInput.value = window.editorInstance.getHTML();
-            }
-        });
+//     if (form && contentInput) {
+//         form.addEventListener('submit', function (e) {
+//             const editor = window.editorInstance;
+//             const html = editor ? (editor.getHTML() || "") : "";
+//             const text = editor ? (editor.getText() || "") : "";
+
+//             // hidden input에 값 주입 (서버로 넘어가게)
+//             contentInput.value = html;
+
+//             // 공백/줄바꿈만 있으면 막기
+//             if (!text.trim()) {
+//                 e.preventDefault();
+//                 alert("내용은 필수 입력입니다.");
+//                 // 커서 이동(있으면)
+//                 if (editor) editor.focus();
+//                 return false;
+//             }
+//             // if (window.editorInstance) {
+//             //     contentInput.value = window.editorInstance.getHTML();
+//             // }
+//         });
+//     }
+// });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("recruit-form");
+  const contentInput = document.getElementById("contentInput");
+  if (!form || !contentInput) return;
+
+  form.addEventListener("submit", (e) => {
+    const editor = window.editorInstance;
+    if (!editor) {
+      e.preventDefault();
+      alert("에디터 초기화가 아직 안 됐습니다.");
+      return;
     }
+
+    const md = (editor.getMarkdown() || "");
+    // ✅ 실제 글자(한글/영문/숫자)가 하나라도 있는지 체크
+    const has_real_text = /[0-9A-Za-z가-힣]/.test(md);
+    const html = editor.getHTML();
+    const text = html
+        .replace(/<br\s*\/?>/gi, "")
+        .replace(/<p>\s*<\/p>/gi, "")
+        .replace(/&nbsp;/gi, "")
+        .replace(/<[^>]*>/g, "")
+        .trim();
+    if (!has_real_text || !text) {
+      e.preventDefault();
+      alert("내용은 필수입니다. 글자를 1자 이상 입력해 주세요.");
+      editor.focus();
+      return;
+    }
+
+    // 저장값 (원하시면 getHTML()로 바꾸세요)
+    contentInput.value = md;
+  }, true);
 });

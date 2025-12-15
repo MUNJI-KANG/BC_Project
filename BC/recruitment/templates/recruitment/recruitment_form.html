@@ -24,7 +24,7 @@
 </script>
 <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
 <script src="{% static 'recruitment/js/recruitment_write.js' %}"></script>
-<script src="{% static 'recruitment/js/recruitment_update.js' %}"></script>
+<!-- <script src="{% static 'recruitment/js/recruitment_update.js' %}"></script> -->
 <script src="{% static 'common/js/board/editor.js' %}"></script>
 {% endblock %}
 
@@ -233,7 +233,7 @@
         <div class="form-group full-row">
           <label class="form-label">내용</label>
           <div id="editor"></div>
-          <input type="hidden" name="content" id="contentInput">
+          <input type="hidden" name="content" id="contentInput" required>
         </div>
 
         <!-- 5. 오픈카톡 URL -->

@@ -33,9 +33,8 @@ from datetime import date
 ALWAYS_OPEN_DATE = date(2099, 1, 1)
 
 
-from django.db.models import Q
 
-from common.utils import check_login
+from common.utils import *
 
 
 def recruitment_list(request):
@@ -52,8 +51,9 @@ def recruitment_list(request):
         .filter(delete_date__isnull=True)
         .select_related("endstatus")  # JOIN ? 
         .annotate(
-            current_member=Count("joinstat"),
+            current_member= Count("joinstat"),
             comment_count = Count('comment', distinct=True),
+            end_date = F("endstatus__end_set_date"),
         )
     )
 
@@ -88,6 +88,8 @@ def recruitment_list(request):
         qs = qs.order_by("title")
     elif sort == "views":
         qs = qs.order_by("-view_cnt")
+    elif sort =="end_date":
+        qs = qs.order_by("end_date")
     else:
         qs = qs.order_by("-reg_date")
 
