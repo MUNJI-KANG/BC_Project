@@ -22,7 +22,7 @@ from reservation.models import Reservation, TimeSlot
 from common.paging import pager
 
 from facility.models import Facility, FacilityInfo
-
+from facility.utils import build_facility_queryset
 from reservation.models import Sports
 
 
@@ -33,23 +33,29 @@ def facility(request):
     if not is_manager(request):
         messages.error(request, "관리자 권한이 필요합니다.")
         return redirect('manager:manager_login')
-    #DATA_API_KEY = os.getenv("DATA_API_KEY")
 
-    cp_nm = request.GET.get("sido", "") 
+    cp_nm = request.GET.get("sido", "")
     cpb_nm = request.GET.get("sigungu", "")
     keyword = request.GET.get("keyword", "")
-    
+
     per_page = int(request.GET.get("per_page", 15))
     apply_sports = request.GET.get("apply_sports", "")
 
-    queryset = Facility.objects.all()
-    
 
-    # 세션에서 선택된 종목 로드
+    queryset = build_facility_queryset(
+        cp_nm=cp_nm or None,
+        cpb_nm=cpb_nm or None,
+        keyword=keyword or None,
+        public_only=True,
+        normal_only=False,          # 관리자 → 상태 무관
+        exclude_registered=True,    # 관리자 → 이미 등록된 시설 제외
+    )
+
+
     selected_ids = request.session.get("selected_sports", [])
     selected_ids = list(map(int, selected_ids)) if selected_ids else []
 
-    # 종목 필터 적용
+
     if apply_sports and selected_ids:
         selected_sports = Sports.objects.filter(sports_id__in=selected_ids)
         if selected_sports.exists():
@@ -65,28 +71,8 @@ def facility(request):
                     )
             queryset = queryset.filter(q)
 
-    # 지역
-    if cp_nm:
-        queryset = queryset.filter(faci_addr__icontains=cp_nm)
-    if cpb_nm:
-        queryset = queryset.filter(faci_addr__icontains=cpb_nm)
-
-    # 검색어
-    if keyword:
-        queryset = queryset.filter(faci_nm__icontains=keyword)
-
-    # 공공시설만 받기 
-    queryset.filter(faci_gb_nm='공공')
-
-    # 이미 등록된 시설 제외
-    registered_ids = FacilityInfo.objects.values_list("facility_id", flat=True)
-    queryset = queryset.exclude(faci_cd__in=registered_ids)
-
-
-
     paging = pager(request, queryset, per_page=per_page)
     page_obj = paging['page_obj']
-
 
     # 번호 계산
     start_index = (page_obj.number - 1) * per_page
@@ -95,21 +81,20 @@ def facility(request):
         {
             "id": item.id,
             "name": item.faci_nm,
-            "address": item.faci_road_addr,
+            "address": item.faci_road_addr or item.faci_addr,
             "row_no": start_index + idx + 1,
-            "faci_stat_nm" : item.faci_stat_nm
+            "faci_stat_nm": item.faci_stat_nm,
         }
         for idx, item in enumerate(page_obj.object_list)
     ]
 
-    # 종목 JSON (selected 여부 포함)
     all_sports = Sports.objects.all()
     sports_json = json.dumps(
         [
             {
                 "id": s.sports_id,
                 "s_name": s.s_name,
-                "selected": s.sports_id in selected_ids
+                "selected": s.sports_id in selected_ids,
             }
             for s in all_sports
         ],
@@ -128,8 +113,9 @@ def facility(request):
         "block_start": paging['block_start'],
         "block_end": paging['block_end'],
         "paginator": paging['paginator'],
-        "apply_sports" : apply_sports,
+        "apply_sports": apply_sports,
     }
+
     return render(request, "manager/facility_add_manager.html", context)
 
 
@@ -212,6 +198,7 @@ def facility_register(request):
                 homepage=fac.faci_homepage or "",
                 photo=None,
                 reservation_time=None,
+                faci_stat_nm = fac.faci_stat_nm or "",
             )
             count += 1
 
@@ -333,6 +320,7 @@ def facility_detail(request, id):
             "open": info.get("open"),
             "close": info.get("close"),
             "interval": info.get("interval"),
+            "payment" : info.get("payment"),
         })
 
 
