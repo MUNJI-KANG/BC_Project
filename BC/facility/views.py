@@ -6,13 +6,11 @@ import urllib.request
 import urllib.parse
 import re, time
 from django.core.cache import cache
-from django.shortcuts import render, redirect, get_object_or_404
-
+from django.shortcuts import render, redirect
+from facility.utils import build_facility_queryset
 from django.conf import settings
 from django.contrib import messages
 
-
-from common.utils import check_login   
 from facility.models import Facility
 from facility.models import FacilityInfo
 from member.models import Member
@@ -40,7 +38,6 @@ def facility_list(request):
 
     user = request.session.get("user_id")
 
-    # 로그인 사용자 지역 기본값
     if not keyword:
         if not cp_nm or not cpb_nm:
             if user:
@@ -71,45 +68,31 @@ def facility_list(request):
                         cp_nm = SIDO_MAP.get(addr1_raw, addr1_raw)
                     if not cpb_nm:
                         cpb_nm = (member.addr2 or "").strip()
-                except:
+                except Member.DoesNotExist:
                     pass
 
-    # 비로그인 기본값
     if not keyword:
-        if not cp_nm:
-            cp_nm = "서울특별시"
-        if not cpb_nm:
-            cpb_nm = "강남구"
+        cp_nm = cp_nm or "서울특별시"
+        cpb_nm = cpb_nm or "강남구"
 
-    # 캐시생성
+
     cache_key = f"facility_list:{cp_nm}:{cpb_nm}:{keyword}"
-    cached_facilities = cache.get(cache_key)
-
-
-    if cached_facilities:
-        facilities = cached_facilities
+    cached = cache.get(cache_key)
+    if cached:
+        facilities = cached
 
     else:
-        qs = Facility.objects.all()
+        qs = build_facility_queryset(
+            cp_nm=cp_nm,
+            cpb_nm=cpb_nm,
+            keyword=keyword,
+            public_only=True,
+            normal_only=True,        # 사용자 → 정상 운영만
+            exclude_registered=False # 사용자 → 전부 노출
+        )
 
-        if cp_nm:
-            qs = qs.filter(cp_nm=cp_nm)
-
-        if cpb_nm:
-            if not qs.filter(cpb_nm=cpb_nm).exists():
-                qs = qs.filter(faci_road_addr__icontains=cpb_nm)
-            else:
-                qs = qs.filter(cpb_nm=cpb_nm)
-
-        if keyword:
-            qs = qs.filter(faci_nm__icontains=keyword)
-
-        qs = qs.filter(faci_stat_nm__icontains='정상운영')
-
-        # 데이터 구성
-        facilities = []
-        for f in qs:
-            facilities.append({
+        facilities = [
+            {
                 "id": f.faci_cd,
                 "name": f.faci_nm or "",
                 "address": f.faci_road_addr or f.faci_addr or "",
@@ -118,21 +101,18 @@ def facility_list(request):
                 "phone": f.faci_tel_no or "",
                 "lat": f.faci_lat,
                 "lng": f.faci_lot,
-            })
+            }
+            for f in qs
+        ]
 
-        # FacilityInfo 있는 시설 먼저 정렬
-        info_ids = set(FacilityInfo.objects.values_list("facility_id", flat=True))
-        facilities = sorted(
-            facilities,
-            key=lambda x: x["id"] not in info_ids
+        info_ids = set(
+            FacilityInfo.objects.values_list("facility_id", flat=True)
         )
+        facilities.sort(key=lambda x: x["id"] not in info_ids)
 
-        # 캐시저장
+        # 캐시 저장
         cache.set(cache_key, facilities, FACILITY_LIST_CACHE_TTL)
 
-    # -----------------------------
-    # 페이징 + 지도좌표 처리
-    # -----------------------------
     per_page = int(request.GET.get("per_page", 10))
     paging = pager(request, facilities, per_page=per_page)
 
@@ -155,6 +135,7 @@ def facility_list(request):
     }
 
     return render(request, "facility/facility_list.html", context)
+
 
 
 _geo_cache = {}
@@ -358,7 +339,7 @@ def facility_detail(request, fk):
             add_info_objs = AddInfo.objects.filter(facility_id=facility_info.id)
 
             for add_info in add_info_objs:
-                file_ext = os.path.splitext(add_info.file_name)[1].lower()
+                file_ext = os.path.splitext(add_info.path)[1].lower()
                 is_image = file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
 
                 file_data = {
@@ -370,7 +351,7 @@ def facility_detail(request, fk):
 
                 if not is_image:
                     files.append(file_data)
-
+            print("files : ",files)
         else:
             r_data.update({
                 "id": facility.faci_cd,

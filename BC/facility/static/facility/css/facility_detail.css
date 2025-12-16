@@ -374,6 +374,37 @@
 .back-btn:hover {
     background: #ccc;
 }
+
+.files-list {
+    list-style: none;
+    margin: 4px 0 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.file-item {
+    line-height: 1.4;
+}
+
+.file-item a {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-deep-blue);
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.file-item a:hover {
+    color: var(--color-deep-blue-hover);
+}
+
+/* 아이콘 느낌 주고 싶으면 */
+.file-item a::before {
+    content: "📎 ";
+}
+
 /* ===========================
    반응형 처리
 =========================== */

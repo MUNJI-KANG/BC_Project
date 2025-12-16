@@ -163,11 +163,11 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-xs);
-    text-decoration: none; 
+    text-decoration: none;
 }
 
 .search-btn:hover,
-.write-btn:hover{
+.write-btn:hover {
     background: var(--color-deep-blue-hover);
 }
 
@@ -183,7 +183,7 @@
     color: var(--color-text-primary);
     margin-bottom: var(--spacing-xl);
     padding-bottom: var(--spacing-md);
-    
+
 }
 
 
@@ -247,6 +247,7 @@
     color: var(--color-deep-blue-hover);
     text-shadow: 0 0 4px rgba(47, 92, 156, 0.25);
 }
+
 /* 전화번호 */
 .facility-meta {
     min-width: 120px;
@@ -254,6 +255,7 @@
     text-align: right;
     color: var(--color-text-secondary);
 }
+
 /* 날짜 + 조회수 영역 */
 .facility-meta {
     display: flex;
@@ -278,6 +280,7 @@
 .facility-item:hover .facility-title {
     background: rgba(146, 184, 216, 0.08);
 }
+
 .map-infowindow {
     padding: 8px 12px;
     background: #ffffff;
@@ -285,7 +288,7 @@
     border-radius: 10px;
     font-size: 14px;
     color: var(--color-text-primary);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     text-align: center;
     font-weight: 700;
     white-space: nowrap;
@@ -299,7 +302,8 @@
 .map-infowindow a:hover {
     color: var(--color-deep-blue-hover);
 }
-.page-selector{
+
+.page-selector {
     display: flex;
     justify-content: flex-end;
     margin-top: var(--spacing-xs);
@@ -365,7 +369,8 @@
 .page-selector {
     display: flex;
     justify-content: flex-end;
-    width: 150px; /* 원하면 조절 가능 */
+    width: 150px;
+    /* 원하면 조절 가능 */
 }
 
 .dividing-line {
@@ -374,80 +379,54 @@
     margin: 20px 0;
 }
 
-.no-result-box {
-    width: 100%;
-    padding: 40px 20px;
-    text-align: center;
 
-    /* 폰트 스타일 */
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--color-text-secondary);
-
-    /* 박스 스타일 */
-    background: #fafbfd;
-    border: 1px solid var(--color-soft-gray-line);
-    border-radius: 12px;
-
-    /* 간격 */
-    margin: 40px auto;
-}
-
-.overlay-wrap {
+.customoverlay {
     position: relative;
-    left: 50%;
-    transform: translateX(-50%) translateY(-90%);
-    white-space: nowrap;
+    bottom: 55px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    border-bottom: 2px solid #ddd;
+    float: left;
+    pointer-events: auto; 
 }
 
-/* 말풍선 박스 */
-.overlay-box {
-    display: flex;
-    align-items: center;
-    background: #ffffff;
-    border-radius: 16px;
+.customoverlay:nth-of-type(n) {
+    border: 0;
+    box-shadow: 0px 1px 2px #888;
+}
+
+.customoverlay a {
+    display: block;
+    text-decoration: none;
+    color: #000;
+    text-align: center;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-    border: 1px solid #d7dbe3;
+    background: #d95050;
+    /* 배경 이미지가 있는 오버레이 스타일 */
+    background: #d95050 url(https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/arrow_white.png) no-repeat right 14px center;
 }
 
-/* 제목 */
-.overlay-title {
-    padding: 12px 20px;
-    font-size: 18px;
-    font-weight: 800;
-    color: #1A2A43;
-}
-
-/* 빨간 버튼 */
-.overlay-btn {
-    background: #e74a3b;
-    padding: 12px 18px;
-    color: #ffffff;
-    font-size: 20px;
+.customoverlay .title {
+    display: block;
+    text-align: center;
+    background: #fff;
+    margin-right: 35px;
+    padding: 10px 15px;
+    font-size: 14px;
     font-weight: bold;
 }
 
-/* ▼ 아래 꼬리 */
-.overlay-tail {
+.customoverlay:after {
+    content: '';
     position: absolute;
-    top: 100%;
+    margin-left: -12px;
     left: 50%;
-    margin-left: -10px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 14px solid #ffffff;
-}
-
-.mini-overlay {
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    padding: 4px 8px;
-    font-size: 12px;
-    border-radius: 6px;
-    white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-    transform: translateY(-8px);
+    bottom: -12px;
+    width: 22px;
+    height: 12px;
+    /* 꼬리 이미지 */
+    background: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/vertex_white.png')
 }

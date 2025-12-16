@@ -75,7 +75,7 @@
                 <ul>
                     {% for item in page_obj %}
                     <li class="facility-item">
-                        <span class="facility-order">{{ forloop.counter }}</span>
+                        <span class="facility-order">{{ page_obj.start_index|add:forloop.counter0 }}</span>
 
                         <span class="facility-title">
                             <!-- 클릭 이벤트용 data-id 추가 -->

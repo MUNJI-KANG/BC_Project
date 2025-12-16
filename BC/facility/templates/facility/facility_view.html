@@ -44,21 +44,6 @@
             <section class="detail-info-wrap">
                 <h3>{{ facility.name }}</h3>
 
-                {% if files %}
-                <section class="detail-info-row">
-                    <b>첨부파일</b>
-                    <ul class="files-list">
-                        {% for file in files %}
-                        <li class="file-item">
-                            <a href="{{ file.url }}" download>
-                                <span class="file-name">{{ file.name }}</span>
-                            </a>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </section>
-                {% endif %}
-
                 <section class="detail-info-row">
                     <b>업종명 :</b> <span>{{ facility.fcob_nm }}</span>
                 </section>
@@ -66,6 +51,22 @@
                 <section class="detail-info-row">
                     <b>주소 :</b> <span>{{ facility.address }}</span>
                 </section>
+                {% if files %}
+                <section class="detail-info-row">
+                    <b>첨부파일 :</b>
+                    <span>
+                        <ul class="files-list">
+                            {% for file in files %}
+                                <li class="file-item">
+                                    <a href="{% url 'board:download' file.id %}" download>
+                                        {{ file.name }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </span>
+                </section>
+                {% endif %}
 
                 {% if facility.phone %}
                 <section class="detail-info-row">
@@ -177,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function () {
             position: pos
         });
 
-        const infowindow = new kakao.maps.InfoWindow({
+        const infowindow = new kakao.maps.InfoWindow({ 
             content: `<div style="padding:5px;font-size:14px;">${facilityData.name}</div>`
         });
 

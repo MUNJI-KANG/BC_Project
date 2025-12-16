@@ -149,9 +149,8 @@ document.addEventListener("DOMContentLoaded", function () {
             window.location.search = newParams.toString();
         });
     }
-
     /* ===========================
-        지도 생성
+       지도 생성
     =========================== */
     var container = document.getElementById("map");
     if (!container || typeof kakao === "undefined") return;
@@ -166,110 +165,84 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     var bounds = new kakao.maps.LatLngBounds();
-    var markerMap = {};
-    var fixedInfoWindow = null;
 
     /* ===========================
-        마커 & InfoWindow 생성
+       마커 & CustomOverlay
     =========================== */
     facilities.forEach(function (item) {
         var lat = parseFloat(item.lat);
         var lng = parseFloat(item.lng);
         if (isNaN(lat) || isNaN(lng)) return;
 
-        var pos = new kakao.maps.LatLng(lat, lng);
+        var position = new kakao.maps.LatLng(lat, lng);
 
+        /* ===== marker ===== */
         var marker = new kakao.maps.Marker({
             map: map,
-            position: pos
+            position: position
         });
 
-        // 🔥 빈칸 완전 제거된 InfoWindow content
-        var iwContent = `
-<div style="
-    background:#fff;
-    border:1px solid #d7dbe3;
-    border-radius:14px;
-    display:flex;
-    align-items:center;
-    box-shadow:0 4px 12px rgba(0,0,0,0.25);
-    overflow:hidden;
-">
-    <div style="
-        padding:10px 14px;
-        font-size:16px;
-        font-weight:700;
-        color:#1A2A43;
-        white-space:nowrap;
-    ">
-        <a href="/facility/detail/${item.id}?fName=${encodeURIComponent(item.name)}"
-           style="text-decoration:none;color:#1A2A43;">
-           ${item.name}
-        </a>
-    </div>
-    <div style="
-        background:#e74a3b;
-        padding:10px 14px;
-        color:#fff;
-        font-size:18px;
-        font-weight:bold;
-    ">
-        ▶
-    </div>
-</div>`;
+        /* ===== overlay ===== */
+        var overlayContent = `
+<div class="customoverlay">
+    <a class="overlay-link"
+       href="/facility/detail/${item.id}?fName=${encodeURIComponent(item.name)}">
+        <span class="title">${item.name}</span>
+    </a>
+</div>
+`;
 
-        var infowindow = new kakao.maps.InfoWindow({
-            content: iwContent
+        var overlay = new kakao.maps.CustomOverlay({
+            position: position,
+            content: overlayContent,
+            yAnchor: 1
         });
 
-        // 마커 클릭 → 상세 페이지 이동
-        kakao.maps.event.addListener(marker, "click", function () {
-            window.location.href = `/facility/detail/${item.id}?fName=${encodeURIComponent(item.name)}`;
-        });
-
-        // 마커 hover
+        /* ===========================
+           marker 이벤트
+           - overlay 보여주기만
+        =========================== */
         kakao.maps.event.addListener(marker, "mouseover", function () {
-            infowindow.open(map, marker);
+            overlay.setMap(map);
         });
 
-        kakao.maps.event.addListener(marker, "mouseout", function () {
-            if (fixedInfoWindow !== infowindow) {
-                infowindow.close();
-            }
+        // overlay 벗어나면 닫기
+        kakao.maps.event.addEventListener("mouseleave", function () {
+            overlay.setMap(null);
         });
 
-        markerMap[item.id] = { marker, infowindow, position: pos };
-        bounds.extend(pos);
-    });
+        kakao.maps.event.addListener(marker, "click", function () {
+            window.location.href =
+                `/facility/detail/${item.id}?fName=${encodeURIComponent(item.name)}`;
+        });
 
-    if (!bounds.isEmpty()) map.setBounds(bounds);
+        /* ===========================
+           overlay DOM 이벤트
+           - 닫기 & 클릭 담당
+        =========================== */
+        kakao.maps.event.addListener(overlay, "domready", function () {
+            var el = overlay.getContent();
+            if (!el) return;
 
-    /* ===========================
-        리스트 클릭 → 지도 이동 + InfoWindow 열기
-    =========================== */
-    document.querySelectorAll(".facility-link").forEach(function (link) {
-        link.addEventListener("click", function (e) {
-            e.preventDefault();
-
-            var id = this.dataset.id;
-            var obj = markerMap[id];
-            if (!obj) return;
-
-            map.setCenter(obj.position);
-            map.setLevel(7);
-
-            if (fixedInfoWindow) fixedInfoWindow.close();
-
-            obj.infowindow.open(map, obj.marker);
-            fixedInfoWindow = obj.infowindow;
-
-            const mapRect = container.getBoundingClientRect();
-            window.scrollTo({
-                top: window.pageYOffset + mapRect.top - 100,
-                behavior: "smooth"
+            // 제목 클릭
+            var link = el.querySelector(".overlay-link");
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = this.href;
             });
         });
+
+        bounds.extend(position);
     });
+
+    /* 모든 마커 보이기 */
+    if (!bounds.isEmpty()) {
+        map.setBounds(bounds);
+    }
+
+
+
 
     const searchForm = document.getElementById("facilitySearchForm");
 
