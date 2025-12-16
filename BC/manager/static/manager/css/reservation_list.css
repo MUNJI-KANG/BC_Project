@@ -169,3 +169,22 @@
 .close-modal:hover {
     color: #333;
 }
+
+.time-list-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.time-list.date {
+    font-weight: 700;
+    white-space: nowrap;
+}
+.time-list {
+    white-space: nowrap;
+}
+
+.time-list.cancelled {
+    text-decoration: line-through;
+    color: #c0392b;
+}

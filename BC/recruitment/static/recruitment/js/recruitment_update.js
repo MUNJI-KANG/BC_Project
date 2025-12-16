@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const recruit_form = document.querySelector("#recruit_form");  // 폼이 있으면 여기로
 
     // 1) 작성(수정 완료) 버튼
-    if (btn_submit && recruit_form) {
+    if (btn_submit) {
         btn_submit.addEventListener("click", function (e) {
             // 기본 동작 그대로 쓰려면 막을 필요 없음
             // e.preventDefault();
@@ -23,23 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    
-    //  3) 파일 2MB 이상 등록 방지
-    // const fileInput = document.querySelector('input[type="file"]');
-    // if (!fileInput) return;
-
-    // fileInput.addEventListener("change", function() {
-    //     const maxSize = 2 * 1024 * 1024; // 2MB
-    //     const files = this.files;
-
-    //     for (let f of files) {
-    //         if (f.size > maxSize) {
-    //             alert(`"${f.name}" 은(는) 2MB를 초과하여 업로드할 수 없습니다.`);
-    //             this.value = "";  // 선택한 파일 전체 초기화
-    //             return;
-    //         }
-    //     }
-    // });
 
     //  3) 파일 2MB 이상 + 누적 선택
     const updateFileInput = document.getElementById('updateFileInput');

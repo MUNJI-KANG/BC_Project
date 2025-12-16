@@ -40,14 +40,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const facilityNameEl = document.getElementById('modal-facility-name');
         const facilityAddrEl = document.getElementById('modal-facility-address');
-        const facilityTelEl = document.getElementById('modal-facility-tel');
+        const memberTelEl = document.getElementById('modal-member-tel');
+        const member_id = document.getElementById('modal-member');
         const resNumEl = document.getElementById('modal-reservation-num');
         const regDateEl = document.getElementById('modal-reg-date');
         const timeSlotsContainer = document.getElementById('modal-time-slots');
 
         if (facilityNameEl) facilityNameEl.textContent = data.facility_name || '미정';
         if (facilityAddrEl) facilityAddrEl.textContent = data.facility_address || '미정';
-        if (facilityTelEl) facilityTelEl.textContent = data.facility_tel || '미정';
+        if (memberTelEl) memberTelEl.textContent = data.member_phone_num || '미정';
+        if (member_id) member_id.textContent = data.member_id || '미정';
         if (resNumEl) resNumEl.textContent = data.reservation_num || '';
         if (regDateEl) regDateEl.textContent = data.reg_date || '';
 
@@ -247,15 +249,24 @@ document.addEventListener("DOMContentLoaded", function () {
                     </a>
                 </td>
             `;
-
+            time_info = `<p class="time-list-wrapper"><span class="time-list date">${item.slot_list[0].date}</span> | `; 
+            for (time_item of item.slot_list) {
+                if (time_item.is_cancelled){
+                    time_info += `<span class="time-list cancelled">${time_item.time_str}</span>`;
+                }
+                else {
+                    time_info += `<span class="time-list">${time_item.time_str}</span>`
+                }
+            }
+            time_info += `</p>`
             return `
                 <tr class="reservation-row ${statusClass}">
                     <td>${item.row_no}</td>
                     ${reservationNumCell}
                     <td>${item.sport_type || '미정'}</td>
-                    <td>${item.time_info || '미정'}</td>
+                    <td>${time_info || '미정'}</td>
                     <td>${item.member_id || ''}</td>
-                    <td>${item.member_name || '알 수 없음'}</td>
+                    <td>${item.member_phone_num || '알 수 없음'}</td>
                     <td>${item.reg_date || ''}</td>
                     ${cancelDateCell}
                 </tr>

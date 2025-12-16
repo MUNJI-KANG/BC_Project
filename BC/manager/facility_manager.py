@@ -608,15 +608,14 @@ def reservation_list_manager(request):
             reservation_id=reservation
         ).order_by('date', 'start_time')
         
-        time_info_list = []
+
         slot_list_for_json = []  # 팝업에서 사용할 상세 시간 정보
         earliest_date = None
         
         for ts in time_slots:
             date_str = ts.date.strftime('%Y-%m-%d') if ts.date else ""
             time_str = f"{ts.start_time}~{ts.end_time}" if ts.start_time and ts.end_time else ""
-            if date_str and time_str:
-                time_info_list.append(f"{date_str} {time_str}")
+
             
             # 가장 빠른 예약 날짜 확인 (체크박스 활성화 여부 판단용)
             if not earliest_date and ts.date:
@@ -628,10 +627,10 @@ def reservation_list_manager(request):
                 "start": ts.start_time,
                 "end": ts.end_time,
                 "is_cancelled": (ts.delete_yn == 1),
-                "t_id": ts.t_id
+                "t_id": ts.t_id,
+                "time_str":time_str,
             })
         
-        time_info = ", ".join(time_info_list) if time_info_list else "미정"
         
         # 오늘 날짜와 비교 (체크박스 활성화 여부)
         is_past = False
@@ -641,18 +640,19 @@ def reservation_list_manager(request):
         # 회원 정보
         member_name = reservation.member.nickname if reservation.member else "알 수 없음"
         member_id = reservation.member.user_id if reservation.member else ""
+        member_phone_num = reservation.member.phone_num if reservation.member else ""
         
         reservation_page.append({
             "id": reservation.reservation_id,
             "reservation_num": reservation.reservation_num,
             "member_name": member_name,
             "member_id": member_id,
+            "member_phone_num": member_phone_num,
             "facility_name": facility_name,
             "facility_id": facility_id_val,
             "facility_address": timeslots.facility_id.address if timeslots and timeslots.facility_id else "",
             "facility_tel": timeslots.facility_id.tel if timeslots and timeslots.facility_id else "",
             "sport_type": sport_type,
-            "time_info": time_info,
             "slot_list": slot_list_for_json,  # 팝업에서 사용할 상세 시간 정보
             "reg_date": reservation.reg_date.strftime('%Y-%m-%d %H:%M') if reservation.reg_date else "",
             "delete_date": reservation.delete_date.strftime('%Y-%m-%d %H:%M') if reservation.delete_date else "",

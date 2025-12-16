@@ -82,7 +82,7 @@
                     <th style="width: 120px;">종목</th>
                     <th>이용 시간</th>
                     <th style="width: 120px;">회원 ID</th>
-                    <th style="width: 120px;">회원명</th>
+                    <th style="width: 200px;">회원 전화번호</th>
                     <th style="width: 180px;">예약 일자</th>
                     {% if reservation_type == 'all' and status == 'cancelled' %}
                     <th style="width: 180px;">취소 일자</th>
@@ -126,6 +126,10 @@
             <div class="modal-header">예약 상세 정보</div>
             
             <div class="modal-row">
+                <span>예약번호:</span>
+                <div class="modal-value" id="modal-reservation-num"></div>
+            </div>
+            <div class="modal-row">
                 <span>시설명:</span>
                 <div class="modal-value" id="modal-facility-name"></div>
             </div>
@@ -134,13 +138,14 @@
                 <div class="modal-value" id="modal-facility-address"></div>
             </div>
             <div class="modal-row">
-                <span>연락처:</span>
-                <div class="modal-value" id="modal-facility-tel"></div>
+                <span>예약자:</span>
+                <div class="modal-value" id="modal-member"></div>
             </div>
             <div class="modal-row">
-                <span>예약번호:</span>
-                <div class="modal-value" id="modal-reservation-num"></div>
+                <span>예약자 연락처:</span>
+                <div class="modal-value" id="modal-member-tel"></div>
             </div>
+
             <div class="modal-row">
                 <span>예약한 날짜:</span>
                 <div class="modal-value" id="modal-reg-date"></div>
