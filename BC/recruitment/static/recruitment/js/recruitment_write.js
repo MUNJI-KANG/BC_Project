@@ -255,6 +255,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 저장값 (원하시면 getHTML()로 바꾸세요)
-    contentInput.value = md;
+    contentInput.value = editor.getHTML();
   }, true);
 });
