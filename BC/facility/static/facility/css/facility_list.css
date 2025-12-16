@@ -379,54 +379,45 @@
     margin: 20px 0;
 }
 
+/* ===========================
+   A안: 시각적 제거용 래퍼
+=========================== */
+.iw-visual {
+  position: relative;
+  height: 0;                 /* 🔥 시각적 높이 0 */
+  pointer-events: none;      /* 빈 영역 클릭 안 먹게 */
+}
+
 
 .customoverlay {
-    position: relative;
-    bottom: 55px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    border-bottom: 2px solid #ddd;
-    float: left;
-    pointer-events: auto; 
-}
+  display: inline-flex;
+  align-items: stretch;
 
-.customoverlay:nth-of-type(n) {
-    border: 0;
-    box-shadow: 0px 1px 2px #888;
-}
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #d95050;
+  box-shadow: 0 1px 2px #888;
 
-.customoverlay a {
-    display: block;
-    text-decoration: none;
-    color: #000;
-    text-align: center;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
-    overflow: hidden;
-    background: #d95050;
-    /* 배경 이미지가 있는 오버레이 스타일 */
-    background: #d95050 url(https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/arrow_white.png) no-repeat right 14px center;
+  cursor: pointer;
+  pointer-events: auto;
 }
 
 .customoverlay .title {
-    display: block;
-    text-align: center;
-    background: #fff;
-    margin-right: 35px;
-    padding: 10px 15px;
-    font-size: 14px;
-    font-weight: bold;
+  background: #fff;
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: bold;
+  white-space: nowrap;
 }
 
-.customoverlay:after {
-    content: '';
-    position: absolute;
-    margin-left: -12px;
-    left: 50%;
-    bottom: -12px;
-    width: 22px;
-    height: 12px;
-    /* 꼬리 이미지 */
-    background: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/vertex_white.png')
+.customoverlay::after {
+  content: '›';
+  width: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #d95050;
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
 }

@@ -149,97 +149,167 @@ document.addEventListener("DOMContentLoaded", function () {
             window.location.search = newParams.toString();
         });
     }
-    /* ===========================
-       지도 생성
-    =========================== */
-    var container = document.getElementById("map");
-    if (!container || typeof kakao === "undefined") return;
 
-    var map = new kakao.maps.Map(container, {
-        center: new kakao.maps.LatLng(37.5665, 126.9780),
-        level: 5,
-        draggable: false,
-        scrollwheel: false,
-        disableDoubleClickZoom: true,
-        keyboardShortcuts: false
+ /* ===========================
+   지도 생성
+=========================== */
+var container = document.getElementById("map");
+if (!container || typeof kakao === "undefined") return;
+
+var map = new kakao.maps.Map(container, {
+    center: new kakao.maps.LatLng(37.5665, 126.9780),
+    level: 5,
+    draggable: false,
+    scrollwheel: false,
+    disableDoubleClickZoom: true,
+    keyboardShortcuts: false
+});
+
+var bounds = new kakao.maps.LatLngBounds();
+var markerMap = {};
+var currentOverlay = null;
+var fixedOverlay = null;
+var isOverlayHover = false;
+
+/* ===========================
+   마커 & CustomOverlay
+=========================== */
+facilities.forEach(function (item) {
+    var lat = parseFloat(item.lat);
+    var lng = parseFloat(item.lng);
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    var position = new kakao.maps.LatLng(lat, lng);
+
+    /* ===== marker ===== */
+    var marker = new kakao.maps.Marker({
+        map: map,
+        position: position
     });
 
-    var bounds = new kakao.maps.LatLngBounds();
+    /* ===== CustomOverlay ===== */
+    var overlay = new kakao.maps.CustomOverlay({
+        position: position,
+        content: `
+          <div class="customoverlay" data-id="${item.id}">
+            <span class="title">${item.name}</span>
+          </div>
+        `,
+        xAnchor: 0.5,
+        yAnchor: 2.0, 
+        clickable: true
+    });
 
     /* ===========================
-       마커 & CustomOverlay
+       마커 이벤트
     =========================== */
-    facilities.forEach(function (item) {
-        var lat = parseFloat(item.lat);
-        var lng = parseFloat(item.lng);
-        if (isNaN(lat) || isNaN(lng)) return;
 
-        var position = new kakao.maps.LatLng(lat, lng);
+    // hover → overlay 표시
+    kakao.maps.event.addListener(marker, "mouseover", function () {
+        if (currentOverlay && currentOverlay !== overlay && currentOverlay !== fixedOverlay) {
+            currentOverlay.setMap(null);
+        }
 
-        /* ===== marker ===== */
-        var marker = new kakao.maps.Marker({
-            map: map,
-            position: position
-        });
-
-        /* ===== overlay ===== */
-        var overlayContent = `
-<div class="customoverlay">
-    <a class="overlay-link"
-       href="/facility/detail/${item.id}?fName=${encodeURIComponent(item.name)}">
-        <span class="title">${item.name}</span>
-    </a>
-</div>
-`;
-
-        var overlay = new kakao.maps.CustomOverlay({
-            position: position,
-            content: overlayContent,
-            yAnchor: 1
-        });
-
-        /* ===========================
-           marker 이벤트
-           - overlay 보여주기만
-        =========================== */
-        kakao.maps.event.addListener(marker, "mouseover", function () {
+        if (fixedOverlay !== overlay) {
             overlay.setMap(map);
-        });
-
-        // overlay 벗어나면 닫기
-        kakao.maps.event.addEventListener("mouseleave", function () {
-            overlay.setMap(null);
-        });
-
-        kakao.maps.event.addListener(marker, "click", function () {
-            window.location.href =
-                `/facility/detail/${item.id}?fName=${encodeURIComponent(item.name)}`;
-        });
-
-        /* ===========================
-           overlay DOM 이벤트
-           - 닫기 & 클릭 담당
-        =========================== */
-        kakao.maps.event.addListener(overlay, "domready", function () {
-            var el = overlay.getContent();
-            if (!el) return;
-
-            // 제목 클릭
-            var link = el.querySelector(".overlay-link");
-            link.addEventListener("click", function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                window.location.href = this.href;
-            });
-        });
-
-        bounds.extend(position);
+            currentOverlay = overlay;
+        }
     });
 
-    /* 모든 마커 보이기 */
-    if (!bounds.isEmpty()) {
-        map.setBounds(bounds);
+    // mouseout → overlay 위에 없고 고정 아니면 닫기
+    kakao.maps.event.addListener(marker, "mouseout", function () {
+        setTimeout(function () {
+            if (!isOverlayHover && currentOverlay === overlay && fixedOverlay !== overlay) {
+                overlay.setMap(null);
+                currentOverlay = null;
+            }
+        }, 80);
+    });
+
+    // 마커 클릭 → 상세 이동
+    kakao.maps.event.addListener(marker, "click", function () {
+        window.location.href =
+            `/facility/detail/${item.id}?fName=${encodeURIComponent(item.name)}`;
+    });
+
+    markerMap[item.id] = {
+        marker: marker,
+        overlay: overlay,
+        position: position
+    };
+
+    bounds.extend(position);
+});
+
+/* 모든 마커 보이기 */
+if (!bounds.isEmpty()) {
+    map.setBounds(bounds);
+}
+
+/* ===========================
+   Overlay DOM 이벤트 (hover 유지)
+=========================== */
+document.addEventListener("mouseenter", function (e) {
+    if (e.target.closest(".customoverlay")) {
+        isOverlayHover = true;
     }
+}, true);
+
+document.addEventListener("mouseleave", function (e) {
+    if (e.target.closest(".customoverlay")) {
+        isOverlayHover = false;
+
+        setTimeout(function () {
+            if (!isOverlayHover && currentOverlay && currentOverlay !== fixedOverlay) {
+                currentOverlay.setMap(null);
+                currentOverlay = null;
+            }
+        }, 80);
+    }
+}, true);
+
+/* ===========================
+   Overlay 클릭 → 상세 이동
+=========================== */
+document.addEventListener("click", function (e) {
+    var overlayEl = e.target.closest(".customoverlay");
+    if (!overlayEl) return;
+
+    var id = overlayEl.dataset.id;
+    window.location.href = `/facility/detail/${id}`;
+});
+
+/* ===========================
+   리스트 클릭 → Overlay 고정
+=========================== */
+document.querySelectorAll(".facility-link").forEach(function (link) {
+    link.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        var id = this.dataset.id;
+        var obj = markerMap[id];
+        if (!obj) return;
+
+        map.setCenter(obj.position);
+        map.setLevel(7);
+
+        // 기존 고정 overlay 닫기
+        if (fixedOverlay && fixedOverlay !== obj.overlay) {
+            fixedOverlay.setMap(null);
+        }
+
+        obj.overlay.setMap(map);
+        fixedOverlay = obj.overlay;
+        currentOverlay = obj.overlay;
+
+        var mapRect = container.getBoundingClientRect();
+        window.scrollTo({
+            top: window.pageYOffset + mapRect.top - 100,
+            behavior: "smooth"
+        });
+    });
+});
+
 
 
 
