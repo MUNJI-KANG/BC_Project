@@ -1,5 +1,6 @@
 {% extends 'common/base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}예약 상세{% endblock %}
 
@@ -19,6 +20,7 @@
 
         <div class="detail-row"><span>예약번호:</span> {{ reservation_num }}</div>
         <div class="detail-row"><span>예약한 날짜:</span> {{ reg_date }}</div>
+        <div class="detail-row"><span>결제 금액:</span> {{ payment|intcomma }}원</div>
 
         <div class="detail-row">
             <span>이용 시간:</span>

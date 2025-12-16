@@ -454,13 +454,36 @@ def cancel_timeslot(request, reservation_num):
                 end_time=s["end"]
             ).update(delete_yn=1)
 
-        # 남은 슬롯이 모두 delete_yn = 1이면 예약 전체 취소
-        if not TimeSlot.objects.filter(reservation_id=reservation, delete_yn=0).exists():
+        # 남은 슬롯 집계
+        remaining_slots = TimeSlot.objects.filter(reservation_id=reservation, delete_yn=0)
+
+        # 모두 취소되었다면 예약도 취소 처리
+        if not remaining_slots.exists():
             reservation.delete_yn = 1
             reservation.delete_date = datetime.now()
+            reservation.payment = 0
             reservation.save()
+            return JsonResponse({"result": "ok", "msg": "선택한 시간대가 취소되었습니다.", "payment": 0})
 
-        return JsonResponse({"result": "ok", "msg": "선택한 시간대가 취소되었습니다."})
+        # 남은 슬롯 기반으로 결제 금액 재계산
+        facility = remaining_slots.first().facility_id
+        rt = facility.reservation_time or {}
+
+        total_payment = 0
+        for slot in remaining_slots:
+            day_key = slot.date.strftime("%A").lower()
+            day_info = rt.get(day_key, {})
+            price_per_slot = int(day_info.get("payment") or 0)
+            total_payment += price_per_slot
+
+        reservation.payment = total_payment
+        reservation.save()
+
+        return JsonResponse({
+            "result": "ok",
+            "msg": "선택한 시간대가 취소되었습니다.",
+            "payment": total_payment
+        })
 
     except Exception as e:
         return JsonResponse({"result": "error", "msg": "취소 실패"})
@@ -504,6 +527,7 @@ def myreservation_detail(request, reservation_num):
             "facility_tel": facility.tel,
             "reservation_num": reservation.reservation_num,
             "reg_date": reservation.reg_date.strftime("%Y-%m-%d %H:%M"),
+            "payment": reservation.payment,
             "slot_list": slot_list,
             "all_cancelled": all_cancelled,   # ← 상세페이지에서 버튼 숨기기 용도
         }

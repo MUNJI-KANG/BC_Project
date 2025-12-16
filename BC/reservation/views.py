@@ -160,26 +160,39 @@ def reservation_save(request):
     except FacilityInfo.DoesNotExist:
         return JsonResponse({"result": "error", "msg": "시설을 찾을 수 없습니다."})
 
+    # 날짜 파싱 및 요일별 요금 확인
+    try:
+        res_date = datetime.strptime(date, "%Y-%m-%d").date()
+    except ValueError:
+        return JsonResponse({"result": "error", "msg": "잘못된 날짜 형식"})
+
+    day_key = res_date.strftime("%A").lower()
+    day_info = (facility.reservation_time or {}).get(day_key, {})
+    if not day_info.get("active"):
+        return JsonResponse({"result": "error", "msg": "해당 요일은 예약 불가합니다."})
+
+    price_per_slot = int(day_info.get("payment") or 0)
+    total_payment = price_per_slot * len(slots)
+
     # 예약 생성
     reservation_num = str(random.randint(10000000, 99999999))
     reservation = Reservation.objects.create(
         reservation_num=reservation_num,
-        member=Member.objects.get(user_id=request.session["user_id"])
+        member=Member.objects.get(user_id=request.session["user_id"]),
+        payment=total_payment
     )
-
 
     for slot in slots:
         start = slot["start"]
         end = slot["end"]
 
-
         TimeSlot.objects.create(
             facility_id=facility,
-            date=date,
+            date=res_date,
             start_time=start,
             end_time=end,
             reservation_id=reservation,
             delete_yn=0
         )
 
-    return JsonResponse({"result": "ok"})
+    return JsonResponse({"result": "ok", "payment": total_payment})

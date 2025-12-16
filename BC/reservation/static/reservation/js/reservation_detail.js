@@ -31,6 +31,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const slotGrid = document.getElementById("time-slot-grid");
     const selectedDateEl = document.getElementById("selected-date");
     const selectedTimeEl = document.getElementById("selected-time");
+    let pricePerSlot = 0;
+    let selectedSlots = []; // [{start, end}]
+
+    // 총 금액 및 선택 시간 표시
+    function updateTotal() {
+        const total = selectedSlots.length * pricePerSlot;
+        document.getElementById("total-price").textContent =
+            `${total.toLocaleString("ko-KR")}원`;
+        document.getElementById("selected-time").textContent =
+            selectedSlots.length
+                ? selectedSlots.map(s => `${s.start} ~ ${s.end}`).join(", ")
+                : "-";
+    }
 
     /* ---------------------------
         2) 캘린더 설정
@@ -57,6 +70,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const dayOfWeek = clicked.toLocaleString("en-US", { weekday: "long" }).toLowerCase();
             const dayInfo = reservationTime[dayOfWeek];
+            pricePerSlot = Number(dayInfo?.payment || 0); // 관리자가 설정한 요금
+            selectedSlots = [];
+            updateTotal();
 
             slotGrid.innerHTML = "";
 
@@ -133,18 +149,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 div.style.pointerEvents = "none";
             } else {
                 div.addEventListener("click", function () {
+                    const key = `${slotStart}-${slotEnd}`;
+                    const idx = selectedSlots.findIndex(s => `${s.start}-${s.end}` === key);
 
-                    if (div.classList.contains("selected")) {
+                    if (idx >= 0) {
+                        selectedSlots.splice(idx, 1);
                         div.classList.remove("selected");
                     } else {
+                        selectedSlots.push({ start: slotStart, end: slotEnd });
                         div.classList.add("selected");
                     }
-
-                    const selectedSlots = Array.from(document.querySelectorAll(".slot.selected"))
-                        .map(s => s.textContent);
-
-                    selectedTimeEl.textContent =
-                        selectedSlots.length === 0 ? "-" : selectedSlots.join(", ");
+                    updateTotal();
                 });
             }
 
@@ -168,17 +183,11 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("reserve-button").addEventListener("click", function () {
 
         const date = selectedDateEl.textContent;
-        const selected = selectedTimeEl.textContent;
 
-        if (date === "-" || selected === "-") {
+        if (date === "-" || selectedSlots.length === 0) {
             alert("날짜와 시간을 선택해주세요.");
             return;
         }
-
-        const slotList = selected.split(", ").map(t => {
-            const [s, e] = t.split(" ~ ");
-            return { start: s, end: e };
-        });
 
         fetch("/reservation/save/", {
             method: "POST",
@@ -188,7 +197,7 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             body: JSON.stringify({
                 date: date,
-                slots: slotList,
+                slots: selectedSlots,
                 facility_id: facilityId
             })
         })
