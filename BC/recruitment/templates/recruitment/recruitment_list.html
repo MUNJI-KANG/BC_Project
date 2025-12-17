@@ -153,8 +153,15 @@
                 <span class="facility-col col-status">
                     
                     <span class="facility-col col-date">
-                        {{ item.end_date|date:"Y-m-d" }}
+                        
+                        {% if item.is_always_open %}
+                        상시모집
+                        {% else %}
+                        {{ item.end_set_date }}
+                        {% endif %}
+
                     </span>
+
                     
                 </span>
 

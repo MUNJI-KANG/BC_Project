@@ -21,7 +21,7 @@ from django.contrib import messages
 
 from django.views.decorators.http import require_POST
 from django.db import transaction, IntegrityError
-from django.db.models import Q, F, Count
+from django.db.models import Q, F, Count, Case,When,Value, BooleanField
 
 from collections import OrderedDict
 
@@ -52,7 +52,12 @@ def recruitment_list(request):
         .annotate(
             current_member= Count("joinstat"),
             comment_count = Count('comment', distinct=True),
-            end_date = F("endstatus__end_set_date"),
+            end_set_date = F("endstatus__end_set_date"),
+            is_always_open = Case(
+                When(endstatus__end_set_date=ALWAYS_OPEN_DATE, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+            ),
         )
     )
 
