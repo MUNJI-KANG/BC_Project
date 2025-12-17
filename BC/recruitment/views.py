@@ -92,8 +92,8 @@ def recruitment_list(request):
         qs = qs.order_by("title")
     elif sort == "views":
         qs = qs.order_by("-view_cnt")
-    elif sort =="end_date":
-        qs = qs.order_by("end_date")
+    elif sort =="end_set_date":
+        qs = qs.order_by("end_set_date")
     else:
         qs = qs.order_by("-reg_date")
 

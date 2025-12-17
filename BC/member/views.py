@@ -597,6 +597,7 @@ def reservation_cancel(request, reservation_num):
         return JsonResponse({"result": "error", "msg": "예약을 찾을 수 없습니다."})
 
 
+from django.db.models import F
 def myrecruitment(request):
     # 로그인 체크
     res = check_login(request)
@@ -612,9 +613,13 @@ def myrecruitment(request):
         # DB에서 본인이 작성한 모집글 조회 (삭제되지 않은 것만)
         from recruitment.models import Community
         
-        communities = Community.objects.filter(
+        communities = (Community.objects.filter(
             member_id=user,
-        ).order_by('-reg_date')
+        ).select_related("endstatus")
+        .annotate(
+            end_status=F("endstatus__end_stat"),
+        )
+        .order_by('-reg_date'))
 
 
 
@@ -635,7 +640,14 @@ def myrecruitment(request):
         communities = communities.order_by('-view_cnt')
     else:  # recent
         communities = communities.order_by('-reg_date')
-    
+
+    # 모집 상태 필터
+    status = request.GET.get("status", "all")
+    if status == "closed":
+        communities=communities.filter(endstatus__end_stat=1)
+    elif status == "open":
+        communities=communities.exclude(endstatus__end_stat=1)   
+
     # 페이지네이션
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
@@ -644,7 +656,7 @@ def myrecruitment(request):
     paging = pager(request, communities, per_page=per_page)
     page_obj = paging['page_obj']
     
-   
+
     
     context = {
         "page_obj": page_obj,
@@ -657,8 +669,6 @@ def myrecruitment(request):
     }
     
     return render(request, 'member/myrecruitment.html', context)
-
-
 
 
 def myarticle(request):
