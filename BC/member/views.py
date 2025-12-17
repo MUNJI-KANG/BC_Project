@@ -445,6 +445,17 @@ def cancel_timeslot(request, reservation_num):
 
     try:
         reservation = Reservation.objects.get(reservation_num=reservation_num)
+        
+        # 예약 날짜가 지났는지 확인
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        # 예약된 모든 슬롯 중 가장 빠른 날짜 확인
+        all_slots = TimeSlot.objects.filter(reservation_id=reservation, delete_yn=0)
+        if all_slots.exists():
+            earliest_date = min(slot.date for slot in all_slots if slot.date)
+            if earliest_date and earliest_date < today:
+                return JsonResponse({"result": "error", "msg": "예약 날짜가 지나 취소할 수 없습니다."})
 
         for s in slots:
             TimeSlot.objects.filter(
@@ -507,12 +518,23 @@ def myreservation_detail(request, reservation_num):
 
         # 전체 취소 여부 확인
         all_cancelled = True
+        
+        # 오늘 날짜
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        # 가장 빠른 예약 날짜 확인 (취소 불가 여부 판단용)
+        earliest_date = None
 
         slot_list = []
         for s in slots:
             is_cancelled = (s.delete_yn == 1)
             if not is_cancelled:
                 all_cancelled = False
+            
+            # 가장 빠른 예약 날짜 확인
+            if not earliest_date and s.date:
+                earliest_date = s.date
 
             slot_list.append({
                 "date": s.date.strftime("%Y-%m-%d"),
@@ -520,6 +542,15 @@ def myreservation_detail(request, reservation_num):
                 "end": s.end_time,
                 "is_cancelled": is_cancelled
             })
+        
+        # 예약 날짜가 지났는지 확인
+        is_past = False
+        if earliest_date and earliest_date < today:
+            is_past = True
+            # 예약 날짜가 지난 경우 자동으로 expire_yn 업데이트
+            if reservation.expire_yn == 0:  # 아직 만료 처리되지 않은 경우만
+                reservation.expire_yn = 1
+                reservation.save(update_fields=['expire_yn'])
 
         context = {
             "facility_name": facility.faci_nm,
@@ -530,6 +561,7 @@ def myreservation_detail(request, reservation_num):
             "payment": reservation.payment,
             "slot_list": slot_list,
             "all_cancelled": all_cancelled,   # ← 상세페이지에서 버튼 숨기기 용도
+            "is_past": is_past,  # 예약 날짜가 지났는지 여부
         }
 
         return render(request, "member/myreservation_detail.html", context)
@@ -565,6 +597,7 @@ def reservation_cancel(request, reservation_num):
         return JsonResponse({"result": "error", "msg": "예약을 찾을 수 없습니다."})
 
 
+from django.db.models import F
 def myrecruitment(request):
     # 로그인 체크
     res = check_login(request)
@@ -580,9 +613,13 @@ def myrecruitment(request):
         # DB에서 본인이 작성한 모집글 조회 (삭제되지 않은 것만)
         from recruitment.models import Community
         
-        communities = Community.objects.filter(
+        communities = (Community.objects.filter(
             member_id=user,
-        ).order_by('-reg_date')
+        ).select_related("endstatus")
+        .annotate(
+            end_status=F("endstatus__end_stat"),
+        )
+        .order_by('-reg_date'))
 
 
 
@@ -603,7 +640,14 @@ def myrecruitment(request):
         communities = communities.order_by('-view_cnt')
     else:  # recent
         communities = communities.order_by('-reg_date')
-    
+
+    # 모집 상태 필터
+    status = request.GET.get("status", "all")
+    if status == "closed":
+        communities=communities.filter(endstatus__end_stat=1)
+    elif status == "open":
+        communities=communities.exclude(endstatus__end_stat=1)   
+
     # 페이지네이션
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
@@ -612,7 +656,7 @@ def myrecruitment(request):
     paging = pager(request, communities, per_page=per_page)
     page_obj = paging['page_obj']
     
-   
+
     
     context = {
         "page_obj": page_obj,
@@ -625,8 +669,6 @@ def myrecruitment(request):
     }
     
     return render(request, 'member/myrecruitment.html', context)
-
-
 
 
 def myarticle(request):

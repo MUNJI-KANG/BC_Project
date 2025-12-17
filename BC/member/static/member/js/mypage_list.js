@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // 셀렉트 요소 찾기
     const sortEl = document.querySelector('select[name="order"]');       // 정렬
     const perPageEl = document.querySelector('select[name="page_size"]'); // 페이지당 개수
+    const statusEl = document.querySelector('select[name="status"]'); // 모집상태
+
 
     // 공통 URL 파라미터 객체
     const params = new URLSearchParams(window.location.search);
@@ -37,6 +39,22 @@ document.addEventListener("DOMContentLoaded", function () {
             window.location.search = newParams.toString();
         });
         }
+
+    /* ===========================
+    4) status 처리 (모집상태 유지)
+    =========================== */
+    if (statusEl) {
+        const nowStatus = params.get("status") || "all";
+        statusEl.value = nowStatus;
+
+        statusEl.addEventListener("change", function () {
+            const newParams = new URLSearchParams(window.location.search);
+            newParams.set("status", this.value);
+            newParams.set("page", 1);
+            window.location.search = newParams.toString();
+        });
+    }
+
 
     
 });
