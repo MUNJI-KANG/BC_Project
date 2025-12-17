@@ -236,26 +236,7 @@ def dashboard(request):
         pass
     
     # ============================================
-    # 6. 성별 분포
-    # ============================================
-    gender_data = {}
-    
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
-        
-        try:
-            gender_dist = Member.objects.filter(delete_yn=0).values('gender').annotate(
-                count=Count('member_id')
-            )
-            gender_data = {str(item['gender']): item['count'] for item in gender_dist}
-        except Exception:
-            pass
-    except Exception:
-        pass
-    
-    # ============================================
-    # 7. 예약 취소율 (개선: 기간별 추이 포함)
+    # 6. 예약 취소율 (개선: 기간별 추이 포함)
     # ============================================
     cancellation_rate = 0
     daily_cancellation_rate = {}

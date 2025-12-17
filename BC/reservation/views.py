@@ -52,15 +52,11 @@ def reservation_list(request):
     # 정렬 값 (기본값: 제목순)
     sort = request.GET.get("sort", "title")
 
-    # 정렬 적용 (DB 연결 후 쿼리로 교체)
+    # 정렬 적용 (모델에 존재하는 필드만 사용)
     if sort == "title":
         facilities = facilities.order_by('faci_nm')
     elif sort == "views":
         facilities = facilities.order_by('-view_cnt')
-    elif sort == "distance":
-        facilities = facilities.order_by('distance')
-    elif sort == "rating":
-        facilities = facilities.order_by('-rating')
 
     facility_list = []  # 빈 리스트 (DB 연결 후 교체)
     
