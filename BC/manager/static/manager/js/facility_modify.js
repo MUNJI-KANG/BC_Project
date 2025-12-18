@@ -315,7 +315,14 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="active-day-item" data-day="${it.day}">
                 <div class="active-day-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
                     <div class="active-day-label">${DAY_LABELS[it.day]} (interval: ${it.interval}분)</div>
-                    <button type="button" class="btn-delete-day" data-day="${it.day}" title="이 요일의 모든 시간 구간 삭제">삭제</button>
+                    <button type="button"
+        class="btn-delete-day"
+        data-day="${it.day}"
+        title="이 요일의 모든 시간 구간 삭제">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z"/>
+    </svg>
+</button>
                 </div>
                 <div class="active-day-slots">${it.slotText}</div>
             </div>
