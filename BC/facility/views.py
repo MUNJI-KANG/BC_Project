@@ -142,9 +142,7 @@ _geo_cache = {}
 GEO_CACHE_TTL = 60 * 60 * 24  # 24시간
 
 
-# -----------------------------
-# 1) 주소 정규화 함수
-# -----------------------------
+
 def clean_address(addr):
     if not addr:
         return ""
@@ -158,9 +156,7 @@ def clean_address(addr):
     return addr.strip()
 
 
-# -----------------------------
-# 2) 캐시 조회/저장
-# -----------------------------
+
 def _get_cached_geo(address):
     entry = _geo_cache.get(address)
     if not entry:
@@ -180,9 +176,7 @@ def _set_cached_geo(address, lat, lng):
     }
 
 
-# -----------------------------
-# 3) 시군구 중심좌표 fallback
-# -----------------------------
+
 def get_sigungu_center(sido, sigungu):
     """시군구 중심 좌표 가져오는 fallback"""
     query = f"{sido} {sigungu}"
@@ -208,9 +202,7 @@ def get_sigungu_center(sido, sigungu):
     return 37.5665, 126.9780
 
 
-# -----------------------------
-# 4) kakao_for_map — 여기만 바꾸면 OK
-# -----------------------------
+
 def kakao_for_map(page_obj):
     KAKAO_REST_KEY = os.getenv("KAKAO_REST_API_KEY")
     headers = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"} if KAKAO_REST_KEY else None
@@ -225,25 +217,11 @@ def kakao_for_map(page_obj):
         lat = None
         lng = None
 
-        # ----------------------------------
-        # 1) 원래 DB 좌표가 있으면 최우선 사용
-        # ----------------------------------
-        # if fac.get("lat") and fac.get("lng"):
-        #     lat = fac["lat"]
-        #     lng = fac["lng"]
-        
-        # else:
-            # -------------------------------
-            # 2) 캐시 조회
-            # -------------------------------
         if clean_addr_text:
             cached = _get_cached_geo(clean_addr_text)
             if cached:
                 lat, lng = cached
 
-            # -------------------------------
-            # 3) 카카오 지오코딩 호출
-            # -------------------------------
         if headers and clean_addr_text and (lat is None or lng is None):
             try:
                 resp = requests.get(
@@ -262,9 +240,6 @@ def kakao_for_map(page_obj):
             except Exception as e:
                 print("[지오코딩 오류]", e)
 
-            # -------------------------------
-            # 4) 여전히 좌표가 없으면 시군구 fallback
-            # -------------------------------
         if lat is None or lng is None:
             lat, lng = get_sigungu_center(fac["sido"], fac["sigungu"])
 

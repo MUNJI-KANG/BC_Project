@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import make_aware
 from datetime import datetime
-from facility.models import FacilityInfo
+from facility.models import Facility, FacilityInfo
 from reservation.models import Sports, Reservation
 from member.models import Member
 from .models import TimeSlot
@@ -18,7 +18,22 @@ from common.utils import check_login
 
 def reservation_list(request):
     # 종목불러오기
-    sports = Sports.objects.all()
+    #sports = Sports.objects.all()
+
+
+    sports = (
+        Facility.objects
+        .filter(
+            faci_gb_nm='공공',
+            faci_cd__in=FacilityInfo.objects
+                .filter(rs_posible=1)
+                .values_list('facility_id', flat=True)
+        )
+        .values_list('ftype_nm', flat=True)
+        .distinct()
+        .order_by('ftype_nm')
+    )
+
     # 시설불러오기
     
     #facilities = FacilityInfo.objects.all()
@@ -37,7 +52,14 @@ def reservation_list(request):
         facilities = facilities.filter(faci_nm__icontains=keyword)
     
     if sport:
-        facilities = facilities.filter(faci_nm__icontains=sport)
+        faci_cds = Facility.objects.filter(
+            ftype_nm__in=[sport]
+        ).values_list('faci_cd', flat=True)
+
+        facilities = facilities.filter(
+            facility_id__in=faci_cds
+        )
+        #facilities = facilities.filter(faci_nm__icontains=sport)
 
 
     
@@ -46,7 +68,7 @@ def reservation_list(request):
     sports_list = []
     for s in sports:
         sports_list.append({
-            "sName" : s.s_name
+            "sName" : s
         })
 
     # 정렬 값 (기본값: 제목순)

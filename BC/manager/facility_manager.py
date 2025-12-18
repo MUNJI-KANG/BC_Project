@@ -29,52 +29,70 @@ from reservation.models import Sports
 
 # 시설 추가
 def facility(request):
-    # 관리자 권한 확인
+    # -------------------------------
+    # 관리자 권한 체크
+    # -------------------------------
     if not is_manager(request):
         messages.error(request, "관리자 권한이 필요합니다.")
-        return redirect('manager:manager_login')
+        return redirect("manager:manager_login")
 
+    # -------------------------------
+    # GET 파라미터
+    # -------------------------------
     cp_nm = request.GET.get("sido", "")
     cpb_nm = request.GET.get("sigungu", "")
     keyword = request.GET.get("keyword", "")
-
-    per_page = int(request.GET.get("per_page", 15))
     apply_sports = request.GET.get("apply_sports", "")
+    per_page = int(request.GET.get("per_page", 15))
 
-
+    # -------------------------------
+    # 기본 Facility queryset
+    # -------------------------------
     queryset = build_facility_queryset(
         cp_nm=cp_nm or None,
         cpb_nm=cpb_nm or None,
         keyword=keyword or None,
         public_only=True,
-        normal_only=False,          # 관리자 → 상태 무관
-        exclude_registered=True,    # 관리자 → 이미 등록된 시설 제외
+        normal_only=False,        # 관리자 → 상태 무관
+        exclude_registered=True,  # 관리자 → 이미 등록된 시설 제외
     )
 
+    # -------------------------------
+    # 종목 목록 (Facility.ftype_nm 기준)
+    # -------------------------------
+    all_sports = (
+        Facility.objects
+        .filter(faci_gb_nm='공공')
+        .values_list('ftype_nm', flat=True)
+        .distinct()
+        .order_by('ftype_nm')
+    )
 
-    selected_ids = request.session.get("selected_sports", [])
-    selected_ids = list(map(int, selected_ids)) if selected_ids else []
-
-
-    if apply_sports and selected_ids:
-        selected_sports = Sports.objects.filter(sports_id__in=selected_ids)
-        if selected_sports.exists():
-            q = Q()
-            for s in selected_sports:
-                word = s.s_name.strip()
-                if word:
-                    q |= (
-                        Q(faci_nm__icontains=word) |
-                        Q(ftype_nm__icontains=word) |
-                        Q(cp_nm__icontains=word) |
-                        Q(cpb_nm__icontains=word)
-                    )
-            queryset = queryset.filter(q)
-
+    # -------------------------------
+    # 선택된 종목 (세션)
+    # -------------------------------
+    selected_sports = request.session.get("selected_sports", [])
+    selected_sports = [
+        s.strip()
+        for s in selected_sports
+        if isinstance(s, str) and s.strip()
+    ]
+    print("selected_sports", selected_sports)
+    # -------------------------------
+    # 종목 필터 적용 (IN ONLY)
+    # ※ 공공 조건은 build_facility_queryset에서 이미 처리됨
+    # -------------------------------
+    if apply_sports and selected_sports:
+        queryset = queryset.filter(
+            ftype_nm__in=selected_sports
+        )
+    print("queryset",queryset)
+    # -------------------------------
+    # 페이징
+    # -------------------------------
     paging = pager(request, queryset, per_page=per_page)
-    page_obj = paging['page_obj']
+    page_obj = paging["page_obj"]
 
-    # 번호 계산
     start_index = (page_obj.number - 1) * per_page
 
     facility_page = [
@@ -88,15 +106,17 @@ def facility(request):
         for idx, item in enumerate(page_obj.object_list)
     ]
 
-    all_sports = Sports.objects.all()
+    # -------------------------------
+    # sports_json (팝업용)
+    # -------------------------------
     sports_json = json.dumps(
         [
             {
-                "id": s.sports_id,
-                "s_name": s.s_name,
-                "selected": s.sports_id in selected_ids,
+                "id": idx + 1,          # UI용 순번
+                "s_name": name,         # ftype_nm
+                "selected": name in selected_sports,
             }
-            for s in all_sports
+            for idx, name in enumerate(all_sports)
         ],
         ensure_ascii=False
     )
@@ -109,10 +129,10 @@ def facility(request):
         "keyword": keyword,
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
         "sports_json": sports_json,
-        "block_range": paging['block_range'],
-        "block_start": paging['block_start'],
-        "block_end": paging['block_end'],
-        "paginator": paging['paginator'],
+        "block_range": paging["block_range"],
+        "block_start": paging["block_start"],
+        "block_end": paging["block_end"],
+        "paginator": paging["paginator"],
         "apply_sports": apply_sports,
     }
 
@@ -144,12 +164,21 @@ def add_sport(request):
 
 # 선택된 종목 저장 (세션에 저장)
 def save_selected_sports(request):
-    if request.method == "POST":
-        ids = request.POST.getlist("ids[]", [])
-        ids = list(map(int, ids))
-        request.session["selected_sports"] = ids
-        return JsonResponse({"status": "success"})
-    return JsonResponse({"status": "error"})
+    names = request.POST.getlist("names[]")
+
+    selected_sports = [
+        n.strip()
+        for n in names
+        if isinstance(n, str) and n.strip()
+    ]
+
+    request.session["selected_sports"] = selected_sports
+    request.session.modified = True
+
+    return JsonResponse({
+        "status": "success",
+        "count": len(selected_sports),
+    })
 
 
 # 종목 삭제 (DB 삭제)
