@@ -19,8 +19,8 @@ class Command(BaseCommand):
             EndStatus.objects
             .select_for_update()
             .filter(end_stat=0)
-            .exclude(end_set_date=ALWAYS_OPEN_DATE)   # 상시 모집 제외
-            .filter(end_set_date__lt=today)           # 마감일이 '어제까지'면 오늘 마감 처리
+            .exclude(end_set_date=ALWAYS_OPEN_DATE)  
+            .filter(end_set_date__lt=today)          
         )
 
         updated = qs.update(end_stat=1, end_date=today)

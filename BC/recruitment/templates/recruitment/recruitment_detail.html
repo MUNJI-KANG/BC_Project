@@ -69,7 +69,7 @@
                     <div class="detail-reservation">
                         
                         <div>
-                            <div>{{ grp.times.0.date }}
+                            <div>{{ grp.date }}
                             {% for t in grp.times %} {{ t.start_time }} ~ {{ t.end_time }} {% endfor %}</div>
                         </div>
                     </div>
@@ -78,8 +78,7 @@
             
             {% else %}
             <span class="detail-badge">예약된 시설이 없습니다.</span>
-            {% endif %}    
-            
+            {% endif %}            
             
             <span class="detail-badge">
                 # 마감일자 :
@@ -91,10 +90,6 @@
             </span>
 
         </div>
-        
-       
-
-
 
     </div>
 
@@ -190,7 +185,7 @@
 
     {% else %}
         {# 🔽 일반 사용자 영역 #}
-        {% if is_closed_or_full %}
+        {% if is_closed_or_full or is_closed %}
             <span class="detail-btn btn-join btn-join-closed">
                 모집 마감
             </span>

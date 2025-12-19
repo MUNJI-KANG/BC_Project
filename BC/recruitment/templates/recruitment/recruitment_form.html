@@ -216,8 +216,8 @@
                 {% if mode == "edit" and grp.reservation.reservation_id == current_reservation_id %}
                   selected
                 {% endif %}>
-                {{ grp.facility.faci_nm }}
-                ( {{ grp.times.0.date }}
+                {{ grp.facility_name }}
+                ( {{ grp.date }}
                   {% for t in grp.times %}
                     {{ t.start_time }}~{{ t.end_time }}{% if not forloop.last %}, {% endif %}
                   {% endfor %}

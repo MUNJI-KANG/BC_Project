@@ -150,7 +150,7 @@ def write(request):
         messages.error(request, "다시 로그인 해주세요.")
         return redirect("common:login")
 
-    # ✅ 이 회원이 이미 모집글에 사용한 reservation_id 목록
+
     used_reservation_ids = (
         Community.objects
         .filter(
@@ -161,7 +161,7 @@ def write(request):
         .values_list("reservation_id", flat=True)
     )
 
-    # 🔹 이 회원의 "아직 모집글에 쓰지 않은" 예약 목록
+
     my_reservations = (
         Reservation.objects
         .filter(
@@ -193,13 +193,12 @@ def write(request):
         if rid not in grouped_slots:
             grouped_slots[rid] = {
                 "reservation": slot.reservation_id,
-                "facility": slot.facility_id,
-                "times": []
+                "facility_name": slot.facility_id.faci_nm,  # 시설 이름
+                "date": slot.date,                          # 예약 날짜
+                "times": [],
             }
 
         grouped_slots[rid]["times"].append({
-            "t_id": slot.t_id,
-            "date": slot.date,
             "start_time": slot.start_time,
             "end_time": slot.end_time,
         })
@@ -393,10 +392,6 @@ def update(request, pk):
         .values_list("reservation_id_id", flat=True)
     )
 
-    # 연계된 마감여부 갖고 오기
-
-    end_status = get_object_or_404(EndStatus, community=community)
-
     # ----------------------------------------
     # 🔹 현재 지역에 맞는 나의 타임슬롯 중
     #    - delete_yn = 0
@@ -430,6 +425,10 @@ def update(request, pk):
         .order_by("-reg_date")
     )
 
+
+    # 연계된 마감여부 갖고 오기
+
+    end_status = get_object_or_404(EndStatus, community=community)
     # ----------------------------------------
     # 🔹 write()와 동일한 grouped 구조 만들기
     # ----------------------------------------
@@ -652,17 +651,15 @@ def detail(request, pk):
         )
 
         if slots_qs:
-            facility = slots_qs[0].facility_id  # 그 예약의 시설 (모든 슬롯이 동일 시설일 거라고 가정)
             grouped = {
                 "reservation": reservation_obj,
-                "facility": facility,
+                "facility": slots_qs[0].facility_id,
+                "date": slots_qs[0].date,
                 "times": [],
             }
 
             for slot in slots_qs:
                 grouped["times"].append({
-                    "t_id": slot.t_id,
-                    "date": slot.date,
                     "start_time": slot.start_time,
                     "end_time": slot.end_time,
                 })

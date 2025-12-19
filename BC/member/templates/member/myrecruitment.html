@@ -110,7 +110,7 @@ mypage base
               <div class="mypage-board-row-wrapper deleted-row">
                   <div class="mypage-board-row no-link">
                       <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
-                      <span class="col-title deleted-title">관리자에 의해 삭제된 글입니다.</span>
+                      <span class="col-title deleted-title">삭제된 글입니다.</span>
                       <span class="col-end-status">{% if post.end_status == 0 %}모집중{% else %}마감{% endif %}</span>
                       <span class="col-date">{{ post.delete_date|date:"Y-m-d" }}</span>
                       <span class="col-views">조회수 {{ post.view_cnt }}</span>
