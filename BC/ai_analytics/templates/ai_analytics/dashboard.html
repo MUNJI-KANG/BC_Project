@@ -834,6 +834,7 @@ function sendChatMessage(messageText = null) {
     responseDiv.appendChild(contentDiv);
     
     let fullResponse = '';
+    let isFirstChunk = true;  // 첫 청크 체크용 플래그
     
     eventSource.onmessage = function(event) {
         try {
@@ -842,11 +843,26 @@ function sendChatMessage(messageText = null) {
             if (data.done) {
                 eventSource.close();
                 typingDiv.remove();
-                document.getElementById('chatMessages').appendChild(responseDiv);
+                // responseDiv가 이미 DOM에 있으면 중복 추가 방지
+                // done이 왔는데 아직 responseDiv가 추가되지 않았다면 (청크가 없었던 경우) 추가
+                if (!responseDiv.parentNode) {
+                    document.getElementById('chatMessages').appendChild(responseDiv);
+                }
+                // 마지막 업데이트 (에러 메시지 등이 chunk로 올 수 있음)
+                if (fullResponse) {
+                    contentDiv.innerHTML = markdownToHtml(fullResponse);
+                }
                 document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
                 sendBtn.disabled = false;
                 isStreaming = false;
             } else if (data.chunk) {
+                // 첫 번째 청크가 도착하면 타이핑 인디케이터 제거하고 responseDiv 추가
+                if (isFirstChunk) {
+                    isFirstChunk = false;
+                    typingDiv.remove();
+                    document.getElementById('chatMessages').appendChild(responseDiv);
+                }
+                
                 fullResponse += data.chunk;
                 // 마크다운을 HTML로 변환
                 contentDiv.innerHTML = markdownToHtml(fullResponse);
