@@ -402,7 +402,8 @@ def calculate_dynamic_stats(needs, start_date):
                 if not df.empty:
                     df['year'] = df['schk_visit_ymd'].str[:4]
                     df['year_int'] = pd.to_numeric(df['year'], errors='coerce')
-                    valid_df = df[(df['year_int'] >= 2000) & (df['year_int'] <= 2025)]
+                    current_year = timezone.now().year
+                    valid_df = df[(df['year_int'] >= 2000) & (df['year_int'] <= current_year)]
                     
                     if not valid_df.empty:
                         yearly_trend = {}
@@ -807,12 +808,13 @@ def collect_stats_data(start_date):
                     # 연도별 점검 추세
                     df_safety['year'] = df_safety['schk_visit_ymd'].str[:4]
                     df_safety['year_int'] = pd.to_numeric(df_safety['year'], errors='coerce')
-                    valid_df = df_safety[(df_safety['year_int'] >= 2000) & (df_safety['year_int'] <= 2025)]
+                    current_year = timezone.now().year
+                    valid_df = df_safety[(df_safety['year_int'] >= 2000) & (df_safety['year_int'] <= current_year)]
                     
                     if not valid_df.empty:
                         yearly_trend = valid_df.groupby('year').size()
                         min_year = int(valid_df['year'].min())
-                        max_year = 2025
+                        max_year = current_year
                         
                         stats['safety_stats']['yearly_inspection_trend'] = {
                             str(year): int(yearly_trend.get(str(year), 0))

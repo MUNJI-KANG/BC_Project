@@ -236,7 +236,26 @@ def dashboard(request):
         pass
     
     # ============================================
-    # 6. 예약 취소율 (개선: 기간별 추이 포함)
+    # 6. 성별 분포
+    # ============================================
+    gender_data = {}
+    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        
+        try:
+            gender_dist = Member.objects.filter(delete_yn=0).values('gender').annotate(
+                count=Count('member_id')
+            )
+            gender_data = {str(item['gender']): item['count'] for item in gender_dist}
+        except Exception:
+            pass
+    except Exception:
+        pass
+    
+    # ============================================
+    # 7. 예약 취소율 (개선: 기간별 추이 포함)
     # ============================================
     cancellation_rate = 0
     daily_cancellation_rate = {}
@@ -431,9 +450,6 @@ def facility_inspection_stats(request):
     """
     시설 안전점검 통계 페이지
     """
-    # 현재 연도 가져오기
-    current_year = timezone.now().year
-    
     # 필터 파라미터
     region_filter = request.GET.get('region', '')
     sport_filter = request.GET.get('sport', '')
@@ -470,39 +486,11 @@ def facility_inspection_stats(request):
                 ))
                 
                 if not df_facilities.empty:
-                    # 전체 데이터 수
-                    total_count = len(df_facilities)
-                    
-                    # 연도별 점검 추세 (2000~현재 연도)
+                    # 연도별 점검 추세 (2000~현재년도)
+                    current_year = timezone.now().year
                     df_facilities['year'] = df_facilities['schk_visit_ymd'].str[:4]
                     df_facilities['year_int'] = pd.to_numeric(df_facilities['year'], errors='coerce')
                     valid_df = df_facilities[(df_facilities['year_int'] >= 2000) & (df_facilities['year_int'] <= current_year)]
-                    
-                    # 비정상값 계산 및 출력
-                    invalid_count = total_count - len(valid_df)
-                    abnormal_percentage = round((invalid_count / total_count * 100), 2) if total_count > 0 else 0
-                    
-                    # 상세 분석
-                    year_na_count = df_facilities['year_int'].isna().sum()
-                    year_na_percentage = round((year_na_count / total_count * 100), 2) if total_count > 0 else 0
-                    
-                    valid_year_df = df_facilities[df_facilities['year_int'].notna()]
-                    invalid_year_range = len(valid_year_df) - len(valid_df)
-                    invalid_year_range_percentage = round((invalid_year_range / total_count * 100), 2) if total_count > 0 else 0
-                    
-                    grade_na_count = df_facilities['schk_tot_grd_nm'].isna().sum()
-                    grade_na_percentage = round((grade_na_count / total_count * 100), 2) if total_count > 0 else 0
-                    
-                    print(f"""
-[시설 안전 통계 비정상값 분석]
-전체 데이터: {total_count:,}건
-- 연도 NaN: {year_na_count:,}건 ({year_na_percentage}%)
-- 연도 범위 초과 (2000년 이전 또는 {current_year}년 이후): {invalid_year_range:,}건 ({invalid_year_range_percentage}%)
-- 등급 NaN: {grade_na_count:,}건 ({grade_na_percentage}%)
-- 총 제외된 데이터 (연도 기준): {invalid_count:,}건 ({abnormal_percentage}%)
-- 유효 데이터: {len(valid_df):,}건
-""")
-                    
                     yearly_trend = valid_df.groupby('year').size()
                     
                     # 최초 년도와 최종 년도 확인
@@ -573,9 +561,6 @@ def facility_inspection_yearly_detail(request):
     연도별 안전점검 추세 상세 페이지
     연도, 지역, 종목을 교차 선택하여 통계 확인 가능
     """
-    # 현재 연도 가져오기
-    current_year = timezone.now().year
-    
     # 필터 파라미터 (모두 동시 선택 가능)
     year_filter = request.GET.get('year', '')  # 단일 선택
     region_filter = request.GET.get('region', '')
@@ -619,7 +604,8 @@ def facility_inspection_yearly_detail(request):
                 if not df_facilities.empty:
                     df_facilities['year'] = df_facilities['schk_visit_ymd'].str[:4]
                     
-                    # 연도별 통계 (2000~현재 연도)
+                    # 연도별 통계 (2000~현재년도)
+                    current_year = timezone.now().year
                     df_facilities['year_int'] = pd.to_numeric(df_facilities['year'], errors='coerce')
                     valid_df = df_facilities[(df_facilities['year_int'] >= 2000) & (df_facilities['year_int'] <= current_year)]
                     
@@ -656,13 +642,14 @@ def facility_inspection_yearly_detail(request):
                             summary_stats['max_year'] = max(non_zero_years, key=non_zero_years.get)
                             summary_stats['min_year'] = min(non_zero_years, key=non_zero_years.get)
             
-            # 옵션 리스트 생성 (2000~현재 연도)
+            # 옵션 리스트 생성 (2000~현재년도)
+            current_year = timezone.now().year
             all_facilities = Facility.objects.exclude(schk_visit_ymd__isnull=True).exclude(schk_visit_ymd='')
             if all_facilities.exists():
                 df_all = read_frame(all_facilities.values('schk_visit_ymd'))
                 if not df_all.empty:
                     df_all['year'] = df_all['schk_visit_ymd'].str[:4]
-                    # 연도 유효성 검사 (2000~현재 연도)
+                    # 연도 유효성 검사 (2000~현재년도)
                     df_all['year_int'] = pd.to_numeric(df_all['year'], errors='coerce')
                     valid_years = df_all[(df_all['year_int'] >= 2000) & (df_all['year_int'] <= current_year)]['year'].unique()
                     years = sorted(valid_years.tolist(), reverse=True)
@@ -702,9 +689,6 @@ def facility_inspection_grade_detail(request):
     """
     등급별 분포 상세 페이지 (시설 목록 표시)
     """
-    # 현재 연도 가져오기
-    current_year = timezone.now().year
-    
     # 필터 파라미터
     year_filter = request.GET.get('year', '')
     region_filter = request.GET.get('region', '')
@@ -728,7 +712,8 @@ def facility_inspection_grade_detail(request):
         try:
             facilities = Facility.objects.exclude(schk_visit_ymd__isnull=True).exclude(schk_visit_ymd='')
             
-            # 연도 필터링 (2000~현재 연도)
+            # 연도 필터링 (2000~현재년도)
+            current_year = timezone.now().year
             facilities = facilities.extra(
                 where=[f"SUBSTRING(schk_visit_ymd, 1, 4) >= '2000' AND SUBSTRING(schk_visit_ymd, 1, 4) <= '{current_year}'"]
             )
@@ -771,13 +756,14 @@ def facility_inspection_grade_detail(request):
                     'row_no': start_index + idx + 1,
                 })
             
-            # 옵션 리스트 생성 (2000~현재 연도)
+            # 옵션 리스트 생성 (2000~현재년도)
+            current_year = timezone.now().year
             all_facilities = Facility.objects.exclude(schk_visit_ymd__isnull=True).exclude(schk_visit_ymd='')
             if all_facilities.exists():
                 df_all = read_frame(all_facilities.values('schk_visit_ymd'))
                 if not df_all.empty:
                     df_all['year'] = df_all['schk_visit_ymd'].str[:4]
-                    # 연도 유효성 검사 (2000~현재 연도)
+                    # 연도 유효성 검사 (2000~현재년도)
                     df_all['year_int'] = pd.to_numeric(df_all['year'], errors='coerce')
                     valid_years = df_all[(df_all['year_int'] >= 2000) & (df_all['year_int'] <= current_year)]['year'].unique()
                     years = sorted(valid_years.tolist(), reverse=True)
