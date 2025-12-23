@@ -299,6 +299,50 @@
         padding-left: 24px;
     }
     
+    .message.assistant .message-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .message.assistant .message-content table thead {
+        background: linear-gradient(135deg, #3b82f6 0%, #22c55e 100%);
+        color: white;
+    }
+    
+    .message.assistant .message-content table th {
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+    
+    .message.assistant .message-content table tbody tr {
+        background: white;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .message.assistant .message-content table tbody tr:nth-child(even) {
+        background: #f8f9fa;
+    }
+    
+    .message.assistant .message-content table tbody tr:hover {
+        background: #e9ecef;
+    }
+    
+    .message.assistant .message-content table td {
+        padding: 10px 16px;
+        border-right: 1px solid #e9ecef;
+    }
+    
+    .message.assistant .message-content table td:last-child {
+        border-right: none;
+    }
+    
     .chat-input-container {
         padding: 20px 24px;
         background: white;
@@ -894,18 +938,176 @@ function handleChatInputKey(event) {
     textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
 }
 
+// 테이블 변환 함수
+function convertTableToHtml(tableLines) {
+    if (tableLines.length === 0) return '';
+    
+    let tableHtml = '<table><thead><tr>';
+    
+    // 첫 번째 줄이 헤더
+    const headerLine = tableLines[0];
+    const headers = headerLine.split('|').map(h => h.trim()).filter(h => h);
+    
+    headers.forEach(h => {
+        tableHtml += `<th>${h}</th>`;
+    });
+    tableHtml += '</tr></thead><tbody>';
+    
+    // 나머지 줄이 데이터 행
+    for (let i = 1; i < tableLines.length; i++) {
+        const cells = tableLines[i].split('|').map(c => c.trim()).filter(c => c);
+        if (cells.length > 0) {
+            tableHtml += '<tr>';
+            cells.forEach(cell => {
+                tableHtml += `<td>${cell}</td>`;
+            });
+            tableHtml += '</tr>';
+        }
+    }
+    
+    tableHtml += '</tbody></table>';
+    return tableHtml;
+}
+
 function markdownToHtml(text) {
-    // 간단한 마크다운 변환
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    text = text.replace(/`(.*?)`/g, '<code>$1</code>');
-    text = text.replace(/^### (.*$)/gm, '<h3>$1</h3>');
-    text = text.replace(/^## (.*$)/gm, '<h2>$1</h2>');
-    text = text.replace(/^# (.*$)/gm, '<h1>$1</h1>');
-    text = text.replace(/^- (.*$)/gm, '<li>$1</li>');
-    text = text.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-    text = text.replace(/\n/g, '<br>');
-    return text;
+    if (!text) return '';
+    
+    let html = text;
+    
+    // 코드 블록 처리 (```로 감싼 부분) - 가장 먼저 처리
+    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    
+    // 테이블 처리 (리스트보다 먼저 처리)
+    const lines = html.split('\n');
+    let tableLines = [];
+    let inTable = false;
+    let result = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // 코드 블록 내부는 그대로 유지
+        if (line.includes('<pre><code>') || line.includes('</code></pre>')) {
+            if (inTable && tableLines.length > 0) {
+                result.push(convertTableToHtml(tableLines));
+                tableLines = [];
+                inTable = false;
+            }
+            result.push(line);
+            continue;
+        }
+        
+        // 테이블 행인지 확인 (|로 시작하고 끝나는 줄)
+        const isTableRow = /^\|.+\|$/.test(line.trim());
+        const isTableSeparator = /^\|[\s\-:]+\|$/.test(line.trim());
+        
+        if (isTableRow && !isTableSeparator) {
+            if (!inTable) {
+                inTable = true;
+                tableLines = [];
+            }
+            tableLines.push(line);
+        } else if (isTableSeparator && inTable) {
+            // 헤더 구분선은 무시 (이미 헤더가 있으므로)
+            continue;
+        } else {
+            // 테이블이 끝났으면 변환
+            if (inTable && tableLines.length > 0) {
+                result.push(convertTableToHtml(tableLines));
+                tableLines = [];
+                inTable = false;
+            }
+            result.push(line);
+        }
+    }
+    
+    // 마지막 테이블 처리
+    if (inTable && tableLines.length > 0) {
+        result.push(convertTableToHtml(tableLines));
+    }
+    
+    html = result.join('\n');
+    
+    // 리스트 처리
+    const listLines = html.split('\n');
+    let inList = false;
+    let listType = '';
+    let listResult = [];
+    
+    for (let i = 0; i < listLines.length; i++) {
+        const line = listLines[i];
+        
+        // 코드 블록, 테이블 태그는 그대로 유지
+        if (line.includes('<pre><code>') || line.includes('</code></pre>') ||
+            line.includes('<table>') || line.includes('</table>') ||
+            line.includes('<thead>') || line.includes('</thead>') ||
+            line.includes('<tbody>') || line.includes('</tbody>') ||
+            line.includes('<tr>') || line.includes('</tr>') ||
+            line.includes('<th>') || line.includes('</th>') ||
+            line.includes('<td>') || line.includes('</td>')) {
+            if (inList) {
+                listResult.push(`</${listType}>`);
+                inList = false;
+                listType = '';
+            }
+            listResult.push(line);
+            continue;
+        }
+        
+        const bulletMatch = line.match(/^[\*\-] (.+)$/);
+        const numberMatch = line.match(/^\d+\. (.+)$/);
+        
+        if (bulletMatch) {
+            if (!inList || listType !== 'ul') {
+                if (inList) listResult.push(`</${listType}>`);
+                listResult.push('<ul>');
+                inList = true;
+                listType = 'ul';
+            }
+            listResult.push(`<li>${bulletMatch[1]}</li>`);
+        } else if (numberMatch) {
+            if (!inList || listType !== 'ol') {
+                if (inList) listResult.push(`</${listType}>`);
+                listResult.push('<ol>');
+                inList = true;
+                listType = 'ol';
+            }
+            listResult.push(`<li>${numberMatch[1]}</li>`);
+        } else {
+            if (inList) {
+                listResult.push(`</${listType}>`);
+                inList = false;
+                listType = '';
+            }
+            listResult.push(line);
+        }
+    }
+    
+    if (inList) {
+        listResult.push(`</${listType}>`);
+    }
+    
+    html = listResult.join('\n');
+    
+    // 인라인 코드 처리
+    html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+    
+    // 강조 처리 (순서 중요: ** 먼저, * 나중)
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    
+    // 헤더 처리
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    
+    // 줄바꿈 처리
+    html = html.replace(/\n(?!<[\/]?(ul|ol|li|h[1-6]|pre|code|p|br|strong|em|table|thead|tbody|tr|th|td))/g, '<br>');
+    
+    // 연속된 <br> 정리
+    html = html.replace(/(<br>\s*){3,}/g, '<br><br>');
+    
+    return html;
 }
 
 function loadChatHistory() {

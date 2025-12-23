@@ -1013,17 +1013,15 @@ def ai_chat_ajax(request):
         return JsonResponse({'success': False, 'error': '관리자 권한이 필요합니다.'}, status=403)
     
     try:
-        # GET 요청 (스트리밍용)
-        if request.method == 'GET':
-            user_message = request.GET.get('message', '').strip()
-            date_range = request.GET.get('date_range', '7')
-            use_stream = True
-        else:
-            # POST 요청
-            data = json.loads(request.body)
-            user_message = data.get('message', '').strip()
-            date_range = data.get('date_range', '7')
-            use_stream = data.get('stream', False)
+        # GET 요청만 지원 (스트리밍용 EventSource)
+        if request.method != 'GET':
+            return JsonResponse({
+                'success': False,
+                'error': 'GET 요청만 지원됩니다.'
+            }, status=405)
+        
+        user_message = request.GET.get('message', '').strip()
+        date_range = request.GET.get('date_range', '7')
         
         if not user_message:
             return JsonResponse({
@@ -1057,55 +1055,33 @@ def ai_chat_ajax(request):
         
         ai_service = AIAnalyticsService()
         
-        if use_stream:
-            # 스트리밍 응답 (Server-Sent Events)
-            from django.http import StreamingHttpResponse
-            import json as json_module
-            
-            def generate():
-                full_response = ""
-                try:
-                    for chunk in ai_service.chat_analysis_stream(user_message, stats_data, conversation_history):
-                        full_response += chunk
-                        yield f"data: {json_module.dumps({'chunk': chunk, 'done': False})}\n\n"
-                    
-                    # 대화 히스토리 업데이트
-                    conversation_history.append({"role": "user", "content": user_message})
-                    conversation_history.append({"role": "assistant", "content": full_response})
-                    # 최근 20개만 유지
-                    request.session[session_key] = conversation_history[-20:]
-                    request.session.save()
-                    
-                    yield f"data: {json_module.dumps({'chunk': '', 'done': True})}\n\n"
-                except Exception as e:
-                    error_msg = f"⚠️ 오류 발생: {str(e)}"
-                    yield f"data: {json_module.dumps({'chunk': error_msg, 'done': True})}\n\n"
-            
-            response = StreamingHttpResponse(generate(), content_type='text/event-stream')
-            response['Cache-Control'] = 'no-cache'
-            response['X-Accel-Buffering'] = 'no'  # nginx 버퍼링 방지
-            return response
-        else:
-            # 일반 응답
-            ai_response = ai_service.chat_analysis(user_message, stats_data, conversation_history)
-            
-            # 대화 히스토리 업데이트
-            conversation_history.append({"role": "user", "content": user_message})
-            conversation_history.append({"role": "assistant", "content": ai_response})
-            # 최근 20개만 유지
-            request.session[session_key] = conversation_history[-20:]
-            request.session.save()
-            
-            # 마크다운을 HTML로 변환
-            html = markdown.markdown(ai_response, extensions=['extra', 'codehilite', 'nl2br'])
-            allowed_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'br', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td']
-            ai_response_html = bleach.clean(html, tags=allowed_tags, strip=True)
-            
-            return JsonResponse({
-                'success': True,
-                'response': ai_response,
-                'response_html': ai_response_html
-            })
+        # 스트리밍 응답 (Server-Sent Events)
+        from django.http import StreamingHttpResponse
+        import json as json_module
+        
+        def generate():
+            full_response = ""
+            try:
+                for chunk in ai_service.chat_analysis_stream(user_message, stats_data, conversation_history):
+                    full_response += chunk
+                    yield f"data: {json_module.dumps({'chunk': chunk, 'done': False})}\n\n"
+                
+                # 대화 히스토리 업데이트
+                conversation_history.append({"role": "user", "content": user_message})
+                conversation_history.append({"role": "assistant", "content": full_response})
+                # 최근 20개만 유지
+                request.session[session_key] = conversation_history[-20:]
+                request.session.save()
+                
+                yield f"data: {json_module.dumps({'chunk': '', 'done': True})}\n\n"
+            except Exception as e:
+                error_msg = f"⚠️ 오류 발생: {str(e)}"
+                yield f"data: {json_module.dumps({'chunk': error_msg, 'done': True})}\n\n"
+        
+        response = StreamingHttpResponse(generate(), content_type='text/event-stream')
+        response['Cache-Control'] = 'no-cache'
+        response['X-Accel-Buffering'] = 'no'  # nginx 버퍼링 방지
+        return response
     
     except ValueError as e:
         return JsonResponse({
