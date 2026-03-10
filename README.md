@@ -13,18 +13,21 @@
 ### 시설관리(관리자/사용자) 기능 구현
 
 - **사용자 시설 화면**
+    - <img width="450" height="412" alt="image" src="https://github.com/user-attachments/assets/ad740582-dffb-4115-bc97-0560253de68f" />
+    - <img width="836" height="414" alt="image" src="https://github.com/user-attachments/assets/92370567-8046-4822-8003-c0098765c21b" />
     - 시설 목록 조회/검색/지역 필터 및 페이지네이션
     - 시설 상세 조회(공공시설 DB + 등록된 커스텀 정보(FacilityInfo) 우선 병합)
     - 시설 댓글 작성(공통 Comment 모델 사용)
     - 지도(카카오) 연동을 위한 좌표 처리 및 지오코딩 캐싱
 - **관리자 커스텀 페이지**
+    - <img width="883" height="415" alt="image" src="https://github.com/user-attachments/assets/544ebd15-fe84-46af-aece-90ec9986ae0b" />
     - 시설 추가/등록/목록/상세/수정/삭제
     - 시설 첨부파일 업로드/다운로드
     - 예약 현황 관리 및 타임슬롯 취소 API 제공
     - 종목(Sports) 관리(추가/삭제/선택 저장)
 
 ### 스케줄러 기반 공공 데이터 동기화(update_facility)
-
+- <img width="866" height="321" alt="image" src="https://github.com/user-attachments/assets/24edf1fc-fbce-4dea-8a91-13c0023c5109" />
 - Django management command로 공공 API를 페이지 단위로 수집
 - MySQL `INSERT ... ON DUPLICATE KEY UPDATE` 기반 UPSERT로 대용량 갱신 안정화
 - 네트워크 오류 대비 retry/timeout 적용 및 트랜잭션 처리
